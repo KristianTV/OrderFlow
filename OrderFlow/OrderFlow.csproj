@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-OrderFlow-390578cd-25e8-41d1-a1bf-f3c5c8c6d5f1</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.17" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.17" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.17" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.17" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.17" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OrderFlow.Data\OrderFlow.Data.csproj" />
+    <ProjectReference Include="..\OrderFlow.GCommon\OrderFlow.GCommon.csproj" />
+    <ProjectReference Include="..\OrderFlow.Services.Core\OrderFlow.Services.Core.csproj" />
+    <ProjectReference Include="..\OrderFlow.ViewModels\OrderFlow.ViewModels.csproj" />
+  </ItemGroup>
+
+</Project>
