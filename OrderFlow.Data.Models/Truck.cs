@@ -15,7 +15,7 @@ namespace OrderFlow.Data.Models
 
         public string Status { get; set; } = "Available";
 
-        public ICollection<TruckOrder> truckOrders { get; set; } = new HashSet<TruckOrder>();
+        public ICollection<TruckOrder> TruckOrders { get; set; } = new HashSet<TruckOrder>();
 
     }
 }

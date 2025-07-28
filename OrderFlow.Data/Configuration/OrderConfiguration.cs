@@ -11,9 +11,6 @@ namespace OrderFlow.Data.Configuration
         {
             builder.HasKey(o => o.OrderID);
 
-            builder.Property(o => o.UserID)
-                   .IsRequired();
-
             builder.Property(o => o.OrderDate)
                    .IsRequired();
 
