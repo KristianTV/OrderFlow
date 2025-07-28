@@ -2,10 +2,10 @@
 {
     public class TruckOrder
     {
-        public Guid OrderId { get; set; }
+        public Guid OrderID { get; set; }
         public Order Order { get; set; } = null!;
 
-        public Guid TruckId { get; set; }
+        public Guid TruckID { get; set; }
         public Truck Truck { get; set; } = null!;
     }
 }

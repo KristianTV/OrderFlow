@@ -9,8 +9,8 @@ namespace OrderFlow.Data.Models
         public Guid UserID { get; set; }
         public IdentityUser User { get; set; } = null!;
 
-        public DateTime OrderDate { get; set; } = DateTime.UtcNow;
-        public DateTime DeliveryDate { get; set; } = DateTime.UtcNow;
+        public DateTime OrderDate { get; set; }
+        public DateTime? DeliveryDate { get; set; }
 
         public string DeliveryAddress { get; set; } = string.Empty;
         public string PickupAddress { get; set; } = string.Empty;
@@ -21,7 +21,8 @@ namespace OrderFlow.Data.Models
         
         public bool isCanceled { get; set; } = false;
 
-        public ICollection<TruckOrder> truckOrders { get; set; } = new HashSet<TruckOrder>();
-        public ICollection<Payment> payments { get; set; } = new HashSet<Payment>();
+        public TruckOrder? TruckOrder { get; set; }
+
+        public ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();
     }
 }
