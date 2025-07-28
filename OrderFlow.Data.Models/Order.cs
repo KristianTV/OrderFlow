@@ -20,5 +20,7 @@ namespace OrderFlow.Data.Models
         public string Status { get; set; } = "Pending";
         
         public bool isCanceled { get; set; } = false;
+
+        public ICollection<TruckOrder> truckOrders { get; set; } = new HashSet<TruckOrder>();
     }
 }
