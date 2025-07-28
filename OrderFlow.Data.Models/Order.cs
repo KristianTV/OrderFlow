@@ -22,5 +22,6 @@ namespace OrderFlow.Data.Models
         public bool isCanceled { get; set; } = false;
 
         public ICollection<TruckOrder> truckOrders { get; set; } = new HashSet<TruckOrder>();
+        public ICollection<Payment> payments { get; set; } = new HashSet<Payment>();
     }
 }
