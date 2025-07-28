@@ -9,7 +9,7 @@ namespace OrderFlow.Data.Models
         public string Title { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
 
         public bool IsRead { get; set; } = false;
 
@@ -21,5 +21,7 @@ namespace OrderFlow.Data.Models
 
         public Guid? OrderId { get; set; }
         public Order? Order { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
     }
 }

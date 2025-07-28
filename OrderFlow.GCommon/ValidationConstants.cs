@@ -12,5 +12,11 @@
             public static int DeliveryAddressMaxLength = 250;
             public static int PickupAddressMaxLength = 250;
         }
+
+        public static class Notification
+        {
+            public static int TitleMaxLenght = 100;
+            public static int MessageMaxLength = 500;
+        }
     }
 }

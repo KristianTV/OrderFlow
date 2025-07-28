@@ -24,5 +24,7 @@ namespace OrderFlow.Data.Models
         public TruckOrder? TruckOrder { get; set; }
 
         public ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();
+
+        public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
     }
 }
