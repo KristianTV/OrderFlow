@@ -24,5 +24,10 @@
             public static int LicensePlateMaxLength = 20;
             public static int StatusMaxLength = 50;
         }
+
+        public static class Payment
+        {
+            public static int PaymentDescriptionMaxLength = 100;
+        }
     }
 }
