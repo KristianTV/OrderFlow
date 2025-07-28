@@ -41,6 +41,8 @@ namespace OrderFlow.Data.Configuration
             builder.Property(n => n.IsDeleted)
                    .IsRequired()
                    .HasDefaultValue(false);
+
+            builder.HasQueryFilter(n => !n.IsDeleted);
         }
     }
 }
