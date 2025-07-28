@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OrderFlow.Data.Models;
 using OrderFlow.GCommon;
-using System.ComponentModel.DataAnnotations;
 
 namespace OrderFlow.Data.Configuration
 {

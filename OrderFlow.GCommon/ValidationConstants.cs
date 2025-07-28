@@ -18,5 +18,11 @@
             public static int TitleMaxLenght = 100;
             public static int MessageMaxLength = 500;
         }
+
+        public static class Truck
+        {
+            public static int LicensePlateMaxLength = 20;
+            public static int StatusMaxLength = 50;
+        }
     }
 }

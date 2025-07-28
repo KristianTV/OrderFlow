@@ -6,7 +6,7 @@ namespace OrderFlow.Data.Models
     {
         public Guid Id { get; set; }
 
-        public Guid DriverId { get; set; }
+        public Guid DriverID { get; set; }
         public IdentityUser Driver { get; set; } = null!;
 
         public string LicensePlate { get; set; } = string.Empty;
@@ -17,5 +17,6 @@ namespace OrderFlow.Data.Models
 
         public ICollection<TruckOrder> TruckOrders { get; set; } = new HashSet<TruckOrder>();
 
+        public bool isDeleted { get; set; } = false;
     }
 }
