@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OrderFlow.Data.Models;
-using OrderFlow.ViewModels;
+using OrderFlow.ViewModels.User;
 
 namespace OrderFlow.Controllers
 {

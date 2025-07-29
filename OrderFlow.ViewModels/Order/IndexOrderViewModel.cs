@@ -1,4 +1,4 @@
-﻿namespace OrderFlow.ViewModels
+﻿namespace OrderFlow.ViewModels.Order
 {
     public class IndexOrderViewModel
     {

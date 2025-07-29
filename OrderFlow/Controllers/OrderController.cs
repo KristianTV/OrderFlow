@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels;
+using OrderFlow.ViewModels.Order;
 using System.Threading.Tasks;
 
 namespace OrderFlow.Controllers
@@ -13,7 +14,7 @@ namespace OrderFlow.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IOrderService _orderService;
 
-        public OrderController(ILogger<HomeController> logger,IOrderService orderService)
+        public OrderController(ILogger<HomeController> logger, IOrderService orderService)
         {
             _logger = logger;
             _orderService = orderService;
@@ -22,15 +23,17 @@ namespace OrderFlow.Controllers
         [HttpGet]
         public async Task<IActionResult> Index() // see all orders
         {
-            var orders = await _orderService.All<Order>().Select(order => new IndexOrderViewModel
-            {
-                OrderID = order.OrderID,
-                OrderDate = order.OrderDate,
-                DeliveryAddress = order.DeliveryAddress,
-                PickupAddress = order.PickupAddress,
-                Status = order.Status,
-                isCanceled = order.isCanceled
-            }).ToListAsync();
+            var orders = await _orderService.All<Order>()
+                                            .AsNoTracking()
+                                            .Select(order => new IndexOrderViewModel
+                                            {
+                                                OrderID = order.OrderID,
+                                                OrderDate = order.OrderDate,
+                                                DeliveryAddress = order.DeliveryAddress,
+                                                PickupAddress = order.PickupAddress,
+                                                Status = order.Status,
+                                                isCanceled = order.isCanceled
+                                            }).ToListAsync();
 
             return View(orders);
         }
@@ -44,13 +47,13 @@ namespace OrderFlow.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateOrderViewModel createOrderViewModel) // create a new order
         {
-            if (!ModelState.IsValid) 
+            if (!ModelState.IsValid)
                 return View(createOrderViewModel);
 
-            if(!await _orderService.CreateOrderAsync(createOrderViewModel,this.GetUserId()))
+            if (!await _orderService.CreateOrderAsync(createOrderViewModel, this.GetUserId()))
                 return View(createOrderViewModel);
 
-            return RedirectToAction(nameof(Index),"Order");
+            return RedirectToAction(nameof(Index), "Order");
         }
 
         [HttpGet]
@@ -60,9 +63,53 @@ namespace OrderFlow.Controllers
         }
 
         [HttpGet]
-        public IActionResult Details(int? id) // view order details
+        public IActionResult Detail(string? id) // view order details
         {
-            return View();
+            var order = _orderService.All<Order>()
+                                     .AsNoTracking()
+                                     .Include(o => o.User)
+                                     .Include(o => o.Payments)
+                                     .Include(o => o.TruckOrder)
+                                     .Include(o => o.TruckOrder!.Truck)
+                                     .Where(o => o.OrderID.Equals(Guid.Parse(id)))
+                                     .Select(o => new DetailsOrderViewModel
+                                     {
+                                         OrderID = o.OrderID,
+                                         UserName = o.User!.UserName!,
+                                         OrderDate = o.OrderDate,
+                                         DeliveryDate = o.DeliveryDate,
+                                         DeliveryAddress = o.DeliveryAddress,
+                                         PickupAddress = o.PickupAddress,
+                                         DeliveryInstructions = o.DeliveryInstructions,
+                                         Status = o.Status,
+                                         isCanceled = o.isCanceled,
+                                         TruckLicensePlate = o.TruckOrder!.Truck.LicensePlate,
+                                         Payments = o.Payments.ToList(),
+                                         TotalPrice = o.Payments.ToList().Sum(p => p.Amount)
+                                     }).SingleOrDefault();
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            return View(order);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Cancel(string? id) // cancel an order
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            if (!await _orderService.CancelOrderAsync(Guid.Parse(id), this.GetUserId()))
+            {
+                return BadRequest("Failed to cancel the order.");
+            }
+
+            return RedirectToAction(nameof(Index), "Order");
         }
     }
 }

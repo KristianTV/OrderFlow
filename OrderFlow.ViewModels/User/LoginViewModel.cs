@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using System.ComponentModel.DataAnnotations;
 
-namespace OrderFlow.ViewModels
+namespace OrderFlow.ViewModels.User
 {
     public class LoginViewModel
     {

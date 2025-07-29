@@ -1,9 +1,10 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Repository;
 using OrderFlow.Services.Core.Contracts;
-using OrderFlow.ViewModels;
+using OrderFlow.ViewModels.Order;
 
 namespace OrderFlow.Services.Core
 {
@@ -11,6 +12,26 @@ namespace OrderFlow.Services.Core
     {
         public OrderService(OrderFlowDbContext _context) : base(_context)
         {
+        }
+
+        public async Task<bool> CancelOrderAsync(Guid guid, string? v)
+        {
+            Order? order = await this.DbSet<Order>().Where(x => x.OrderID.Equals(guid)).SingleOrDefaultAsync();
+
+            if (order != null)
+            {
+                if (order.isCanceled)
+                {
+                    return true;
+                }
+
+                order.isCanceled = true;
+                order.Status = "Canceled";
+                await this.SaveChangesAsync();
+                return true;
+            }
+
+            return false;
         }
 
         public async Task<bool> CreateOrderAsync(CreateOrderViewModel createOrderViewModel, string? userId)

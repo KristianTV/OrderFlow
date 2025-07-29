@@ -1,4 +1,5 @@
 ﻿@using OrderFlow.ViewModels;
+@using OrderFlow.ViewModels.Order
 @model IEnumerable<IndexOrderViewModel>;
 @{
     ViewData["Title"] = "All Orders";
@@ -21,7 +22,7 @@
                             <p class="card-text"><strong>Pickup:</strong> @order.PickupAddress</p>
                             <p class="card-text">
                                 <strong>Status:</strong>
-                                <span class="badge bg-@(order.Status == "Pending" ? "warning" : order.Status == "Completed" ? "success" : "secondary")">
+                                <span class="badge bg-@(order.Status == "Pending" ? "warning" : order.Status == "Completed" ? "success" : order.Status == "Canceled" ? "danger" : "secondary")">
                                     @order.Status
                                 </span>
                             </p>

@@ -1,0 +1,97 @@
+﻿@using OrderFlow.ViewModels.Order
+@model DetailsOrderViewModel;
+@{
+    ViewData["Title"] = "Order Detail";
+}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/flatly/bootstrap.min.css">
+
+<div class="container mt-5">
+    <h2 class="mb-4">@ViewData["Title"]</h2>
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card mb-4 border-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Order ID: @Model.OrderID</h5>
+                    <p><strong>User:</strong> @Model.UserName</p>
+                    <p class="text-secondary"><strong>Order Date:</strong> @Model.OrderDate.ToString("yyyy-MM-dd")</p>
+                    <p class="text-secondary"><strong>Delivery Date:</strong> @(Model.DeliveryDate?.ToString("yyyy-MM-dd") ?? "N/A")</p>
+                    <p><strong>Pickup Address:</strong> @Model.PickupAddress</p>
+                    <p><strong>Delivery Address:</strong> @Model.DeliveryAddress</p>
+                    @if (!string.IsNullOrWhiteSpace(Model.DeliveryInstructions))
+                    {
+                        <p><strong>Instructions:</strong> @Model.DeliveryInstructions</p>
+                    }
+                    <p>
+                        <strong>Status:</strong>
+                        <span class="badge bg-@(Model.Status == "Pending" ? "warning" : Model.Status == "Completed" ? "success" : Model.Status == "Canceled" ? "danger" : "secondary")">
+                            @Model.Status
+                        </span>
+                    </p>
+                    @if (Model.isCanceled)
+                    {
+                        <p class="text-danger"><strong>This order is canceled.</strong></p>
+                    }
+
+                    @if (string.IsNullOrEmpty(Model.TruckLicensePlate))
+                    {
+                        <p><strong>Truck Assigned:</strong> @Model.TruckLicensePlate</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card border-danger mb-3">
+                <div class="card-header bg-danger text-white">Payments</div>
+                <div class="card-body">
+                    @if (Model.Payments != null && Model.Payments.Any())
+                    {
+                        <ul class="list-group mb-3">
+                            @foreach (var payment in Model.Payments)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>@payment.PaymentDate.ToString("yyyy-MM-dd")</span>
+                                    <span class="badge bg-primary rounded-pill">@payment.Amount.ToString("C")</span>
+                                </li>
+                            }
+                        </ul>
+                        <h5 class="text-end">Total: <span class="text-success">@Model.TotalPrice.ToString("C")</span></h5>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No payments found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <a class="btn btn-secondary mt-3" asp-area="" asp-controller="Order" asp-action="Index">← Back to Orders</a>
+    <a class="btn btn-primary mt-3" asp-area="" asp-controller="Order" asp-action="Edit">Edit Order</a>
+    
+    <button type="button" class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
+        Cancel Order
+    </button>
+
+    <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger">
+                <div class="modal-header bg-danger">
+                    <h5 class="modal-title" id="confirmCancelModalLabel">Confirm Cancellation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to cancel this order?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+
+                    <form method="post" asp-area="" asp-controller="Order" asp-action="Cancel" asp-route-id="@Model.OrderID">
+                        <button type="submit" class="btn btn-danger">Yes, Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</div>
