@@ -1,0 +1,35 @@
+﻿@using OrderFlow.ViewModels
+@model CreateOrderViewModel;
+@{
+    ViewData["Title"] = "Create Order";
+}
+
+<div class="container mt-5">
+    <h2>@ViewData["Title"]</h2>
+    <form asp-controller="Order" asp-action="Create" method="post" class="mt-4">
+      
+        <div class="mb-3">
+            <label asp-for="@Model.DeliveryAddress" class="form-label"></label>
+            <input asp-for="@Model.DeliveryAddress" class="form-control" />
+            <span asp-validation-for="@Model.DeliveryAddress" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="@Model.PickupAddress" class="form-label"></label>
+            <input asp-for="@Model.PickupAddress" class="form-control" />
+            <span asp-validation-for="@Model.PickupAddress" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="@Model.DeliveryInstructions" class="form-label"></label>
+            <textarea asp-for="@Model.DeliveryInstructions" class="form-control"></textarea>
+            <span asp-validation-for="@Model.DeliveryInstructions" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Order</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
