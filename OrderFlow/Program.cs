@@ -18,6 +18,8 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<IOrderService,OrderService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ITruckService, TruckService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 
 var app = builder.Build();
