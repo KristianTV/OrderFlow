@@ -1,6 +1,8 @@
-using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OrderFlow.Models;
+using OrderFlow.ViewModels;
+using System.Diagnostics;
+
 
 namespace OrderFlow.Controllers
 {
