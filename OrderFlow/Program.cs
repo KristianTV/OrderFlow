@@ -20,6 +20,7 @@ builder.Services.AddScoped<IOrderService,OrderService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITruckService, TruckService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ITruckOrderService, TruckOrderService>();
 
 
 var app = builder.Build();
