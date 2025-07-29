@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data;
+using OrderFlow.Services.Core;
+using OrderFlow.Services.Core.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<OrderFlowDbContext>();
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<IOrderService,OrderService>();
+
 
 var app = builder.Build();
 
