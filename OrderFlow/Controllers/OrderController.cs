@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels;
+using System.Threading.Tasks;
 
 namespace OrderFlow.Controllers
 {
@@ -18,9 +20,19 @@ namespace OrderFlow.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index() // see all orders
+        public async Task<IActionResult> Index() // see all orders
         {
-            return View();
+            var orders = await _orderService.All<Order>().Select(order => new IndexOrderViewModel
+            {
+                OrderID = order.OrderID,
+                OrderDate = order.OrderDate,
+                DeliveryAddress = order.DeliveryAddress,
+                PickupAddress = order.PickupAddress,
+                Status = order.Status,
+                isCanceled = order.isCanceled
+            }).ToListAsync();
+
+            return View(orders);
         }
 
         [HttpGet]

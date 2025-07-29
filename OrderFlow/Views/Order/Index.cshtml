@@ -1,0 +1,45 @@
+﻿@using OrderFlow.ViewModels;
+@model IEnumerable<IndexOrderViewModel>;
+@{
+    ViewData["Title"] = "All Orders";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4 text-center">All Orders</h1>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @if (Model is not null)
+        {
+            @foreach (var order in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 border-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">Order ID: @order.OrderID</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">Date: @order.OrderDate.ToString("yyyy-MM-dd")</h6>
+                            <p class="card-text"><strong>Delivery:</strong> @order.DeliveryAddress</p>
+                            <p class="card-text"><strong>Pickup:</strong> @order.PickupAddress</p>
+                            <p class="card-text">
+                                <strong>Status:</strong>
+                                <span class="badge bg-@(order.Status == "Pending" ? "warning" : order.Status == "Completed" ? "success" : "secondary")">
+                                    @order.Status
+                                </span>
+                            </p>
+                            @if (order.isCanceled)
+                            {
+                                <p class="text-danger"><strong>This order is canceled.</strong></p>
+                            }
+                        </div>
+                        <div class="card-footer text-end">
+                            <a class="btn btn-primary btn-sm" asp-area="" asp-controller="Order" asp-action="Detail" asp-route-id="@order.OrderID">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted">No orders found.</p>
+        }
+    </div>
+</div>
