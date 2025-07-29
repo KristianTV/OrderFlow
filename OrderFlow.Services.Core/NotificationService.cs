@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Repository;
 using OrderFlow.Services.Core.Contracts;
@@ -8,7 +9,7 @@ namespace OrderFlow.Services.Core
     public class NotificationService : BaseRepository, INotificationService
     {
         
-        public NotificationService(DbContext _context) : base(_context)
+        public NotificationService(OrderFlowDbContext _context) : base(_context)
         {
         }
 
