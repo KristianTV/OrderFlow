@@ -5,7 +5,8 @@ namespace OrderFlow.Services.Core.Contracts
 {
     public interface IOrderService : IRepository
     {
-        Task<bool> CancelOrderAsync(Guid guid, string? v);
-        Task<bool> CreateOrderAsync(CreateOrderViewModel createOrderViewModel, string? userId);
+        Task<bool> CancelOrderAsync(Guid? orderId, Guid? userId);
+        Task<bool> CreateOrderAsync(CreateOrderViewModel createOrderViewModel, Guid? userId);
+        Task<bool> UpdateOrderAsync(CreateOrderViewModel createOrder, Guid? orderId, Guid? userId);
     }
 }

@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
 using OrderFlow.Services.Core.Contracts;
-using OrderFlow.ViewModels;
 using OrderFlow.ViewModels.Order;
-using System.Threading.Tasks;
 
 namespace OrderFlow.Controllers
 {
@@ -21,7 +18,7 @@ namespace OrderFlow.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index() // see all orders
+        public async Task<IActionResult> Index()
         {
             var orders = await _orderService.All<Order>()
                                             .Where(o => o.UserID.Equals(Guid.Parse(this.GetUserId())))
@@ -40,39 +37,107 @@ namespace OrderFlow.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create() // create a new order
+        public IActionResult Create()
         {
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateOrderViewModel createOrderViewModel) // create a new order
+        public async Task<IActionResult> Create(CreateOrderViewModel createOrderViewModel)
         {
             if (!ModelState.IsValid)
                 return View(createOrderViewModel);
 
-            if (!await _orderService.CreateOrderAsync(createOrderViewModel, this.GetUserId()))
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+
+            if (!await _orderService.CreateOrderAsync(createOrderViewModel, userId))
                 return View(createOrderViewModel);
 
             return RedirectToAction(nameof(Index), "Order");
         }
 
         [HttpGet]
-        public IActionResult Edit(int? id) // edit an existing order
+        public async Task<IActionResult> Edit(string? id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid orderId))
+            {
+                return BadRequest("Invalid Order ID format.");
+            }
+
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+
+            CreateOrderViewModel? createOrderViewModel = await _orderService.All<Order>()
+                                                                     .Where(o => o.OrderID.Equals(orderId) && 
+                                                                                 o.UserID.Equals(userId))
+                                                                     .Select(o => new CreateOrderViewModel
+                                                                     {
+                                                                         DeliveryAddress = o.DeliveryAddress,
+                                                                         PickupAddress = o.PickupAddress,
+                                                                         DeliveryInstructions = o.DeliveryInstructions
+                                                                     }).SingleOrDefaultAsync();
+
+            if (createOrderViewModel == null)
+            {
+                return NotFound();
+            }
+
+            return View(createOrderViewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(CreateOrderViewModel createOrderViewModel, string? id)
+        {
+            if (!ModelState.IsValid)
+                return View(createOrderViewModel);
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            if (!await _orderService.UpdateOrderAsync(createOrderViewModel, Guid.Parse(id), Guid.Parse(this.GetUserId())))
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction(nameof(Detail), "Order", new { id = id });
         }
 
         [HttpGet]
-        public IActionResult Detail(string? id) // view order details
+        public IActionResult Detail(string? id)
         {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+            if (!Guid.TryParse(id, out Guid orderId))
+            {
+                return BadRequest("Invalid Order ID format.");
+            }
+
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+
             var order = _orderService.All<Order>()
                                      .AsNoTracking()
                                      .Include(o => o.User)
                                      .Include(o => o.Payments)
                                      .Include(o => o.TruckOrder)
                                      .Include(o => o.TruckOrder!.Truck)
-                                     .Where(o => o.OrderID.Equals(Guid.Parse(id)) && o.UserID.Equals(Guid.Parse(this.GetUserId())))
+                                     .Where(o => o.OrderID.Equals(Guid.Parse(id)) && o.UserID.Equals(userId))
                                      .Select(o => new DetailsOrderViewModel
                                      {
                                          OrderID = o.OrderID,
@@ -98,14 +163,24 @@ namespace OrderFlow.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Cancel(string? id) // cancel an order
+        public async Task<IActionResult> Cancel(string? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            if (!await _orderService.CancelOrderAsync(Guid.Parse(id), this.GetUserId()))
+            if (!Guid.TryParse(id, out Guid orderId))
+            {
+                return BadRequest("Invalid Order ID format.");
+            }
+
+            if(!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+
+            if (!await _orderService.CancelOrderAsync(orderId, userId))
             {
                 return BadRequest("Failed to cancel the order.");
             }

@@ -65,7 +65,7 @@
         </div>
     </div>
     <a class="btn btn-secondary mt-3" asp-area="" asp-controller="Order" asp-action="Index">← Back to Orders</a>
-    <a class="btn btn-primary mt-3" asp-area="" asp-controller="Order" asp-action="Edit">Edit Order</a>
+    <a class="btn btn-primary mt-3" asp-area="" asp-controller="Order" asp-action="Edit" asp-route-id="@Model.OrderID">Edit Order</a>
     
     <button type="button" class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
         Cancel Order

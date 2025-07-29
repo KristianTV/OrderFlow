@@ -1,0 +1,41 @@
+﻿@using OrderFlow.ViewModels
+@using OrderFlow.ViewModels.Order
+@model CreateOrderViewModel;
+@{
+    ViewData["Title"] = "Edit Order";
+    var id = Context.Request.RouteValues["id"]?.ToString() ?? "";
+}
+
+<div class="container mt-5">
+    <h2>@ViewData["Title"]</h2>
+    <form asp-controller="Order" asp-action="Edit" method="post" class="mt-4">
+
+        <div class="mb-3">
+            <label asp-for="@Model.DeliveryAddress" class="form-label"></label>
+            <input asp-for="@Model.DeliveryAddress" class="form-control" />
+            <span asp-validation-for="@Model.DeliveryAddress" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="@Model.PickupAddress" class="form-label"></label>
+            <input asp-for="@Model.PickupAddress" class="form-control" />
+            <span asp-validation-for="@Model.PickupAddress" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="@Model.DeliveryInstructions" class="form-label"></label>
+            <textarea asp-for="@Model.DeliveryInstructions" class="form-control"></textarea>
+            <span asp-validation-for="@Model.DeliveryInstructions" class="text-danger"></span>
+        </div>
+
+        <div class="card-footer text-end">
+            <a class="btn btn-primary btn-sm" asp-area="" asp-controller="Order" asp-action="Detail" asp-route-id="@id">← Back to Orders</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Order</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
