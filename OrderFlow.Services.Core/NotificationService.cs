@@ -7,7 +7,7 @@ namespace OrderFlow.Services.Core
 {
     public class NotificationService : BaseRepository, INotificationService
     {
-
+        
         public NotificationService(DbContext _context) : base(_context)
         {
         }
