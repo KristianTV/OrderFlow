@@ -14,16 +14,20 @@ namespace OrderFlow.Services.Core
         {
         }
 
-        public async Task<bool> CancelOrderAsync(Guid guid, string? v)
+        public async Task<bool> CancelOrderAsync(Guid orderId, string? userId)
         {
-            Order? order = await this.DbSet<Order>().Where(x => x.OrderID.Equals(guid)).SingleOrDefaultAsync();
+            Guid _userId;
+            Guid.TryParse(userId,out _userId);
+
+            if (_userId == Guid.Empty) 
+                        return false;
+
+            Order? order = await this.DbSet<Order>().Where(x => x.OrderID.Equals(orderId) && x.UserID.Equals(_userId)).SingleOrDefaultAsync();
 
             if (order != null)
             {
                 if (order.isCanceled)
-                {
-                    return true;
-                }
+                             return true;
 
                 order.isCanceled = true;
                 order.Status = "Canceled";

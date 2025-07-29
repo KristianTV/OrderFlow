@@ -24,6 +24,7 @@ namespace OrderFlow.Controllers
         public async Task<IActionResult> Index() // see all orders
         {
             var orders = await _orderService.All<Order>()
+                                            .Where(o => o.UserID.Equals(Guid.Parse(this.GetUserId())))
                                             .AsNoTracking()
                                             .Select(order => new IndexOrderViewModel
                                             {
@@ -71,7 +72,7 @@ namespace OrderFlow.Controllers
                                      .Include(o => o.Payments)
                                      .Include(o => o.TruckOrder)
                                      .Include(o => o.TruckOrder!.Truck)
-                                     .Where(o => o.OrderID.Equals(Guid.Parse(id)))
+                                     .Where(o => o.OrderID.Equals(Guid.Parse(id)) && o.UserID.Equals(Guid.Parse(this.GetUserId())))
                                      .Select(o => new DetailsOrderViewModel
                                      {
                                          OrderID = o.OrderID,
