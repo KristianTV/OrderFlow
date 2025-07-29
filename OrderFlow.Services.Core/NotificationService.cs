@@ -27,5 +27,21 @@ namespace OrderFlow.Services.Core
                 await this.SaveChangesAsync();
             }
         }
+
+        public async Task SoftDelete(int i)
+        {
+            Notification? notification = await this.DbSet<Notification>().Where(x => x.Id.Equals(i)).SingleOrDefaultAsync();
+
+            if (notification != null)
+            {
+                if (notification.IsDeleted)
+                {
+                    return;
+                }
+
+                notification.IsDeleted = true;
+                await this.SaveChangesAsync();
+            }
+        }
     }
 }
