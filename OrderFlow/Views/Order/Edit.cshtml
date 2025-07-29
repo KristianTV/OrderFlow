@@ -28,11 +28,16 @@
             <span asp-validation-for="@Model.DeliveryInstructions" class="text-danger"></span>
         </div>
 
-        <div class="card-footer text-end">
-            <a class="btn btn-primary btn-sm" asp-area="" asp-controller="Order" asp-action="Detail" asp-route-id="@id">← Back to Orders</a>
+        <div class="d-flex justify-content-between align-items-center">
+            <a class="btn btn-secondary btn-sm" asp-area="" asp-controller="Order" asp-action="Detail" asp-route-id="@id">
+                ← Back to Orders
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                Save Order
+            </button>
         </div>
 
-        <button type="submit" class="btn btn-primary">Save Order</button>
     </form>
 </div>
 
