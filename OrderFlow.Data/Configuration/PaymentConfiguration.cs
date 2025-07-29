@@ -18,7 +18,8 @@ namespace OrderFlow.Data.Configuration
                    .HasMaxLength(ValidationConstants.Payment.PaymentDescriptionMaxLength);
 
             builder.Property(p => p.Amount)
-                   .IsRequired();
+                   .IsRequired()
+                   .HasPrecision(18,2);
 
             builder.HasOne(p => p.Order)
                    .WithMany(o => o.Payments)

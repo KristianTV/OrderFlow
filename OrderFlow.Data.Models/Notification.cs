@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNet.Identity.EntityFramework;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace OrderFlow.Data.Models
 {
@@ -14,10 +14,10 @@ namespace OrderFlow.Data.Models
         public bool IsRead { get; set; } = false;
 
         public Guid ReceiverId { get; set; }
-        public IdentityUser Receiver { get; set; } = null!;
+        public ApplicationUser Receiver { get; set; } = null!;
 
         public Guid? SenderId { get; set; }
-        public IdentityUser? Sender { get; set; }
+        public ApplicationUser? Sender { get; set; }
 
         public Guid? OrderId { get; set; }
         public Order? Order { get; set; }

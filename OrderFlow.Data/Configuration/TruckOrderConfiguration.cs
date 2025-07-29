@@ -16,7 +16,10 @@ namespace OrderFlow.Data.Configuration
 
             builder.HasOne(to => to.Order)
                    .WithOne(o => o.TruckOrder)
-                   .HasForeignKey<TruckOrder>(to => to.OrderID);
+                   .HasForeignKey<TruckOrder>(to => to.OrderID)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasQueryFilter(t => !t.Truck.isDeleted);
         }
     }
 }

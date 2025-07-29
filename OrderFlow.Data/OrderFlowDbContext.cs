@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Configuration;
 using OrderFlow.Data.Models;
 
 namespace OrderFlow.Data
 {
-    public class OrderFlowDbContext : IdentityDbContext
+    public class OrderFlowDbContext : IdentityDbContext<ApplicationUser,IdentityRole<Guid>,Guid>
     {
         public OrderFlowDbContext(DbContextOptions<OrderFlowDbContext> options)
           : base(options)

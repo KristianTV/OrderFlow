@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNet.Identity.EntityFramework;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace OrderFlow.Data.Models
 {
@@ -7,7 +7,7 @@ namespace OrderFlow.Data.Models
         public Guid OrderID { get; set; } = Guid.NewGuid();
 
         public Guid UserID { get; set; }
-        public IdentityUser User { get; set; } = null!;
+        public ApplicationUser User { get; set; } = null!;
 
         public DateTime OrderDate { get; set; }
         public DateTime? DeliveryDate { get; set; }
