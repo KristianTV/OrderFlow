@@ -75,7 +75,7 @@
                     <td>@order.Order.DeliveryInstructions</td>
                     <td>@order.Order.PickupAddress</td>
                     <td>@order.Order.DeliveryAddress</td>
-                    <td>@order.Order.Status</td>
+                    <td><p class="badge @GetStatusBadgeClass(@order.Order.Status.ToString())">@order.Order.Status</p></td>
                     <td>
                         @if (order.Order.Status == OrderFlow.Data.Models.Enums.OrderStatus.InProgress)
                         {
@@ -99,4 +99,17 @@
 else
 {
     <p class="text-muted">No orders assigned to this truck.</p>
+}
+@functions {
+    private string GetStatusBadgeClass(string status) => status switch
+    {
+        "Pending" => "bg-warning",
+        "InProgress" => "bg-primary",
+        "Completed" => "bg-success",
+        "Cancelled" => "bg-danger",
+        "OnHold" => "bg-secondary",
+        "Failed" => "bg-danger text-dark",
+        "Delayed" => "bg-danger",
+        _ => "bg-light text-dark"
+    };
 }

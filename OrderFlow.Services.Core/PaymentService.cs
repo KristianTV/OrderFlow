@@ -25,5 +25,30 @@ namespace OrderFlow.Services.Core
 
             await this.SaveChangesAsync();
         }
+
+        public async Task UpdatePaymentAsync(Guid paymentId, CreatePaymentViewModel createPayment)
+        {
+            if (paymentId == Guid.Empty)
+            {
+                throw new ArgumentException("Payment ID cannot be empty.", nameof(paymentId));
+            }
+            if (createPayment == null)
+            {
+                throw new ArgumentNullException(nameof(createPayment), "CreatePaymentViewModel cannot be null.");
+            }
+
+            var payment = await this.All<Data.Models.Payment>().SingleOrDefaultAsync(p => p.Id == paymentId);
+            
+            if (payment == null)
+            {
+                throw new KeyNotFoundException($"Payment with ID {paymentId} not found.");
+            }
+
+            payment.Amount = createPayment.Amount;
+            payment.PaymentDescription = createPayment.PaymentDescription;
+
+            await this.SaveChangesAsync();
+
+        }
     }
 }
