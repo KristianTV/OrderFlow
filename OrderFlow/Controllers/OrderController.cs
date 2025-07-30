@@ -20,8 +20,13 @@ namespace OrderFlow.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+
             var orders = await _orderService.All<Order>()
-                                            .Where(o => o.UserID.Equals(Guid.Parse(this.GetUserId())))
+                                            .Where(o => o.UserID.Equals(userId))
                                             .AsNoTracking()
                                             .Select(order => new IndexOrderViewModel
                                             {
@@ -29,7 +34,7 @@ namespace OrderFlow.Controllers
                                                 OrderDate = order.OrderDate,
                                                 DeliveryAddress = order.DeliveryAddress,
                                                 PickupAddress = order.PickupAddress,
-                                                Status = order.Status,
+                                                Status = order.Status.ToString(),
                                                 isCanceled = order.isCanceled
                                             }).ToListAsync();
 
@@ -147,7 +152,7 @@ namespace OrderFlow.Controllers
                                          DeliveryAddress = o.DeliveryAddress,
                                          PickupAddress = o.PickupAddress,
                                          DeliveryInstructions = o.DeliveryInstructions,
-                                         Status = o.Status,
+                                         Status = o.Status.ToString(),
                                          isCanceled = o.isCanceled,
                                          TruckLicensePlate = o.TruckOrder!.Truck.LicensePlate,
                                          Payments = o.Payments.ToList(),

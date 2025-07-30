@@ -2,6 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
+using OrderFlow.Data.Models.Enums;
 using OrderFlow.Data.Repository;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Order;
@@ -27,7 +28,7 @@ namespace OrderFlow.Services.Core
                              return true;
 
                 order.isCanceled = true;
-                order.Status = "Canceled";
+                order.Status = OrderStatus.Cancelled;
                 await this.SaveChangesAsync();
                 return true;
             }
@@ -47,7 +48,7 @@ namespace OrderFlow.Services.Core
                 DeliveryAddress = createOrderViewModel.DeliveryAddress,
                 PickupAddress = createOrderViewModel.PickupAddress,
                 DeliveryInstructions = createOrderViewModel.DeliveryInstructions,
-                Status = "Pending",
+                Status = OrderStatus.Pending,
             };
 
             await this.AddAsync(newOrder);

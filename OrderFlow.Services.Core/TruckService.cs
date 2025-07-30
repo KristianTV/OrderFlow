@@ -29,6 +29,11 @@ namespace OrderFlow.Services.Core
             return await this.SaveChangesAsync() > 0;
         }
 
+        public Task<bool> SoftDeleteTruckAsync(Guid truckID)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<bool> UpdateTruckAsync(CreateTruckViewModel createTruckViewModel, Guid truckID)
         {
             if (createTruckViewModel == null || truckID == Guid.Empty)

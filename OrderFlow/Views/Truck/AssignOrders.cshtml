@@ -1,0 +1,71 @@
+﻿@using OrderFlow.ViewModels.Truck
+@model AssignOrdersToTruckViewModel
+@{
+    ViewData["Title"] = "Assign Orders to Truck";
+    var id = Context.Request.RouteValues["id"]?.ToString() ?? "";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title">Truck: @Model.LicensePlate</h5>
+        <p class="card-text">
+            <strong>Driver:</strong> @Model.DriverName <br />
+            <strong>Capacity:</strong> @Model.Capacity kg
+        </p>
+    </div>
+</div>
+
+<form asp-controller="Truck" asp-action="AssignOrders" method="post">
+    <input type="hidden" name="id" value="@id" />
+
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th scope="col">Select</th>
+                <th scope="col">Pickup Address</th>
+                <th scope="col">Delivery Address</th>
+                <th scope="col">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Orders.Count(); i++)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" asp-for="Orders[i].IsSelected" class="form-check-input" />
+                        <input type="hidden" asp-for="Orders[i].OrderID" />
+                        <input type="hidden" asp-for="Orders[i].PickupAddress" />
+                        <input type="hidden" asp-for="Orders[i].DeliveryAddress" />
+                        <input type="hidden" asp-for="Orders[i].OrderStatus" />
+                    </td>
+                    <td>@Model.Orders.ElementAt(i).PickupAddress</td>
+                    <td>@Model.Orders.ElementAt(i).DeliveryAddress</td>
+                    <td>
+                        <span class="badge @GetStatusBadgeClass(Model.Orders.ElementAt(i).OrderStatus)">
+                            @Model.Orders.ElementAt(i).OrderStatus
+                        </span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between">
+        <a class="btn btn-secondary" asp-action="Detail" asp-controller="Truck" asp-route-id="@id">Cancel</a>
+        <button type="submit" class="btn btn-primary">Assign Selected Orders</button>
+    </div>
+</form>
+
+@functions {
+    private string GetStatusBadgeClass(string status) => status switch
+    {
+        "Pending" => "bg-warning",
+        "Delayed" => "bg-danger",
+        "OnHold" => "bg-secondary",
+        "Completed" => "bg-success",
+        "InTransit" => "bg-info text-dark",
+        _ => "bg-light text-dark"
+    };
+}

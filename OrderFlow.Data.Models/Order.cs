@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using OrderFlow.Data.Models.Enums;
 
 namespace OrderFlow.Data.Models
 {
@@ -17,7 +17,7 @@ namespace OrderFlow.Data.Models
 
         public string? DeliveryInstructions { get; set; }
 
-        public string Status { get; set; } = "Pending";
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
         
         public bool isCanceled { get; set; } = false;
 

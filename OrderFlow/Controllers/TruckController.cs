@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
+using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Truck;
 
@@ -11,13 +12,17 @@ namespace OrderFlow.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ITruckService _truckService;
+        private readonly IOrderService _orderService;
+        private readonly ITruckOrderService _truckOrderService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public TruckController(ILogger<HomeController> logger, ITruckService truckService, UserManager<ApplicationUser> userManager)
+        public TruckController(ILogger<HomeController> logger, ITruckService truckService, UserManager<ApplicationUser> userManager, IOrderService orderService, ITruckOrderService truckOrderService)
         {
             _logger = logger;
             _truckService = truckService;
             _userManager = userManager;
+            _orderService = orderService;
+            _truckOrderService = truckOrderService;
         }
 
         [HttpGet]
@@ -50,7 +55,7 @@ namespace OrderFlow.Controllers
                 return View(new CreateTruckViewModel());
             }
 
-            Dictionary<Guid,string> drivers = users.ToDictionary(
+            Dictionary<Guid, string> drivers = users.ToDictionary(
                 user => user.Id,
                 user => user.UserName
             );
@@ -118,10 +123,10 @@ namespace OrderFlow.Controllers
                                                                             .Where(o => o.TruckID.Equals(truckId))
                                                                             .Select(o => new CreateTruckViewModel
                                                                             {
-                                                                                 DriverID = o.DriverID,
-                                                                                 LicensePlate = o.LicensePlate,
-                                                                                 Capacity = o.Capacity,
-                                                                                 Drivers = drivers
+                                                                                DriverID = o.DriverID,
+                                                                                LicensePlate = o.LicensePlate,
+                                                                                Capacity = o.Capacity,
+                                                                                Drivers = drivers
                                                                             }).SingleOrDefaultAsync();
 
             if (createTruckViewModel == null)
@@ -158,7 +163,7 @@ namespace OrderFlow.Controllers
             {
                 return NotFound();
             }
-            if (!Guid.TryParse(id, out Guid orderId))
+            if (!Guid.TryParse(id, out Guid truckID))
             {
                 return BadRequest("Invalid Order ID format.");
             }
@@ -166,15 +171,17 @@ namespace OrderFlow.Controllers
             var order = _truckService.All<Truck>()
                                      .AsNoTracking()
                                      .Include(o => o.Driver)
-                                     .Where(o => o.TruckID.Equals(Guid.Parse(id)))
+                                     .Include(to => to.TruckOrders)
+                                     .ThenInclude(to => to.Order)
+                                     .Where(o => o.TruckID.Equals(truckID))
                                      .Select(o => new DetailsTruckViewModel
                                      {
-                                            TruckID = o.TruckID,
-                                            DriverName = o.Driver!.UserName!,
-                                            LicensePlate = o.LicensePlate,
-                                            Capacity = o.Capacity,
-                                            Status = o.Status,
-                                            TruckOrders = o.TruckOrders
+                                         TruckID = o.TruckID,
+                                         DriverName = o.Driver!.UserName!,
+                                         LicensePlate = o.LicensePlate,
+                                         Capacity = o.Capacity,
+                                         Status = o.Status,
+                                         TruckOrders = o.TruckOrders
                                      }).SingleOrDefault();
 
             if (order == null)
@@ -183,6 +190,94 @@ namespace OrderFlow.Controllers
             }
 
             return View(order);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> AssignOrders(string? id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid truckID))
+            {
+                return BadRequest("Invalid Order ID format.");
+            }
+
+            var orders = await _orderService.All<Order>()
+                                            .AsNoTracking()
+                                            .Where(o => new[] { OrderStatus.Pending,
+                                                                OrderStatus.Delayed,
+                                                                OrderStatus.OnHold
+                                                                }.Contains(o.Status))
+                                            .Select(o => new OrderViewModel
+                                            {
+                                                OrderID = o.OrderID,
+                                                DeliveryAddress = o.DeliveryAddress,
+                                                PickupAddress = o.PickupAddress,
+                                                OrderStatus = o.Status.ToString()
+                                            }).ToListAsync();
+
+            if (orders == null)
+            {
+                return BadRequest("No Order were found.");
+            }
+
+            var truck = await _truckService.All<Truck>()
+                                           .AsNoTracking()
+                                           .Include(t => t.Driver)
+                                           .Where(t => t.TruckID.Equals(truckID))
+                                           .Select(t => new AssignOrdersToTruckViewModel
+                                           {
+                                               LicensePlate = t.LicensePlate,
+                                               Capacity = t.Capacity,
+                                               DriverName = t.Driver!.UserName!,
+                                               Orders = orders
+                                           }).SingleOrDefaultAsync();
+
+            return View(truck);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AssignOrders(AssignOrdersToTruckViewModel assignOrders, string? id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid truckID))
+            {
+                return BadRequest("Invalid Order ID format.");
+            }
+
+            if (assignOrders == null || assignOrders.Orders == null || !assignOrders.Orders.Any())
+            {
+                ModelState.AddModelError(string.Empty, "No orders selected for assignment.");
+                return RedirectToAction(nameof(AssignOrders), "Truck", new { id = id });
+            }
+
+            await _truckOrderService.AssignOrdersToTruckAsync(assignOrders.Orders.Where(o => o.IsSelected == true), truckID);
+
+            return RedirectToAction(nameof(Detail), "Truck", new { id = id });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(string? id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+            if (!Guid.TryParse(id, out Guid truckID))
+            {
+                return BadRequest("Invalid Truck ID format.");
+            }
+
+            await _truckService.SoftDeleteTruckAsync(truckID);
+
+            return RedirectToAction(nameof(Index), "Truck");
         }
     }
 }

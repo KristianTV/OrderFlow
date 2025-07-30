@@ -25,4 +25,8 @@
     <ProjectReference Include="..\OrderFlow.ViewModels\OrderFlow.ViewModels.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Shared\Navigation\" />
+  </ItemGroup>
+
 </Project>
