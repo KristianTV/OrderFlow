@@ -283,7 +283,7 @@ namespace OrderFlow.Controllers
         [HttpPost]
         public async Task<IActionResult> RemoveOrder(string? truckId, string? orderId)
         {
-            if (string.IsNullOrEmpty(truckId)|| string.IsNullOrEmpty(orderId))
+            if (string.IsNullOrEmpty(truckId) || string.IsNullOrEmpty(orderId))
             {
                 return NotFound();
             }
@@ -293,14 +293,62 @@ namespace OrderFlow.Controllers
                 return BadRequest("Invalid Truck ID format.");
             }
 
-            if(!Guid.TryParse(orderId, out Guid orderID))
+            if (!Guid.TryParse(orderId, out Guid orderID))
             {
                 return BadRequest("Invalid Order ID format.");
             }
 
-            await _truckOrderService.RemoveOrderFromTruckAsync(truckID,orderID);
+            await _truckOrderService.RemoveOrderFromTruckAsync(truckID, orderID);
 
             return RedirectToAction(nameof(Detail), "Truck", new { id = truckID });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> AssignedOrders(string? id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid truckID))
+            {
+                return BadRequest("Invalid Order ID format.");
+            }
+
+            var orders = await _orderService.All<Order>()
+                                            .AsNoTracking()
+                                            .Where(o => new[] { OrderStatus.InProgress }.Contains(o.Status))
+                                            .Select(o => new AssignedOrdersToTruckViewModel
+                                            {
+                                                OrderID = o.OrderID,
+                                                DeliveryAddress = o.DeliveryAddress,
+                                                PickupAddress = o.PickupAddress,
+                                                OrderStatus = o.Status.ToString()
+                                            }).ToListAsync();
+
+            if (orders == null)
+            {
+                return BadRequest("No Order were found.");
+            }
+
+            return View(orders);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangeStatusToCompleted(string? id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+            if (!Guid.TryParse(id, out Guid orderID))
+            {
+                return BadRequest("Invalid Truck ID format.");
+            }
+
+            await _orderService.ChangeStatusToCompletedAsync(orderID);
+            return RedirectToAction(nameof(Detail), "Truck", new { id = id });
         }
     }
 }

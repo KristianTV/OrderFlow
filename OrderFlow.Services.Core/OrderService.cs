@@ -36,6 +36,27 @@ namespace OrderFlow.Services.Core
             return false;
         }
 
+        public async Task<bool> ChangeStatusToCompletedAsync(Guid orderID)
+        {
+            if (orderID == Guid.Empty)
+                return false;
+
+            Order? order = await this.DbSet<Order>().Where(x => x.OrderID.Equals(orderID))
+                                                    .SingleOrDefaultAsync();
+
+            if (order != null)
+            {
+                if (order.Status == OrderStatus.Completed)
+                    return true;
+
+                order.Status = OrderStatus.Completed;
+                await this.SaveChangesAsync();
+                return true;
+            }
+
+            return false;
+        }
+
         public async Task<bool> CreateOrderAsync(CreateOrderViewModel createOrderViewModel, Guid? userId)
         {
             if (createOrderViewModel == null || !userId.HasValue)

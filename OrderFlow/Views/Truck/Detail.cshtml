@@ -77,11 +77,19 @@
                     <td>@order.Order.DeliveryAddress</td>
                     <td>@order.Order.Status</td>
                     <td>
-                        <form asp-controller="Truck" asp-action="RemoveOrder" method="post" onsubmit="return confirm('Are you sure you want to remove this order from the truck?');">
-                            <input type="hidden" name="truckId" value="@Model.TruckID" />
-                            <input type="hidden" name="orderId" value="@order.OrderID" />
-                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-                        </form>
+                        @if (order.Order.Status == OrderFlow.Data.Models.Enums.OrderStatus.InProgress)
+                        {
+
+                            <form asp-controller="Truck" asp-action="RemoveOrder" method="post" onsubmit="return confirm('Are you sure you want to remove this order from the truck?');">
+                                <input type="hidden" name="truckId" value="@Model.TruckID" />
+                                <input type="hidden" name="orderId" value="@order.OrderID" />
+                                <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">N/A</p>
+                        }
                     </td>
                 </tr>
             }

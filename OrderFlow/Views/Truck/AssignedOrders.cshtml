@@ -1,0 +1,41 @@
+﻿@using OrderFlow.ViewModels.Truck
+@model IEnumerable<AssignedOrdersToTruckViewModel>;
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Pickup Address</th>
+                <th>Delivery Address</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td>@order.OrderID</td>
+                    <td>@order.PickupAddress</td>
+                    <td>@order.DeliveryAddress</td>
+                    <td>@order.OrderStatus</td>
+                    <td>
+                        <form asp-action="ChangeStatusToCompleted" asp-route-id="@order.OrderID" method="post">
+                            <button type="submit" class="btn btn-success">Complete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+
+    <div class="alert alert-info" role="alert">
+        <p>No assigned orders found.</p>
+    </div>
+
+}
