@@ -6,39 +6,48 @@
     var id = Context.Request.RouteValues["id"]?.ToString() ?? "";
 }
 
-<div class="container mt-5">
-    <h2>@ViewData["Title"]</h2>
-    <form asp-controller="Order" asp-action="Edit" method="post" class="mt-4">
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg mt-5">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">@ViewData["Title"] for Order @id</h3> 
+            </div>
+            <div class="card-body">
+                <form asp-controller="Order" asp-action="Edit" asp-route-id="@id" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-        <div class="mb-3">
-            <label asp-for="@Model.DeliveryAddress" class="form-label"></label>
-            <input asp-for="@Model.DeliveryAddress" class="form-control" />
-            <span asp-validation-for="@Model.DeliveryAddress" class="text-danger"></span>
+                    <div class="mb-3">
+                        <label asp-for="@Model.DeliveryAddress" class="form-label"></label>
+                        <input asp-for="@Model.DeliveryAddress" class="form-control" placeholder="e.g., 123 Main St, City, Country" />
+                        <span asp-validation-for="@Model.DeliveryAddress" class="text-danger mt-1 d-block"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="@Model.PickupAddress" class="form-label"></label>
+                        <input asp-for="@Model.PickupAddress" class="form-control" placeholder="e.g., 456 Oak Ave, City, Country" />
+                        <span asp-validation-for="@Model.PickupAddress" class="text-danger mt-1 d-block"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="@Model.DeliveryInstructions" class="form-label"></label>
+                        <textarea asp-for="@Model.DeliveryInstructions" class="form-control" rows="4" placeholder="e.g., Leave at front door, call upon arrival, etc."></textarea>
+                        <span asp-validation-for="@Model.DeliveryInstructions" class="text-danger mt-1 d-block"></span>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a asp-action="Detail" asp-controller="Order" asp-route-id="@id" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> Back to Order Details 
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-2"></i> Save Order 
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label asp-for="@Model.PickupAddress" class="form-label"></label>
-            <input asp-for="@Model.PickupAddress" class="form-control" />
-            <span asp-validation-for="@Model.PickupAddress" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="@Model.DeliveryInstructions" class="form-label"></label>
-            <textarea asp-for="@Model.DeliveryInstructions" class="form-control"></textarea>
-            <span asp-validation-for="@Model.DeliveryInstructions" class="text-danger"></span>
-        </div>
-
-        <div class="d-flex justify-content-between align-items-center">
-            <a class="btn btn-secondary btn-sm" asp-area="" asp-controller="Order" asp-action="Detail" asp-route-id="@id">
-                ← Back to Orders
-            </a>
-
-            <button type="submit" class="btn btn-primary">
-                Save Order
-            </button>
-        </div>
-
-    </form>
+    </div>
 </div>
 
 @section Scripts {
