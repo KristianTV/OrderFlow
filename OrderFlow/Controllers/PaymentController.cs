@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Payment;
-using System.Threading.Tasks;
 
 namespace OrderFlow.Controllers
 {

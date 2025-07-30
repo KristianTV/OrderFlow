@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-
-namespace OrderFlow.Data.Models
+﻿namespace OrderFlow.Data.Models
 {
     public class Notification
     {
