@@ -30,11 +30,11 @@ namespace OrderFlow.Services.Core
                     continue;
                 }
 
-               await this.AddAsync(new TruckOrder
-               {
+                await this.AddAsync(new TruckOrder
+                {
                     OrderID = order.OrderID,
                     TruckID = truckID
-               });
+                });
 
                 var orderForEdit = await this.All<Order>().Where(o => o.OrderID.Equals(order.OrderID)).SingleOrDefaultAsync();
 
@@ -42,6 +42,27 @@ namespace OrderFlow.Services.Core
             }
 
             return await this.SaveChangesAsync();
+        }
+
+        public async Task RemoveOrderFromTruckAsync(Guid truckID, Guid orderID)
+        {
+            if (truckID == Guid.Empty || orderID == Guid.Empty)
+            {
+                return;
+            }
+
+            var truckOrder = await this.DbSet<TruckOrder>().Where(o => o.OrderID.Equals(orderID) && o.TruckID.Equals(truckID)).SingleOrDefaultAsync();
+
+            if (truckOrder != null)
+            {
+                this.Delete(truckOrder);
+
+                var orderForEdit = await this.All<Order>().Where(o => o.OrderID.Equals(orderID)).SingleOrDefaultAsync();
+
+                orderForEdit.Status = OrderStatus.Pending;
+            
+                await this.SaveChangesAsync();
+            }
         }
     }
 }

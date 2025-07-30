@@ -19,6 +19,19 @@
 
 <form asp-controller="Truck" asp-action="AssignOrders" method="post">
     <input type="hidden" name="id" value="@id" />
+    @if( !Model.Orders.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            No orders available for assignment.
+        </div>
+        <a class="btn btn-secondary" asp-action="Detail" asp-controller="Truck" asp-route-id="@id">Back</a>
+    }
+    else
+    {
+        <div class="alert alert-warning" role="alert">
+            Please select the orders you want to assign to the truck.
+        </div>
+    
 
     <table class="table table-bordered table-hover align-middle">
         <thead class="table-light">
@@ -56,6 +69,7 @@
         <a class="btn btn-secondary" asp-action="Detail" asp-controller="Truck" asp-route-id="@id">Cancel</a>
         <button type="submit" class="btn btn-primary">Assign Selected Orders</button>
     </div>
+    }
 </form>
 
 @functions {

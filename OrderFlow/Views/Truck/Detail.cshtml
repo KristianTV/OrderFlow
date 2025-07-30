@@ -64,6 +64,7 @@
                 <th>Pickup Location</th>
                 <th>Drop-off Location</th>
                 <th>Status</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -75,6 +76,13 @@
                     <td>@order.Order.PickupAddress</td>
                     <td>@order.Order.DeliveryAddress</td>
                     <td>@order.Order.Status</td>
+                    <td>
+                        <form asp-controller="Truck" asp-action="RemoveOrder" method="post" onsubmit="return confirm('Are you sure you want to remove this order from the truck?');">
+                            <input type="hidden" name="truckId" value="@Model.TruckID" />
+                            <input type="hidden" name="orderId" value="@order.OrderID" />
+                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                        </form>
+                    </td>
                 </tr>
             }
         </tbody>

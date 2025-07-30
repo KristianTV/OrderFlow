@@ -279,5 +279,28 @@ namespace OrderFlow.Controllers
 
             return RedirectToAction(nameof(Index), "Truck");
         }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveOrder(string? truckId, string? orderId)
+        {
+            if (string.IsNullOrEmpty(truckId)|| string.IsNullOrEmpty(orderId))
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(truckId, out Guid truckID))
+            {
+                return BadRequest("Invalid Truck ID format.");
+            }
+
+            if(!Guid.TryParse(orderId, out Guid orderID))
+            {
+                return BadRequest("Invalid Order ID format.");
+            }
+
+            await _truckOrderService.RemoveOrderFromTruckAsync(truckID,orderID);
+
+            return RedirectToAction(nameof(Detail), "Truck", new { id = truckID });
+        }
     }
 }
