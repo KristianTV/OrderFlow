@@ -1,41 +1,54 @@
-﻿@using OrderFlow.ViewModels;
+﻿@using OrderFlow.ViewModels
 @using OrderFlow.ViewModels.Order
 @model IEnumerable<IndexOrderViewModel>;
 @{
     ViewData["Title"] = "All Orders";
 }
 
-<div class="container mt-4">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0 text-center flex-grow-1">@ViewData["Title"]</h1>
-        <a class="btn btn-success" asp-area="" asp-controller="Order" asp-action="Create">+ Create Order</a>
+        <h1 class="mb-0 text-center flex-grow-1 text-primary">@ViewData["Title"]</h1>
+        <a class="btn btn-success btn-lg shadow-sm" asp-area="" asp-controller="Order" asp-action="Create">
+            <i class="fas fa-plus-circle me-2"></i> Create New Order
+        </a>
     </div>
 
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        @if (Model is not null)
+        @if (Model != null && Model.Any())
         {
             @foreach (var order in Model)
             {
                 <div class="col">
-                    <div class="card h-100 border-primary">
-                        <div class="card-body">
-                            <h5 class="card-title">Order ID: @order.OrderID</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">Date: @order.OrderDate.ToString("yyyy-MM-dd")</h6>
-                            <p class="card-text"><strong>Delivery:</strong> @order.DeliveryAddress</p>
-                            <p class="card-text"><strong>Pickup:</strong> @order.PickupAddress</p>
-                            <p class="card-text">
+                    <div class="card h-100 shadow-sm border-primary">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-primary mb-2"><i class="fas fa-box-open me-2"></i> Order ID: @order.OrderID</h5>
+                            <h6 class="card-subtitle mb-3 text-muted">
+                                <i class="far fa-calendar-alt me-1"></i> Date: @order.OrderDate.ToString("yyyy-MM-dd HH:mm")
+                            </h6>
+                            <p class="card-text mb-1">
+                                <strong><i class="fas fa-truck-loading me-1"></i> Delivery:</strong> @order.DeliveryAddress
+                            </p>
+                            <p class="card-text mb-3">
+                                <strong><i class="fas fa-map-marker-alt me-1"></i> Pickup:</strong> @order.PickupAddress
+                            </p>
+                            <p class="card-text mt-auto">
+                                @* Push status to the bottom of the card body *@
                                 <strong>Status:</strong>
-                                <span class="badge @GetStatusBadgeClass(order.Status)">
+                                <span class="badge @GetStatusBadgeClass(order.Status) fs-6">
                                     @order.Status
                                 </span>
                             </p>
                             @if (order.isCanceled)
                             {
-                                <p class="text-danger"><strong>This order is canceled.</strong></p>
+                                <p class="text-danger fw-bold mt-2 mb-0"><i class="fas fa-times-circle me-1"></i> This order is canceled.</p>
                             }
                         </div>
-                        <div class="card-footer text-end">
-                            <a class="btn btn-primary btn-sm" asp-area="" asp-controller="Order" asp-action="Detail" asp-route-id="@order.OrderID">View Details</a>
+                        <div class="card-footer text-end bg-light border-top-0">
+                            <a class="btn btn-primary" asp-area="" asp-controller="Order" asp-action="Detail" asp-route-id="@order.OrderID">
+                                <i class="fas fa-info-circle me-2"></i> View Details
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -43,7 +56,12 @@
         }
         else
         {
-            <p class="text-muted">No orders found.</p>
+            <div class="col-12">
+                <div class="alert alert-info text-center shadow-sm" role="alert">
+                    <h4 class="alert-heading"><i class="fas fa-info-circle me-2"></i> No Orders Found</h4>
+                    <p class="mb-0">It looks like there are no orders to display yet. Click "Create New Order" to add one!</p>
+                </div>
+            </div>
         }
     </div>
 </div>
@@ -56,7 +74,7 @@
         "Completed" => "bg-success",
         "Cancelled" => "bg-danger",
         "OnHold" => "bg-secondary",
-        "Failed" => "bg-danger text-dark",
+        "Failed" => "bg-danger",
         "Delayed" => "bg-danger",
         _ => "bg-light text-dark"
     };

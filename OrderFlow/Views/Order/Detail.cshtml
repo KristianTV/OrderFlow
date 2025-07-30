@@ -1,49 +1,95 @@
 ﻿@using OrderFlow.ViewModels.Order
 @model DetailsOrderViewModel;
 @{
-    ViewData["Title"] = "Order Detail";
+    ViewData["Title"] = "Order Details";
 }
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/flatly/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 <div class="container mt-5">
-    <h2 class="mb-4">@ViewData["Title"]</h2>
+    <h2 class="mb-4 text-center">@ViewData["Title"] - <span class="text-primary">@Model.OrderID</span></h2>
     <div class="row">
         <div class="col-md-7">
-            <div class="card mb-4 border-primary">
+            <div class="card shadow-lg mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-info-circle me-2"></i> Order Information</h4>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Order ID: @Model.OrderID</h5>
-                    <p><strong>User:</strong> @Model.UserName</p>
-                    <p class="text-secondary"><strong>Order Date:</strong> @Model.OrderDate.ToString("yyyy-MM-dd")</p>
-                    <p class="text-secondary"><strong>Delivery Date:</strong> @(Model.DeliveryDate?.ToString("yyyy-MM-dd") ?? "N/A")</p>
-                    <p><strong>Pickup Address:</strong> @Model.PickupAddress</p>
-                    <p><strong>Delivery Address:</strong> @Model.DeliveryAddress</p>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 text-muted">Order ID:</div>
+                        <div class="col-sm-8"><strong>@Model.OrderID</strong></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 text-muted">User:</div>
+                        <div class="col-sm-8">@Model.UserName</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 text-muted">Order Date:</div>
+                        <div class="col-sm-8"><i class="far fa-calendar-alt me-1"></i> @Model.OrderDate.ToString("yyyy-MM-dd HH:mm")</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 text-muted">Delivery Date:</div>
+                        <div class="col-sm-8"><i class="far fa-calendar-check me-1"></i> @(Model.DeliveryDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</div>
+                    </div>
+                    <hr />
+                    <div class="row mb-2">
+                        <div class="col-sm-4 text-muted">Pickup Address:</div>
+                        <div class="col-sm-8"><i class="fas fa-map-marker-alt me-1"></i> @Model.PickupAddress</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 text-muted">Delivery Address:</div>
+                        <div class="col-sm-8"><i class="fas fa-truck-loading me-1"></i> @Model.DeliveryAddress</div>
+                    </div>
                     @if (!string.IsNullOrWhiteSpace(Model.DeliveryInstructions))
                     {
-                        <p><strong>Instructions:</strong> @Model.DeliveryInstructions</p>
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Instructions:</div>
+                            <div class="col-sm-8">@Model.DeliveryInstructions</div>
+                        </div>
                     }
-                    <p>
-                        <strong>Status:</strong>
-                        <span class="badge @GetStatusBadgeClass(Model.Status)">
-                            @Model.Status
-                        </span>
-                    </p>
+                    <hr />
+                    <div class="row mb-2">
+                        <div class="col-sm-4 text-muted">Status:</div>
+                        <div class="col-sm-8">
+                            <span class="badge @GetStatusBadgeClass(Model.Status) fs-6">
+                                @Model.Status
+                            </span>
+                        </div>
+                    </div>
                     @if (Model.isCanceled)
                     {
-                        <p class="text-danger"><strong>This order is canceled.</strong></p>
+                        <div class="row mb-2">
+                            <div class="col-sm-12">
+                                <p class="text-danger fw-bold"><i class="fas fa-times-circle me-1"></i> This order is canceled.</p>
+                            </div>
+                        </div>
                     }
 
-                    @if (string.IsNullOrEmpty(Model.TruckLicensePlate))
+                    @if (!string.IsNullOrEmpty(Model.TruckLicensePlate))
                     {
-                        <p><strong>Truck Assigned:</strong> @Model.TruckLicensePlate</p>
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Truck Assigned:</div>
+                            <div class="col-sm-8"><strong>@Model.TruckLicensePlate</strong></div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row mb-2">
+                            <div class="col-sm-12">
+                                <p class="text-muted fst-italic">No truck assigned yet.</p>
+                            </div>
+                        </div>
                     }
                 </div>
             </div>
         </div>
         <div class="col-md-5">
-            <div class="card border-danger mb-3">
-                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-                    <span>Payments</span>
-                    <a asp-area="" asp-controller="Payment" asp-action="Create" asp-route-id="@Model.OrderID" class="btn btn-light btn-sm">Add Payment</a>
+            <div class="card shadow-lg mb-3">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i> Payments</h5>
+                    <a asp-area="" asp-controller="Payment" asp-action="Create" asp-route-orderId="@Model.OrderID" class="btn btn-light btn-sm">
+                        <i class="fas fa-plus-circle me-1"></i> Add Payment
+                    </a>
                 </div>
                 <div class="card-body">
                     @if (Model.Payments != null && Model.Payments.Any())
@@ -51,51 +97,75 @@
                         <ul class="list-group mb-3">
                             @foreach (var payment in Model.Payments)
                             {
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>@payment.PaymentDate.ToString("yyyy-MM-dd")</span>
-                                    <span class="badge bg-primary rounded-pill">@payment.Amount.ToString("C")</span>
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div>
+                                            <strong>@payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")</strong>
+                                            <span class="badge bg-primary rounded-pill ms-2">@payment.Amount.ToString("C")</span>
+                                        </div>
+                                        <div class="d-flex">
+                                            <a asp-action="Edit" asp-controller="Payment" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID" class="btn btn-sm btn-outline-secondary me-2">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <form asp-action="Delete" asp-controller="Payment" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID" method="post" onsubmit="return confirm('Are you sure you want to delete this payment?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash-alt"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(payment.PaymentDescription))
+                                    {
+                                        <p class="mb-0 text-muted small">@payment.PaymentDescription</p>
+                                    }
                                 </li>
                             }
                         </ul>
-                        <h5 class="text-end">Total: <span class="text-success">@Model.TotalPrice.ToString("C")</span></h5>
+                        <h4 class="text-end mt-4">Total Paid: <span class="text-success fw-bold">@Model.TotalPrice.ToString("C")</span></h4>
                     }
                     else
                     {
-                        <p class="text-muted">No payments found.</p>
+                        <p class="text-muted text-center mb-0">No payments found.</p>
                     }
                 </div>
             </div>
         </div>
     </div>
-    <a class="btn btn-secondary mt-3" asp-area="" asp-controller="Order" asp-action="Index">← Back to Orders</a>
-    <a class="btn btn-primary mt-3" asp-area="" asp-controller="Order" asp-action="Edit" asp-route-id="@Model.OrderID">Edit Order</a>
-    
-    <button type="button" class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
-        Cancel Order
-    </button>
+
+    <div class="d-flex justify-content-between mt-4">
+        <a class="btn btn-secondary btn-lg" asp-area="" asp-controller="Order" asp-action="Index">
+            <i class="fas fa-arrow-left me-2"></i> Back to Orders
+        </a>
+        <div>
+            <a class="btn btn-primary btn-lg me-2" asp-area="" asp-controller="Order" asp-action="Edit" asp-route-id="@Model.OrderID">
+                <i class="fas fa-edit me-2"></i> Edit Order
+            </a>
+
+            <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
+                <i class="fas fa-times-circle me-2"></i> Cancel Order
+            </button>
+        </div>
+    </div>
 
     <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-danger">
-                <div class="modal-header bg-danger">
+                <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title" id="confirmCancelModalLabel">Confirm Cancellation</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to cancel this order?
+                    Are you sure you want to cancel this order? This action cannot be undone.
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
                     <form method="post" asp-area="" asp-controller="Order" asp-action="Cancel" asp-route-id="@Model.OrderID">
-                        <button type="submit" class="btn btn-danger">Yes, Cancel</button>
+                        <button type="submit" class="btn btn-danger">Yes, Cancel Order</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-
-
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </div>
@@ -108,7 +178,7 @@
         "Completed" => "bg-success",
         "Cancelled" => "bg-danger",
         "OnHold" => "bg-secondary",
-        "Failed" => "bg-danger text-dark",
+        "Failed" => "bg-danger",
         "Delayed" => "bg-danger",
         _ => "bg-light text-dark"
     };

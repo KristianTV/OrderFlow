@@ -108,5 +108,33 @@ namespace OrderFlow.Controllers
 
             return RedirectToAction("Detail", "Order", new { id = orderId });
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(string? Id)
+        {
+            if (string.IsNullOrEmpty(Id))
+            {
+                ModelState.AddModelError(string.Empty, "Payment ID cannot be null or empty.");
+                return RedirectToAction("Index", "Home");
+            }
+            if (!Guid.TryParse(Id, out var paymentId))
+            {
+                ModelState.AddModelError(string.Empty, "Invalid Payment ID format.");
+                return RedirectToAction("Index", "Home");
+            }
+            var orderId = await _paymentService.All<Payment>()
+                                              .Where(p => p.Id.Equals(paymentId))
+                                              .Select(p => p.OrderID)
+                                              .FirstOrDefaultAsync();
+            if (orderId == Guid.Empty)
+            {
+                ModelState.AddModelError(string.Empty, "Payment not found or does not belong to any order.");
+                return RedirectToAction("Index", "Home");
+            }
+
+            await _paymentService.DeletePaymentAsync(paymentId);
+
+            return RedirectToAction("Detail", "Order", new { id = orderId });
+        }
     }
 }
