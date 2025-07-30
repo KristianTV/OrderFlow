@@ -1,0 +1,51 @@
+﻿@using OrderFlow.ViewModels.Payment
+@model CreatePaymentViewModel;
+@{
+    ViewData["Title"] = "Create Payment"; 
+    var id = Context.Request.RouteValues["id"]?.ToString() ?? "";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg mt-5">
+           
+            <div class="card-header bg-primary text-white">
+              
+                <h3 class="mb-0">@ViewData["Title"] for Order @id</h3> 
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" asp-controller="Payment" asp-route-orderId="@id" method="post">
+                  
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Amount" class="form-label"></label> 
+                        <input asp-for="Amount" class="form-control" placeholder="Enter amount" />
+                        <span asp-validation-for="Amount" class="text-danger mt-1 d-block"></span>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label asp-for="PaymentDescription" class="form-label"></label>
+                        <textarea asp-for="PaymentDescription" class="form-control" rows="3" placeholder="Add a description for the payment (optional)"></textarea>
+                        <span asp-validation-for="PaymentDescription" class="text-danger mt-1 d-block"></span>
+                    </div>
+
+                    <hr /> 
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="@Url.Action("Detail", "Order", new { id = id })" class="btn btn-secondary">Back to Order Details</a> 
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-dollar-sign me-2"></i> Submit Payment 
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

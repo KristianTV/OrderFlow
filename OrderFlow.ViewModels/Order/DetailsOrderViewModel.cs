@@ -1,6 +1,4 @@
-﻿using OrderFlow.Data.Models;
-
-namespace OrderFlow.ViewModels.Order
+﻿namespace OrderFlow.ViewModels.Order
 {
     public class DetailsOrderViewModel
     {
@@ -23,7 +21,7 @@ namespace OrderFlow.ViewModels.Order
 
         public string? TruckLicensePlate { get; set; }
 
-        public ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();
+        public ICollection<OrderFlow.Data.Models.Payment> Payments { get; set; } = new HashSet<OrderFlow.Data.Models.Payment>();
 
         public decimal TotalPrice { get; set; }
     }

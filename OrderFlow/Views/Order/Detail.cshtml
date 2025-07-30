@@ -41,7 +41,10 @@
         </div>
         <div class="col-md-5">
             <div class="card border-danger mb-3">
-                <div class="card-header bg-danger text-white">Payments</div>
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                    <span>Payments</span>
+                    <a asp-area="" asp-controller="Payment" asp-action="Create" asp-route-id="@Model.OrderID" class="btn btn-light btn-sm">Add Payment</a>
+                </div>
                 <div class="card-body">
                     @if (Model.Payments != null && Model.Payments.Any())
                     {
