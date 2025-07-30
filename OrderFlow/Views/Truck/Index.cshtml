@@ -1,0 +1,31 @@
+﻿@using OrderFlow.ViewModels.Truck
+@model IEnumerable<IndexTruckViewModel>;
+@{
+    ViewData["Title"] = "Trucks";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Trucks</h2>
+    <a class="btn btn-success" asp-action="Create" asp-controller="Truck">Create New</a>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    @foreach (var truck in Model)
+    {
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">@truck.DriverName</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">@truck.LicensePlate</h6>
+                    <p class="card-text">
+                        <strong>Capacity:</strong> @truck.Capacity<br />
+                        <strong>Status:</strong> @truck.Status
+                    </p>
+                </div>
+                <div class="card-footer text-end">
+                    <a class="btn btn-primary" asp-action="Detail" asp-controller="Truck" asp-route-id="@truck.TruckID">More Info</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

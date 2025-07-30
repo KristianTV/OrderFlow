@@ -9,7 +9,7 @@ namespace OrderFlow.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<Truck> builder)
         {
-            builder.HasKey(t => t.Id);
+            builder.HasKey(t => t.TruckID);
 
             builder.Property(t => t.LicensePlate)
                    .IsRequired()

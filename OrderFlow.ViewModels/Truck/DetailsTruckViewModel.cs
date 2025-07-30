@@ -1,11 +1,12 @@
-﻿namespace OrderFlow.Data.Models
+﻿using OrderFlow.Data.Models;
+
+namespace OrderFlow.ViewModels.Truck
 {
-    public class Truck
+    public class DetailsTruckViewModel
     {
         public Guid TruckID { get; set; }
 
-        public Guid DriverID { get; set; }
-        public ApplicationUser Driver { get; set; } = null!;
+        public string DriverName { get; set; } = null!;
 
         public string LicensePlate { get; set; } = string.Empty;
 
@@ -14,7 +15,5 @@
         public string Status { get; set; } = "Available";
 
         public ICollection<TruckOrder> TruckOrders { get; set; } = new HashSet<TruckOrder>();
-
-        public bool isDeleted { get; set; } = false;
     }
 }
