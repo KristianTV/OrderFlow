@@ -29,9 +29,23 @@ namespace OrderFlow.Services.Core
             return await this.SaveChangesAsync() > 0;
         }
 
-        public Task<bool> SoftDeleteTruckAsync(Guid truckID)
+        public async Task<bool> SoftDeleteTruckAsync(Guid truckID)
         {
-            throw new NotImplementedException();
+            Truck? truck = await this.DbSet<Truck>().Where(t => t.TruckID.Equals(truckID)).SingleOrDefaultAsync();
+
+            if (truck != null)
+            {
+                if (truck.isDeleted)
+                {
+                    return true;
+                }
+
+                truck.isDeleted = true;
+
+                return await this.SaveChangesAsync() > 0;
+            }
+
+            return false;
         }
 
         public async Task<bool> UpdateTruckAsync(CreateTruckViewModel createTruckViewModel, Guid truckID)
@@ -39,7 +53,7 @@ namespace OrderFlow.Services.Core
             if (createTruckViewModel == null || truckID == Guid.Empty)
                 return false;
 
-            Truck? truck =await this.DbSet<Truck>().Where(t => t.TruckID.Equals(truckID))
+            Truck? truck = await this.DbSet<Truck>().Where(t => t.TruckID.Equals(truckID))
                                                    .SingleOrDefaultAsync();
 
             if (truck == null)
