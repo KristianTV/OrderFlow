@@ -4,8 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Notification;
-using OrderFlow.ViewModels.Order;
-using System.Threading.Tasks;
 
 namespace OrderFlow.Controllers
 {
@@ -184,8 +182,7 @@ namespace OrderFlow.Controllers
                 return NotFound();
             }
 
-            return RedirectToAction(nameof(Index), "Notification");
-            // return RedirectToAction(nameof(Detail), "Order", new { id = id });
+            return RedirectToAction(nameof(Detail), "Notification", new { id = id });
         }
 
         [HttpGet]
@@ -205,7 +202,7 @@ namespace OrderFlow.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            DetailsNotificationViewModel? notificationViewModel = await _orderService.All<Notification>()
+            DetailsNotificationViewModel? notificationViewModel = await _notificationService.All<Notification>()
                                                                                      .AsNoTracking()
                                                                                      .Include(n => n.Sender)
                                                                                      .Where(n => n.Id.Equals(notificationID))
@@ -219,12 +216,78 @@ namespace OrderFlow.Controllers
                                                                                          SenderName = n.Sender!.UserName,
                                                                                      }).SingleOrDefaultAsync();
 
+
             if (notificationViewModel == null)
             {
                 return NotFound();
             }
 
+            await _notificationService.ReadAsync(notificationID);
+
+            if (!notificationViewModel.IsRead)
+            {
+                notificationViewModel.IsRead = true;
+            }
+
             return View(notificationViewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAsUnread(string? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid notificationId))
+            {
+                return BadRequest("Invalid Notification ID format.");
+            }
+
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+
+            if( !await _notificationService.All<Notification>()
+                                           .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
+            {
+                return NotFound("Notification not found or does not belong to the user.");
+            }
+
+            await _notificationService.UnreadAsync(notificationId);
+
+            return RedirectToAction(nameof(Index), "Notification");;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAsRead(string? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid notificationId))
+            {
+                return BadRequest("Invalid Notification ID format.");
+            }
+
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+
+            if (!await _notificationService.All<Notification>()
+                                           .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
+            {
+                return NotFound("Notification not found or does not belong to the user.");
+            }
+
+            await _notificationService.ReadAsync(notificationId);
+
+            return RedirectToAction(nameof(Index), "Notification");
         }
     }
 }

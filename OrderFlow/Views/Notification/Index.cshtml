@@ -2,7 +2,7 @@
 @model IEnumerable<IndexNotificationViewModel>;
 @{
     ViewData["Title"] = "All Notifications";
-    string currentSort = ViewData["CurrentSort"] as string ?? "all"; ;
+    string currentSort = ViewData["CurrentSort"] as string ?? "All";
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -21,6 +21,7 @@
                 <i class="fas fa-sort me-2"></i> Sort By: @currentSort
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                <li><h6 class="dropdown-header">Notification Status</h6></li>
                 <li><a class="dropdown-item @(currentSort == "All" ? "active" : "")" asp-action="Index" asp-controller="Notification" asp-route-sortBy="all">All</a></li>
                 <li><a class="dropdown-item @(currentSort == "Unread" ? "active" : "")" asp-action="Index" asp-controller="Notification" asp-route-sortBy="unread">Unread</a></li>
                 <li><a class="dropdown-item @(currentSort == "Read" ? "active" : "")" asp-action="Index" asp-controller="Notification" asp-route-sortBy="read">Read</a></li>
@@ -64,6 +65,24 @@
                             }
                         </div>
                         <div class="card-footer text-end bg-light border-top-0">
+                            @if (notification.IsRead)
+                            {
+                                <form asp-area="" asp-controller="Notification" asp-action="MarkAsUnread" asp-route-id="@notification.NotificationID" method="post" class="d-inline ms-2">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-eye-slash me-2"></i> Mark as Unread
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-area="" asp-controller="Notification" asp-action="MarkAsRead" asp-route-id="@notification.NotificationID" method="post" class="d-inline ms-2">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-info">
+                                        <i class="fas fa-check-circle me-2"></i> Mark as Read
+                                    </button>
+                                </form>
+                            }
                             <a class="btn btn-primary" asp-area="" asp-controller="Notification" asp-action="Detail" asp-route-id="@notification.NotificationID">
                                 <i class="fas fa-info-circle me-2"></i> View Details
                             </a>

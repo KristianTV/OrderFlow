@@ -57,7 +57,7 @@ namespace OrderFlow.Services.Core
             return notification;
         }
 
-        public async Task Read(int i)
+        public async Task ReadAsync(Guid i)
         {
             Notification? notification = await this.DbSet<Notification>().Where(x => x.Id.Equals(i)).SingleOrDefaultAsync();
 
@@ -85,6 +85,22 @@ namespace OrderFlow.Services.Core
                 }
 
                 notification.IsDeleted = true;
+                await this.SaveChangesAsync();
+            }
+        }
+
+        public async Task UnreadAsync(Guid id)
+        {
+            Notification? notification = await this.DbSet<Notification>().Where(x => x.Id.Equals(id)).SingleOrDefaultAsync();
+
+            if (notification != null)
+            {
+                if (!notification.IsRead)
+                {
+                    return;
+                }
+
+                notification.IsRead = false;
                 await this.SaveChangesAsync();
             }
         }
