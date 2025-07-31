@@ -25,7 +25,7 @@ namespace OrderFlow.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? sortBy = null)
         {
             if (!Guid.TryParse(this.GetUserId(), out var userId))
             {
@@ -35,6 +35,28 @@ namespace OrderFlow.Controllers
 
             var notifications = await _notificationService.GetAllNotificationsForUserAsync(userId);
 
+            if (sortBy != null)
+            {
+                switch(sortBy.ToLower())
+                {
+                    case "all":
+                        notifications = notifications?.OrderBy(n => n.IsRead).ToList();
+                        ViewData["CurrentSort"] = "All";
+                        break;
+                    case "unread":
+                        notifications = notifications?.Where(n => !n.IsRead).ToList();
+                        ViewData["CurrentSort"] = "Unread";
+                        break;
+                    case "read":
+                        notifications = notifications?.Where(n => n.IsRead).ToList();
+                        ViewData["CurrentSort"] = "Read";
+                        break;
+                    default:
+                        _logger.LogWarning("Invalid status filter provided: {Status}", sortBy);
+                        return BadRequest("Invalid status filter.");
+                }
+            }
+
             if (notifications == null)
             {
                 _logger.LogWarning("No notifications found for user with ID: {UserId}", userId);
@@ -43,7 +65,6 @@ namespace OrderFlow.Controllers
 
             return View(notifications);
         }
-
 
         [HttpGet]
         public async Task<IActionResult> Create()
@@ -76,7 +97,7 @@ namespace OrderFlow.Controllers
                 return View(createPayment);
             }
 
-            if(!Guid.TryParse(this.GetUserId(), out var senderId))
+            if (!Guid.TryParse(this.GetUserId(), out var senderId))
             {
                 _logger.LogWarning("Sender ID is not valid.");
                 return BadRequest("Invalid sender ID.");
@@ -165,6 +186,45 @@ namespace OrderFlow.Controllers
 
             return RedirectToAction(nameof(Index), "Notification");
             // return RedirectToAction(nameof(Detail), "Order", new { id = id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Detail(string? id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+            if (!Guid.TryParse(id, out Guid notificationID))
+            {
+                return BadRequest();
+            }
+
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+
+            DetailsNotificationViewModel? notificationViewModel = await _orderService.All<Notification>()
+                                                                                     .AsNoTracking()
+                                                                                     .Include(n => n.Sender)
+                                                                                     .Where(n => n.Id.Equals(notificationID))
+                                                                                     .Select(n => new DetailsNotificationViewModel
+                                                                                     {
+                                                                                         Title = n.Title,
+                                                                                         Message = n.Message,
+                                                                                         CreatedAt = n.CreatedAt,
+                                                                                         IsRead = n.IsRead,
+                                                                                         OrderId = n.OrderId,
+                                                                                         SenderName = n.Sender!.UserName,
+                                                                                     }).SingleOrDefaultAsync();
+
+            if (notificationViewModel == null)
+            {
+                return NotFound();
+            }
+
+            return View(notificationViewModel);
         }
     }
 }

@@ -45,11 +45,11 @@ namespace OrderFlow.Services.Core
                                          .ThenByDescending(n => n.CreatedAt)
                                          .Select(notification => new IndexNotificationViewModel
                                          {
+                                             NotificationID = notification.Id,
                                              Title = notification.Title,
-                                             Message = notification.Message,
                                              CreatedAt = notification.CreatedAt,
                                              IsRead = notification.IsRead,
-                                             OrderId = notification.OrderId.ToString(),
+                                             OrderId = notification.OrderId,
                                              SenderName = notification.Sender!.UserName
                                          })
                                          .ToListAsync();

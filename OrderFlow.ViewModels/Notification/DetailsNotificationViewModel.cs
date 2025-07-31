@@ -1,10 +1,10 @@
 ﻿namespace OrderFlow.ViewModels.Notification
 {
-    public class IndexNotificationViewModel
+    public class DetailsNotificationViewModel
     {
-        public Guid NotificationID { get; set; } = Guid.NewGuid();
-
         public string Title { get; set; } = string.Empty;
+
+        public string Message { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; }
 
