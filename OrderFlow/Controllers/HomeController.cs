@@ -28,8 +28,19 @@ namespace OrderFlow.Controllers
 
         [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public IActionResult Error(int? statusCode = null)
         {
+            if (statusCode.HasValue)
+            {
+                switch (statusCode.Value)
+                {
+                    case 404:
+                        return View("NotFound");
+                    case 500:
+                        return View("BadRequest");
+                }
+
+            }
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }

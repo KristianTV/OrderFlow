@@ -19,7 +19,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options => opt
 
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddScoped<IOrderService,OrderService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITruckService, TruckService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
@@ -51,6 +51,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
