@@ -35,7 +35,7 @@ namespace OrderFlow.Controllers
 
             if (sortBy != null)
             {
-                switch(sortBy.ToLower())
+                switch (sortBy.ToLower())
                 {
                     case "all":
                         notifications = notifications?.OrderBy(n => n.IsRead).ToList();
@@ -250,7 +250,7 @@ namespace OrderFlow.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            if( !await _notificationService.All<Notification>()
+            if (!await _notificationService.All<Notification>()
                                            .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
             {
                 return NotFound("Notification not found or does not belong to the user.");
@@ -258,7 +258,7 @@ namespace OrderFlow.Controllers
 
             await _notificationService.UnreadAsync(notificationId);
 
-            return RedirectToAction(nameof(Index), "Notification");;
+            return RedirectToAction(nameof(Index), "Notification"); ;
         }
 
         [HttpPost]
@@ -287,6 +287,30 @@ namespace OrderFlow.Controllers
 
             await _notificationService.ReadAsync(notificationId);
 
+            return RedirectToAction(nameof(Index), "Notification");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(string? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            if (!Guid.TryParse(id, out Guid notificationId))
+            {
+                return BadRequest("Invalid Notification ID format.");
+            }
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+            if (!await _notificationService.All<Notification>()
+                                           .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
+            {
+                return NotFound("Notification not found or does not belong to the user.");
+            }
+            await _notificationService.SoftDelete(notificationId);
             return RedirectToAction(nameof(Index), "Notification");
         }
     }

@@ -73,7 +73,7 @@ namespace OrderFlow.Services.Core
             }
         }
 
-        public async Task SoftDelete(int i)
+        public async Task SoftDelete(Guid i)
         {
             Notification? notification = await this.DbSet<Notification>().Where(x => x.Id.Equals(i)).SingleOrDefaultAsync();
 
