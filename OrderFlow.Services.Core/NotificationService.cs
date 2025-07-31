@@ -9,28 +9,28 @@ namespace OrderFlow.Services.Core
 {
     public class NotificationService : BaseRepository, INotificationService
     {
-        
+
         public NotificationService(OrderFlowDbContext _context) : base(_context)
         {
         }
 
-        public async Task CreateNotificationAsync(CreateNotificationViewModel createPayment,Guid senderId)
+        public async Task CreateNotificationAsync(CreateNotificationViewModel createNotification, Guid senderId)
         {
-            if(createPayment == null)
+            if (createNotification == null)
             {
-                throw new ArgumentNullException(nameof(createPayment), "CreateNotificationViewModel cannot be null.");
+                throw new ArgumentNullException(nameof(createNotification), "CreateNotificationViewModel cannot be null.");
             }
 
             await this.AddAsync(new Notification
             {
-                Title = createPayment.Title,
-                Message = createPayment.Message,
+                Title = createNotification.Title,
+                Message = createNotification.Message,
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false,
                 IsDeleted = false,
-                ReceiverId = createPayment.ReceiverId,
+                ReceiverId = createNotification.ReceiverId,
                 SenderId = senderId,
-                OrderId = createPayment.OrderId
+                OrderId = createNotification.OrderId
             });
 
             await this.SaveChangesAsync();
@@ -44,14 +44,14 @@ namespace OrderFlow.Services.Core
                                          .OrderBy(n => n.IsRead)
                                          .ThenByDescending(n => n.CreatedAt)
                                          .Select(notification => new IndexNotificationViewModel
-                                          {
+                                         {
                                              Title = notification.Title,
                                              Message = notification.Message,
                                              CreatedAt = notification.CreatedAt,
                                              IsRead = notification.IsRead,
                                              OrderId = notification.OrderId.ToString(),
                                              SenderName = notification.Sender!.UserName
-                                          })
+                                         })
                                          .ToListAsync();
 
             return notification;
@@ -87,6 +87,34 @@ namespace OrderFlow.Services.Core
                 notification.IsDeleted = true;
                 await this.SaveChangesAsync();
             }
+        }
+
+        public async Task<bool> UpdateNotificationAsync(CreateNotificationViewModel createNotification, Guid notification, Guid userId)
+        {
+            if (createNotification == null)
+            {
+                throw new ArgumentNullException(nameof(createNotification), "CreateNotificationViewModel cannot be null.");
+            }
+
+            Notification? existingNotification = await this.DbSet<Notification>()
+                                                           .Where(n => n.Id.Equals(notification) && n.SenderId.Equals(userId))
+                                                           .SingleOrDefaultAsync();
+
+            if (existingNotification == null)
+            {
+                return false;
+            }
+
+            existingNotification.Title = createNotification.Title;
+            existingNotification.Message = createNotification.Message;
+            existingNotification.ReceiverId = createNotification.ReceiverId;
+            existingNotification.OrderId = createNotification.OrderId;
+            existingNotification.CreatedAt = DateTime.UtcNow;
+            existingNotification.IsRead = false;
+
+            await this.SaveChangesAsync();
+
+            return true;
         }
     }
 }

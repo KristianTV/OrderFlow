@@ -9,5 +9,6 @@ namespace OrderFlow.Services.Core.Contracts
         Task<IEnumerable<IndexNotificationViewModel>?> GetAllNotificationsForUserAsync(Guid userId);
         Task Read(int id);
         Task SoftDelete(int i);
+        Task<bool> UpdateNotificationAsync(CreateNotificationViewModel createNotification, Guid notification, Guid userId);
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Notification;
+using OrderFlow.ViewModels.Order;
 using System.Threading.Tasks;
 
 namespace OrderFlow.Controllers
@@ -84,6 +85,86 @@ namespace OrderFlow.Controllers
             await _notificationService.CreateNotificationAsync(createPayment, senderId);
 
             return RedirectToAction(nameof(Index), "Notification");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(string? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid notification))
+            {
+                return BadRequest("Invalid Notification ID format.");
+            }
+
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+
+            Dictionary<Guid, string> orders = await _orderService.All<Order>()
+                                                            .ToDictionaryAsync(
+                                                                              order => order.OrderID,
+                                                                              order => order.OrderID.ToString()
+                                                                          );
+
+            Dictionary<Guid, string> recivers = await _userManager.Users.ToDictionaryAsync(
+                                                                                            user => user.Id,
+                                                                                            user => user.UserName
+                                                                                           );
+
+            CreateNotificationViewModel? createNotification = await _notificationService.All<Notification>()
+                                                                                        .Where(n => n.Id.Equals(notification) &&
+                                                                                                     n.SenderId.Equals(userId))
+                                                                                        .Select(o => new CreateNotificationViewModel
+                                                                                        {
+                                                                                            Title = o.Title,
+                                                                                            Message = o.Message,
+                                                                                            ReceiverId = o.ReceiverId,
+                                                                                            OrderId = o.OrderId,
+                                                                                            Receivers = recivers,
+                                                                                            Orders = orders
+                                                                                        }).SingleOrDefaultAsync();
+
+            if (createNotification == null)
+            {
+                return NotFound();
+            }
+
+            return View(createNotification);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(CreateNotificationViewModel createNotification, string? id)
+        {
+            if (!ModelState.IsValid)
+                return View(createNotification);
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid notification))
+            {
+                return BadRequest("Invalid Notification ID format.");
+            }
+
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+
+            if (!await _notificationService.UpdateNotificationAsync(createNotification, notification, userId))
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction(nameof(Index), "Notification");
+            // return RedirectToAction(nameof(Detail), "Order", new { id = id });
         }
     }
 }
