@@ -71,35 +71,17 @@
 
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between" id="mainNavbarCollapse">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link @(currentController == "Home" && currentAction == "Index" && string.IsNullOrEmpty(currentArea) ? "active" : "")"
-                               asp-area="" asp-controller="Home" asp-action="Index">
-                                <i class="fas fa-home me-1"></i> Home
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @(currentController == "Home" && currentAction == "Privacy" && string.IsNullOrEmpty(currentArea) ? "active" : "")"
-                               asp-area="" asp-controller="Home" asp-action="Privacy">
-                                <i class="fas fa-shield-alt me-1"></i> Privacy
-                            </a>
-                        </li>
                         @if (SignInManager.IsSignedIn(User))
                         {
                             <li class="nav-item">
-                                <a class="nav-link @(currentController == "Order" && currentAction == "Index" && string.IsNullOrEmpty(currentArea) ? "active" : "")"
-                                   asp-area="" asp-controller="Order" asp-action="Index">
-                                    <i class="fas fa-box-open me-1"></i> Orders
-                                </a>
-                            </li>
-                            <li class="nav-item">
                                 <a class="nav-link @(currentController == "Truck" && currentAction == "Index" && string.IsNullOrEmpty(currentArea) ? "active" : "")"
-                                   asp-area="" asp-controller="Truck" asp-action="Index">
+                                   asp-area="Driver" asp-controller="Truck" asp-action="Index">
                                     <i class="fas fa-truck me-1"></i> Trucks
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @(currentController == "Notification" && currentAction == "Index" && string.IsNullOrEmpty(currentArea) ? "active" : "")"
-                                   asp-area="" asp-controller="Notification" asp-action="Index">
+                                   asp-area="Driver" asp-controller="Notification" asp-action="Index">
                                     <i class="fas fa-bell me-1"></i> Notifications
                                 </a>
                             </li>
@@ -118,7 +100,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - OrderFlow - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - OrderFlow
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

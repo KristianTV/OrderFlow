@@ -1,0 +1,73 @@
+﻿@using OrderFlow.ViewModels.Truck
+@model IEnumerable<AssignedOrdersToTruckViewModel>;
+@{
+    ViewData["Title"] = "Assigned Orders"; 
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-md-12">
+        <div class="card shadow-lg mt-5">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">@ViewData["Title"]</h3>
+            </div>
+            <div class="card-body">
+                @if (Model != null && Model.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Order ID</th>
+                                    <th scope="col">Pickup Address</th>
+                                    <th scope="col">Delivery Address</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model)
+                                {
+                                    <tr>
+                                        <td>@order.OrderID</td>
+                                        <td>@order.PickupAddress</td>
+                                        <td>@order.DeliveryAddress</td>
+                                        <td>
+                                            <span class="badge @GetStatusBadgeClass(order.OrderStatus)">
+                                                @order.OrderStatus
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <form asp-area="Admin" asp-action="ChangeStatusToCompleted" asp-route-id="@order.OrderID" method="post" onsubmit="return confirm('Are you sure you want to mark this order as completed?');">
+                                                <button type="submit" class="btn btn-success btn-sm">
+                                                    <i class="fas fa-check-circle me-1"></i> Complete
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info text-center" role="alert">
+                        <p class="mb-0">No assigned orders found.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetStatusBadgeClass(string status) => status switch
+    {
+        "Pending" => "bg-warning text-dark",
+        "Delayed" => "bg-danger",
+        "OnHold" => "bg-secondary",
+        "Completed" => "bg-success",
+        "InTransit" => "bg-info text-dark",
+        _ => "bg-light text-dark"
+    };
+}

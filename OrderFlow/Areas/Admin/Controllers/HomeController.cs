@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrderFlow.Areas.Admin.Controllers;
 using OrderFlow.ViewModels.System;
 using System.Diagnostics;
 
 
-namespace OrderFlow.Controllers
+namespace OrderFlow.Areas.Admin.Controllers
 {
-    public class HomeController : BaseController
+    public class HomeController : BaseAdminController
     {
         private readonly ILogger<HomeController> _logger;
         
@@ -15,19 +16,6 @@ namespace OrderFlow.Controllers
             _logger = logger;
         }
 
-        [AllowAnonymous]
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        [AllowAnonymous]
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error(int? statusCode = null)
         {

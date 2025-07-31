@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OrderFlow.Areas.Admin.Controllers;
 using OrderFlow.Data.Models;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Order;
 
-namespace OrderFlow.Controllers
+namespace OrderFlow.Areas.Admin.Controllers
 {
-    public class OrderController : BaseController
+    public class OrderController : BaseAdminController
     {
         private readonly ILogger<OrderController> _logger;
         private readonly IOrderService _orderService;

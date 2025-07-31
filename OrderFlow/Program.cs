@@ -56,9 +56,25 @@ app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.MapControllerRoute(
+        name: "Admin",
+        pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}"
+);
+
+app.MapControllerRoute(
+        name: "Speditor",
+        pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}"
+);
+
+app.MapControllerRoute(
+        name: "Driver",
+        pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}"
+);
+
+app.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();

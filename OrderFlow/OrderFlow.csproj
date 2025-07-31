@@ -26,7 +26,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Views\Shared\Navigation\" />
+    <Folder Include="Areas\Driver\Controllers\" />
+    <Folder Include="Areas\Speditor\Controllers\" />
+    <Folder Include="Areas\Speditor\Views\" />
+    <Folder Include="Areas\UserIdentity\Controllers\" />
+    <Folder Include="Areas\UserIdentity\Views\" />
   </ItemGroup>
 
 </Project>

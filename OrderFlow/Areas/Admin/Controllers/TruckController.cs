@@ -1,14 +1,15 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OrderFlow.Areas.Admin.Controllers;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Truck;
 
-namespace OrderFlow.Controllers
+namespace OrderFlow.Areas.Admin.Controllers
 {
-    public class TruckController : BaseController
+    public class TruckController : BaseAdminController
     {
         private readonly ILogger<TruckController> _logger;
         private readonly ITruckService _truckService;

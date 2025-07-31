@@ -97,6 +97,14 @@ namespace OrderFlow.Controllers
 
                 if (result.Succeeded)
                 {
+                    if (user != null)
+                    {
+                        if (await userManager.IsInRoleAsync(user, "Admin"))
+                        {
+                            return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                        }
+                    }
+
                     return RedirectToAction("Index", "Home");
                 }
             }
