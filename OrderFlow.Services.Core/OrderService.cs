@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
@@ -17,7 +16,7 @@ namespace OrderFlow.Services.Core
 
         public async Task<bool> CancelOrderAsync(Guid? orderId, Guid? userId)
         {
-            if(orderId == null || userId == null || orderId == Guid.Empty || userId == Guid.Empty)
+            if (orderId == null || userId == null || orderId == Guid.Empty || userId == Guid.Empty)
                 return false;
 
             Order? order = await this.DbSet<Order>().Where(x => x.OrderID.Equals(orderId) && x.UserID.Equals(userId)).SingleOrDefaultAsync();
@@ -25,7 +24,7 @@ namespace OrderFlow.Services.Core
             if (order != null)
             {
                 if (order.isCanceled)
-                             return true;
+                    return true;
 
                 order.isCanceled = true;
                 order.Status = OrderStatus.Cancelled;
@@ -81,10 +80,10 @@ namespace OrderFlow.Services.Core
 
         public async Task<bool> UpdateOrderAsync(CreateOrderViewModel createOrder, Guid? orderId, Guid? userId)
         {
-           if (createOrder == null || orderId == Guid.Empty || userId == Guid.Empty)
+            if (createOrder == null || orderId == Guid.Empty || userId == Guid.Empty)
                 return false;
 
-            Order? order = await this.DbSet<Order>().Where(x => x.OrderID.Equals(orderId) && 
+            Order? order = await this.DbSet<Order>().Where(x => x.OrderID.Equals(orderId) &&
                                                                 x.UserID.Equals(userId))
                                                     .SingleOrDefaultAsync();
 

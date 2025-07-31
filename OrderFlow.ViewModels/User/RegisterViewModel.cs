@@ -10,7 +10,7 @@ namespace OrderFlow.ViewModels.User
 
         [Required]
         [EmailAddress]
-        [StringLength (60, MinimumLength = 10)]
+        [StringLength(60, MinimumLength = 10)]
         public string Email { get; set; } = null!;
 
         [Required]

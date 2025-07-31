@@ -33,14 +33,14 @@ namespace OrderFlow.Data.Configuration
 
             builder.Property(o => o.isCanceled)
                    .HasDefaultValue(false);
-                
+
             builder.HasMany(o => o.Payments)
                    .WithOne(p => p.Order)
                    .HasForeignKey(p => p.OrderID);
 
-           builder.HasOne(o => o.User)
-                  .WithMany()
-                  .HasForeignKey(o => o.UserID);
+            builder.HasOne(o => o.User)
+                   .WithMany()
+                   .HasForeignKey(o => o.UserID);
 
             builder.HasOne(o => o.TruckOrder)
                    .WithOne(to => to.Order)

@@ -3,7 +3,7 @@ using OrderFlow.ViewModels.Notification;
 
 namespace OrderFlow.Services.Core.Contracts
 {
-    public interface INotificationService: IRepository
+    public interface INotificationService : IRepository
     {
         Task CreateNotificationAsync(CreateNotificationViewModel createPayment, Guid senderId);
         Task<IEnumerable<IndexNotificationViewModel>?> GetAllNotificationsForUserAsync(Guid userId);

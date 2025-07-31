@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using OrderFlow.Data.Models;
 using OrderFlow.ViewModels.System;
 using System.Diagnostics;
 
@@ -9,15 +11,38 @@ namespace OrderFlow.Controllers
     public class HomeController : BaseController
     {
         private readonly ILogger<HomeController> _logger;
-        
-        public HomeController(ILogger<HomeController> logger)
+        private readonly UserManager<ApplicationUser> userManager;
+
+        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
+            this.userManager = userManager;
         }
 
         [AllowAnonymous]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var userId = this.GetUserId();
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return View();
+            }
+
+            var user = await userManager.FindByIdAsync(userId);
+
+            if (await userManager.IsInRoleAsync(user, "Admin"))
+            {
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+            }
+            else if (await userManager.IsInRoleAsync(user, "Speditor"))
+            {
+                return RedirectToAction("Index", "Dashboard", new { area = "Speditor" });
+            }
+            else if (await userManager.IsInRoleAsync(user, "Driver"))
+            {
+                return RedirectToAction("Index", "Dashboard", new { area = "Driver" });
+            }
             return View();
         }
 

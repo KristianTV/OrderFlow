@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OrderFlow.Areas.Admin.Controllers;
 using OrderFlow.ViewModels.System;
 using System.Diagnostics;
 
@@ -10,7 +8,7 @@ namespace OrderFlow.Areas.Admin.Controllers
     public class HomeController : BaseAdminController
     {
         private readonly ILogger<HomeController> _logger;
-        
+
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;

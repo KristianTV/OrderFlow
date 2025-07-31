@@ -37,7 +37,7 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <form asp-action="ChangeStatusToCompleted" asp-route-id="@order.OrderID" method="post" onsubmit="return confirm('Are you sure you want to mark this order as completed?');">
+                                            <form asp-action="ChangeStatusToCompleted" asp-area="Driver" asp-route-id="@order.OrderID" method="post" onsubmit="return confirm('Are you sure you want to mark this order as completed?');">
                                                 <button type="submit" class="btn btn-success btn-sm">
                                                     <i class="fas fa-check-circle me-1"></i> Complete
                                                 </button>
@@ -63,7 +63,7 @@
 @functions {
     private string GetStatusBadgeClass(string status) => status switch
     {
-        "Pending" => "bg-warning ", 
+        "Pending" => "bg-warning",
         "Delayed" => "bg-danger",
         "OnHold" => "bg-secondary",
         "Completed" => "bg-success",

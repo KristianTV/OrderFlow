@@ -8,7 +8,7 @@ namespace OrderFlow.ViewModels.Truck
 
         public string LicensePlate { get; set; } = string.Empty;
 
-        [Range(0,int.MaxValue)]
+        [Range(0, int.MaxValue)]
         public int Capacity { get; set; } = 0;
 
         public IDictionary<Guid, string>? Drivers { get; set; } = new Dictionary<Guid, string>();

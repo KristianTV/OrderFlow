@@ -1,5 +1,5 @@
-﻿using OrderFlow.Data.Repository.Contracts;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using OrderFlow.Data.Repository.Contracts;
 
 namespace OrderFlow.Data.Repository
 {
@@ -22,12 +22,12 @@ namespace OrderFlow.Data.Repository
 
         public async Task<bool> ExistsAsync<T>(int id) where T : class
         {
-           return await _context.Set<T>().FindAsync(id) == null;
+            return await _context.Set<T>().FindAsync(id) == null;
         }
 
         public async Task<int> SaveChangesAsync()
         {
-          return await _context.SaveChangesAsync();
+            return await _context.SaveChangesAsync();
         }
 
         public async Task AddRangeAsync<T>(IEnumerable<T> entities) where T : class
@@ -37,7 +37,7 @@ namespace OrderFlow.Data.Repository
 
         public IQueryable<T> All<T>() where T : class
         {
-           return DbSet<T>().AsQueryable();
+            return DbSet<T>().AsQueryable();
         }
     }
 }

@@ -97,12 +97,18 @@ namespace OrderFlow.Controllers
 
                 if (result.Succeeded)
                 {
-                    if (user != null)
+
+                    if (await userManager.IsInRoleAsync(user, "Admin"))
                     {
-                        if (await userManager.IsInRoleAsync(user, "Admin"))
-                        {
-                            return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-                        }
+                        return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                    }
+                    else if (await userManager.IsInRoleAsync(user, "Speditor"))
+                    {
+                        return RedirectToAction("Index", "Dashboard", new { area = "Speditor" });
+                    }
+                    else if (await userManager.IsInRoleAsync(user, "Driver"))
+                    {
+                        return RedirectToAction("Index", "Dashboard", new { area = "Driver" });
                     }
 
                     return RedirectToAction("Index", "Home");

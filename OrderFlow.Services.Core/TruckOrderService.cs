@@ -5,7 +5,6 @@ using OrderFlow.Data.Models.Enums;
 using OrderFlow.Data.Repository;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Truck;
-using System.Threading.Tasks;
 
 namespace OrderFlow.Services.Core
 {
@@ -60,7 +59,7 @@ namespace OrderFlow.Services.Core
                 var orderForEdit = await this.All<Order>().Where(o => o.OrderID.Equals(orderID)).SingleOrDefaultAsync();
 
                 orderForEdit.Status = OrderStatus.Pending;
-            
+
                 await this.SaveChangesAsync();
             }
         }

@@ -6,7 +6,7 @@ using OrderFlow.Data.Models;
 
 namespace OrderFlow.Data
 {
-    public class OrderFlowDbContext : IdentityDbContext<ApplicationUser,IdentityRole<Guid>,Guid>
+    public class OrderFlowDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
     {
         public OrderFlowDbContext(DbContextOptions<OrderFlowDbContext> options)
           : base(options)

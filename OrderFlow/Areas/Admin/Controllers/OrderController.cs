@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OrderFlow.Areas.Admin.Controllers;
 using OrderFlow.Data.Models;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Order;
@@ -84,7 +83,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             }
 
             CreateOrderViewModel? createOrderViewModel = await _orderService.All<Order>()
-                                                                     .Where(o => o.OrderID.Equals(orderId) && 
+                                                                     .Where(o => o.OrderID.Equals(orderId) &&
                                                                                  o.UserID.Equals(userId))
                                                                      .Select(o => new CreateOrderViewModel
                                                                      {
@@ -181,7 +180,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            if(!Guid.TryParse(this.GetUserId(), out Guid userId))
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
             {
                 return BadRequest("Invalid User ID format.");
             }

@@ -8,7 +8,7 @@ namespace OrderFlow.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<TruckOrder> builder)
         {
-            builder.HasKey(to => new { to.OrderID, to.TruckID});
+            builder.HasKey(to => new { to.OrderID, to.TruckID });
 
             builder.HasOne(to => to.Truck)
                    .WithMany(t => t.TruckOrders)

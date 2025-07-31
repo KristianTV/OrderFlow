@@ -71,7 +71,7 @@
 
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between" id="mainNavbarCollapse">
                     <ul class="navbar-nav flex-grow-1">
-                        @if (SignInManager.IsSignedIn(User))
+                        @if (User.IsInRole("Driver"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link @(currentController == "Truck" && currentAction == "Index" && string.IsNullOrEmpty(currentArea) ? "active" : "")"

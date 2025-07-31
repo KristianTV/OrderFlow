@@ -14,13 +14,13 @@ namespace OrderFlow.Services.Core
 
         public async Task CreatePaymentAsync(CreatePaymentViewModel createPayment, Guid orderId)
         {
-            await  this.AddAsync(new Data.Models.Payment
-                {
+            await this.AddAsync(new Data.Models.Payment
+            {
 
-                    Amount = createPayment.Amount,
-                    PaymentDescription = createPayment.PaymentDescription,
-                    OrderID = orderId,
-                    PaymentDate = DateTime.UtcNow
+                Amount = createPayment.Amount,
+                PaymentDescription = createPayment.PaymentDescription,
+                OrderID = orderId,
+                PaymentDate = DateTime.UtcNow
             });
 
             await this.SaveChangesAsync();
@@ -28,7 +28,7 @@ namespace OrderFlow.Services.Core
 
         public async Task DeletePaymentAsync(Guid paymentId)
         {
-           if (paymentId == Guid.Empty)
+            if (paymentId == Guid.Empty)
             {
                 throw new ArgumentException("Payment ID cannot be empty.", nameof(paymentId));
             }
@@ -56,7 +56,7 @@ namespace OrderFlow.Services.Core
             }
 
             var payment = await this.All<Data.Models.Payment>().SingleOrDefaultAsync(p => p.Id == paymentId);
-            
+
             if (payment == null)
             {
                 throw new KeyNotFoundException($"Payment with ID {paymentId} not found.");
