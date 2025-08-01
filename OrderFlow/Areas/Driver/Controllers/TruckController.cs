@@ -156,7 +156,4 @@ namespace OrderFlow.Areas.Driver.Controllers
 //  see completed orders
 //  see all trucks that he drives
 //  see details of a truck that he drives
-//  
-//
-//
 //**//
