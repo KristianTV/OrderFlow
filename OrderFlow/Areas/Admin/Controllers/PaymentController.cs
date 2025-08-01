@@ -63,6 +63,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             }
 
             var editPayment = await _paymentService.All<Payment>()
+                                                   .AsNoTracking()
                                                    .Where(p => p.Id.Equals(paymentId))
                                                    .Select(p => new CreatePaymentViewModel
                                                    {
@@ -101,6 +102,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             await _paymentService.UpdatePaymentAsync(paymentId, createPayment);
 
             var orderId = await _paymentService.All<Payment>()
+                                               .AsNoTracking()
                                                .Where(p => p.Id.Equals(paymentId))
                                                .Select(p => p.OrderID)
                                                .FirstOrDefaultAsync();
@@ -122,9 +124,10 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return RedirectToAction("Index", "Home");
             }
             var orderId = await _paymentService.All<Payment>()
-                                              .Where(p => p.Id.Equals(paymentId))
-                                              .Select(p => p.OrderID)
-                                              .FirstOrDefaultAsync();
+                                               .AsNoTracking()
+                                               .Where(p => p.Id.Equals(paymentId))
+                                               .Select(p => p.OrderID)
+                                               .FirstOrDefaultAsync();
             if (orderId == Guid.Empty)
             {
                 ModelState.AddModelError(string.Empty, "Payment not found or does not belong to any order.");

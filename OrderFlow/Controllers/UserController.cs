@@ -52,6 +52,8 @@ namespace OrderFlow.Controllers
 
             var result = await userManager.CreateAsync(user, model.Password);
 
+            await userManager.AddToRoleAsync(user, "User");
+
             if (result.Succeeded)
             {
                 return RedirectToAction("Login", "User");

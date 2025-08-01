@@ -128,7 +128,7 @@ namespace OrderFlow.Data
             };
             builder.Entity<ApplicationUser>().HasData(driverUser);
 
-            var regularUser = new ApplicationUser // Renamed 'userUser' to 'regularUser'
+            var regularUser = new ApplicationUser 
             {
                 Id = RegularUserId,
                 UserName = "User",

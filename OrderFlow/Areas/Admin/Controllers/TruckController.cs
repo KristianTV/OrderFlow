@@ -120,6 +120,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
 
             CreateTruckViewModel? createTruckViewModel = await _truckService.All<Truck>()
+                                                                            .AsNoTracking()
                                                                             .Where(o => o.TruckID.Equals(truckId))
                                                                             .Select(o => new CreateTruckViewModel
                                                                             {
@@ -148,7 +149,12 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            if (!await _truckService.UpdateTruckAsync(createTruckViewModel, Guid.Parse(id)))
+            if (!Guid.TryParse(id, out Guid truckId))
+            {
+                return BadRequest("Invalid Truck ID format.");
+            }
+
+            if (!await _truckService.UpdateTruckAsync(createTruckViewModel, truckId))
             {
                 return NotFound();
             }

@@ -35,6 +35,33 @@ namespace OrderFlow.Services.Core
             return false;
         }
 
+        public async Task<bool> ChangeOrderStatusAsync(Guid orderId, string? status)
+        {
+            if (orderId == null || string.IsNullOrEmpty(status) || orderId == Guid.Empty)
+                return false;
+
+            if (!Enum.TryParse<OrderStatus>(status,true,out var result))
+            {
+                return false;
+            }
+
+            Order? order = await this.DbSet<Order>()
+                                     .Where(x => x.OrderID.Equals(orderId))
+                                     .SingleOrDefaultAsync();
+
+            if (order != null)
+            {
+                if (order.Status.Equals(result))
+                    return true;
+
+                order.Status = result;
+                await this.SaveChangesAsync();
+                return true;
+            }
+
+            return false;
+        }
+
         public async Task<bool> ChangeStatusToCompletedAsync(Guid orderID)
         {
             if (orderID == Guid.Empty)
@@ -76,6 +103,29 @@ namespace OrderFlow.Services.Core
             int changes = await this.SaveChangesAsync();
 
             return changes > 0;
+        }
+
+        public async Task<bool> ReactivateOrderAsync(Guid orderId)
+        {
+            if (orderId == null || orderId == Guid.Empty )
+                return false;
+
+            Order? order = await this.DbSet<Order>()
+                                     .Where(x => x.OrderID.Equals(orderId))
+                                     .SingleOrDefaultAsync();
+
+            if (order != null)
+            {
+                if (!order.isCanceled)
+                    return true;
+
+                order.isCanceled = false;
+                order.Status = OrderStatus.Pending;
+                await this.SaveChangesAsync();
+                return true;
+            }
+
+            return false;
         }
 
         public async Task<bool> UpdateOrderAsync(CreateOrderViewModel createOrder, Guid? orderId, Guid? userId)

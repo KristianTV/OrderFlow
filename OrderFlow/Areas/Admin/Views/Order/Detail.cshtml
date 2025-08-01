@@ -50,11 +50,57 @@
                     <hr />
                     <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Status:</div>
-                        <div class="col-sm-8">
-                            <span class="badge @GetStatusBadgeClass(Model.Status) fs-6">
-                                @Model.Status
-                            </span>
-                        </div>
+                        @if (!Model.isCanceled)
+                        {
+                            <div class="col-sm-8">
+                                <div class="dropdown">
+                                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span>
+                                    </button>
+                                    <ul class="dropdown-menu me-3" aria-labelledby="dropdownMenuButton1">
+                                        <li><h6 class="dropdown-header">Edit status</h6></li>
+                                        <li>
+                                            <form asp-area="Admin" asp-controller="Order" asp-action="ChangeStatus" asp-route-id="@Model.OrderID" asp-route-status="Pending" method="post">
+                                                <button type="submit" class="dropdown-item">
+                                                    <span class="badge @GetStatusBadgeClass("Pending")">Pending</span>
+                                                </button>
+                                                @Html.AntiForgeryToken()
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form asp-area="Admin" asp-controller="Order" asp-action="ChangeStatus" asp-route-id="@Model.OrderID" asp-route-status="OnHold" method="post">
+                                                <button type="submit" class="dropdown-item">
+                                                    <span class="badge @GetStatusBadgeClass("OnHold")">OnHold</span>
+                                                </button>
+                                                @Html.AntiForgeryToken()
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form asp-area="Admin" asp-controller="Order" asp-action="ChangeStatus" asp-route-id="@Model.OrderID" asp-route-status="Failed" method="post">
+                                                <button type="submit" class="dropdown-item">
+                                                    <span class="badge @GetStatusBadgeClass("Failed")">Failed</span>
+                                                </button>
+                                                @Html.AntiForgeryToken()
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form asp-area="Admin" asp-controller="Order" asp-action="ChangeStatus" asp-route-id="@Model.OrderID" asp-route-status="Delayed" method="post">
+                                                <button type="submit" class="dropdown-item">
+                                                    <span class="badge @GetStatusBadgeClass("Delayed")">Delayed</span>
+                                                </button>
+                                                @Html.AntiForgeryToken()
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="col-sm-8">
+                                <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span>
+                            </div>
+                        }
                     </div>
                     @if (Model.isCanceled)
                     {
@@ -112,6 +158,26 @@
                                                     <i class="fas fa-trash-alt"></i> Delete
                                                 </button>
                                             </form>
+
+                                            <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content border-danger">
+                                                        <div class="modal-header bg-danger text-white">
+                                                            <h5 class="modal-title" id="confirmCancelModalLabel">Confirm Cancellation</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            Are you sure you want to cancel this order? This action cannot be undone.
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
+                                                            <form method="post" asp-area="Admin" asp-controller="Order" asp-action="Cancel" asp-route-id="@Model.OrderID">
+                                                                <button type="submit" class="btn btn-danger">Yes, Cancel Order</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     @if (!string.IsNullOrEmpty(payment.PaymentDescription))
@@ -140,10 +206,18 @@
             <a class="btn btn-primary btn-lg me-2" asp-area="Admin" asp-controller="Order" asp-action="Edit" asp-route-id="@Model.OrderID">
                 <i class="fas fa-edit me-2"></i> Edit Order
             </a>
-
-            <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
-                <i class="fas fa-times-circle me-2"></i> Cancel Order
-            </button>
+            @if (!Model.isCanceled)
+            {
+                <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
+                    <i class="fas fa-times-circle me-2"></i> Cancel Order
+                </button>
+            }
+            else
+            {
+                <form method="post" asp-area="Admin" asp-controller="Order" asp-action="Reactivate" asp-route-id="@Model.OrderID" class="d-inline">
+                    <button type="submit" class="btn btn-success btn-lg"> <i class="fas fa-check me-2"></i> Reactivate Order</button>
+                </form>
+            }
         </div>
     </div>
 
@@ -168,6 +242,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </div>
 
 @functions {

@@ -72,13 +72,14 @@ namespace OrderFlow.Areas.Admin.Controllers
             }
 
             CreateOrderViewModel? createOrderViewModel = await _orderService.All<Order>()
-                                                                     .Where(o => o.OrderID.Equals(orderId))
-                                                                     .Select(o => new CreateOrderViewModel
-                                                                     {
-                                                                         DeliveryAddress = o.DeliveryAddress,
-                                                                         PickupAddress = o.PickupAddress,
-                                                                         DeliveryInstructions = o.DeliveryInstructions
-                                                                     }).SingleOrDefaultAsync();
+                                                                            .AsNoTracking()
+                                                                            .Where(o => o.OrderID.Equals(orderId))
+                                                                            .Select(o => new CreateOrderViewModel
+                                                                            {
+                                                                                DeliveryAddress = o.DeliveryAddress,
+                                                                                PickupAddress = o.PickupAddress,
+                                                                                DeliveryInstructions = o.DeliveryInstructions
+                                                                            }).SingleOrDefaultAsync();
 
             if (createOrderViewModel == null)
             {
@@ -99,12 +100,15 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            if(!Guid.TryParse(id, out Guid orderId))
+            if (!Guid.TryParse(id, out Guid orderId))
             {
                 return BadRequest("Invalid Order ID format.");
             }
 
-            var order = await _orderService.All<Order>().Where(o=> o.OrderID .Equals(orderId)).SingleOrDefaultAsync();
+            var order = await _orderService.All<Order>()
+                                           .AsNoTracking()
+                                           .Where(o => o.OrderID.Equals(orderId))
+                                           .SingleOrDefaultAsync();
 
             if (order == null)
             {
@@ -180,7 +184,10 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            var order = await _orderService.All<Order>().Where(o => o.OrderID.Equals(orderId)).SingleOrDefaultAsync();
+            var order = await _orderService.All<Order>()
+                                           .AsNoTracking()
+                                           .Where(o => o.OrderID.Equals(orderId))
+                                           .SingleOrDefaultAsync();
 
             if (order == null)
             {
@@ -191,7 +198,49 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Failed to cancel the order.");
             }
 
-            return RedirectToAction(nameof(Index), "Order");
+            return RedirectToAction(nameof(Detail), "Order",new { id = id});
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Reactivate(string? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid orderId))
+            {
+                return BadRequest("Invalid Order ID format.");
+            }
+
+            if (!await _orderService.ReactivateOrderAsync(orderId))
+            {
+                return BadRequest("Failed to reactivate the order.");
+            }
+
+            return RedirectToAction(nameof(Detail), "Order", new { id = id });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangeStatus(string? id, string? status)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(status))
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid orderId))
+            {
+                return BadRequest("Invalid Order ID format.");
+            }
+
+            if (!await _orderService.ChangeOrderStatusAsync(orderId,status))
+            {
+                return BadRequest("Failed to uncancel the order.");
+            }
+
+            return RedirectToAction(nameof(Detail), "Order", new { id = id });
         }
     }
 }
