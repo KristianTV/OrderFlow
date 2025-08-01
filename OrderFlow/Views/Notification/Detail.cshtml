@@ -5,8 +5,6 @@
     var notificationID = Context.Request.RouteValues["id"]?.ToString() ?? "";
 }
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
 <div class="container mt-5">
     <h2 class="mb-4 text-center text-primary">@ViewData["Title"]</h2>
 
@@ -46,7 +44,7 @@
                         <div class="row mb-2">
                             <div class="col-sm-4 text-muted">Associated Order:</div>
                             <div class="col-sm-8">
-                                <a asp-controller="Order" asp-action="Detail" asp-route-id="@Model.OrderId" class="text-decoration-none">
+                                <a asp-area="Admin" asp-controller="Order" asp-action="Detail" asp-route-id="@Model.OrderId" class="text-decoration-none">
                                     <i class="fas fa-box-open me-1"></i> View Associated Order
                                 </a>
                             </div>
@@ -68,16 +66,16 @@
                     </p>
                 </div>
                 <div class="card-footer text-end bg-light border-top-0 d-flex justify-content-between align-items-center">
-                    <a class="btn btn-secondary btn-lg" asp-action="Index" asp-controller="Notification">
+                    <a class="btn btn-secondary btn-lg" asp-area="Admin" asp-action="Index" asp-controller="Notification">
                         <i class="fas fa-arrow-left me-2"></i> Back to All Notifications
                     </a>
                     <div>
-                        <a class="btn btn-primary btn-lg me-2" asp-action="Edit" asp-controller="Notification" asp-route-id="@notificationID">
+                        <a class="btn btn-primary btn-lg me-2" asp-area="Admin" asp-action="Edit" asp-controller="Notification" asp-route-id="@notificationID">
                             <i class="fas fa-edit me-2"></i> Edit
                         </a>
                         @if (Model.IsRead)
                         {
-                            <form asp-controller="Notification" asp-action="MarkAsUnread" asp-route-id="@notificationID" method="post" class="d-inline me-2">
+                            <form asp-area="Admin" asp-controller="Notification" asp-action="MarkAsUnread" asp-route-id="@notificationID" method="post" class="d-inline me-2">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-warning btn-lg">
                                     <i class="fas fa-eye-slash me-2"></i> Mark as Unread
@@ -86,7 +84,7 @@
                         }
                         else
                         {
-                            <form asp-controller="Notification" asp-action="MarkAsRead" asp-route-id="@notificationID" method="post" class="d-inline me-2">
+                            <form asp-area="Admin" asp-controller="Notification" asp-action="MarkAsRead" asp-route-id="@notificationID" method="post" class="d-inline me-2">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-info btn-lg">
                                     <i class="fas fa-check-circle me-2"></i> Mark as Read
@@ -115,7 +113,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Notification</button>
-                <form method="post" asp-controller="Notification" asp-action="Delete" asp-route-id="@notificationID">
+                <form method="post" asp-area="Admin" asp-controller="Notification" asp-action="Delete" asp-route-id="@notificationID">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-danger">Yes, Delete Notification</button>
                 </form>

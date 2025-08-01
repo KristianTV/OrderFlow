@@ -20,13 +20,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
-            {
-                return BadRequest("Invalid User ID format.");
-            }
-
             var orders = await _orderService.All<Order>()
-                                            .Where(o => o.UserID.Equals(userId))
                                             .AsNoTracking()
                                             .Select(order => new IndexOrderViewModel
                                             {
@@ -77,14 +71,8 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
-            {
-                return BadRequest("Invalid User ID format.");
-            }
-
             CreateOrderViewModel? createOrderViewModel = await _orderService.All<Order>()
-                                                                     .Where(o => o.OrderID.Equals(orderId) &&
-                                                                                 o.UserID.Equals(userId))
+                                                                     .Where(o => o.OrderID.Equals(orderId))
                                                                      .Select(o => new CreateOrderViewModel
                                                                      {
                                                                          DeliveryAddress = o.DeliveryAddress,
@@ -111,7 +99,19 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            if (!await _orderService.UpdateOrderAsync(createOrderViewModel, Guid.Parse(id), Guid.Parse(this.GetUserId())))
+            if(!Guid.TryParse(id, out Guid orderId))
+            {
+                return BadRequest("Invalid Order ID format.");
+            }
+
+            var order = await _orderService.All<Order>().Where(o=> o.OrderID .Equals(orderId)).SingleOrDefaultAsync();
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            if (!await _orderService.UpdateOrderAsync(createOrderViewModel, orderId, order.UserID))
             {
                 return NotFound();
             }
@@ -142,7 +142,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                                      .Include(o => o.Payments)
                                      .Include(o => o.TruckOrder)
                                      .Include(o => o.TruckOrder!.Truck)
-                                     .Where(o => o.OrderID.Equals(Guid.Parse(id)) && o.UserID.Equals(userId))
+                                     .Where(o => o.OrderID.Equals(Guid.Parse(id)))
                                      .Select(o => new DetailsOrderViewModel
                                      {
                                          OrderID = o.OrderID,
@@ -180,12 +180,13 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
-            {
-                return BadRequest("Invalid User ID format.");
-            }
+            var order = await _orderService.All<Order>().Where(o => o.OrderID.Equals(orderId)).SingleOrDefaultAsync();
 
-            if (!await _orderService.CancelOrderAsync(orderId, userId))
+            if (order == null)
+            {
+                return NotFound();
+            }
+            if (!await _orderService.CancelOrderAsync(orderId, order.UserID))
             {
                 return BadRequest("Failed to cancel the order.");
             }

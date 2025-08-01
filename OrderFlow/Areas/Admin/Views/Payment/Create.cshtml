@@ -2,7 +2,7 @@
 @model CreatePaymentViewModel;
 @{
     ViewData["Title"] = "Create Payment"; 
-    var id = Context.Request.RouteValues["id"]?.ToString() ?? "";
+    var id = Context.Request.Query["orderId"].ToString() ?? "";
 }
 
 <div class="row justify-content-center">
