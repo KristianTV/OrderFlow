@@ -8,7 +8,7 @@
     <div class="col-lg-10 col-md-12">
         <div class="card shadow-lg mt-5">
             <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">@ViewData["Title"]</h3>
+                <h3 class="mb-0"><i class="fas fa-boxes me-2"></i> @ViewData["Title"]</h3>
             </div>
             <div class="card-body">
                 @if (Model != null && Model.Any())
@@ -36,12 +36,45 @@
                                                 @order.OrderStatus
                                             </span>
                                         </td>
-                                        <td>
-                                            <form asp-action="ChangeStatusToCompleted" asp-area="Driver" asp-route-id="@order.OrderID" method="post" onsubmit="return confirm('Are you sure you want to mark this order as completed?');">
-                                                <button type="submit" class="btn btn-success btn-sm">
-                                                    <i class="fas fa-check-circle me-1"></i> Complete
-                                                </button>
-                                            </form>
+                                        <td class="px-4 py-3">
+                                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#confirmCompletionModal_@order.OrderID">
+                                                <i class="fas fa-check-circle me-1"></i> Complete
+                                            </button>
+                                        
+                                            <div class="modal fade" id="confirmCompletionModal_@order.OrderID" tabindex="-1" aria-labelledby="confirmCompletionModalLabel_@order.OrderID" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content border-success shadow-lg rounded-lg">
+                                                        <div class="modal-header bg-success text-white p-3 rounded-t-lg">
+                                                            <h5 class="modal-title fs-5" id="confirmCompletionModalLabel_@order.OrderID">
+                                                                <i class="fas fa-check-circle me-2"></i> Confirm Order Completion
+                                                            </h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body p-4 text-center">
+                                                            <div class="mb-3">
+                                                                <i class="fas fa-exclamation-triangle text-warning fa-3x"></i>
+                                                            </div>
+                                                            <p class="lead text-gray-700">
+                                                                Are you sure you want to mark order <strong>@order.OrderID</strong> as completed?
+                                                            </p>
+                                                            <p class="text-muted text-sm">
+                                                                This action cannot be undone.
+                                                            </p>
+                                                        </div>
+                                                        <div class="modal-footer d-flex justify-content-center p-3">
+                                                            <button type="button" class="btn btn-secondary px-4 py-2 rounded-md" data-bs-dismiss="modal">
+                                                                Cancel
+                                                            </button>
+                                                            <form method="post" asp-area="Driver" asp-controller="Truck" asp-action="ChangeStatusToCompleted" asp-route-id="@order.OrderID" class="d-inline">
+                                                                @Html.AntiForgeryToken()
+                                                                <button type="submit" class="btn btn-success px-4 py-2 rounded-md">
+                                                                    <i class="fas fa-check me-2"></i> Yes, Complete Order
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 }

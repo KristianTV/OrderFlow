@@ -143,7 +143,8 @@ namespace OrderFlow.Areas.Driver.Controllers
             }
 
             await _orderService.ChangeStatusToCompletedAsync(orderID);
-            return RedirectToAction(nameof(Detail), "Truck", new { id = id });
+
+            return RedirectToAction(nameof(Index), "Truck");
         }
     }
 }
