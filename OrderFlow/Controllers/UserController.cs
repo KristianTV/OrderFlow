@@ -46,7 +46,8 @@ namespace OrderFlow.Controllers
             var user = new ApplicationUser()
             {
                 Email = model.Email,
-                UserName = model.UserName
+                UserName = model.UserName,
+                EmailConfirmed = true
             };
 
             var result = await userManager.CreateAsync(user, model.Password);
