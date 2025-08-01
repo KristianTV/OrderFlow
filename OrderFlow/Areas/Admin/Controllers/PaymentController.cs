@@ -48,7 +48,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(string? Id)
+        public async Task<IActionResult> Edit(string? Id, string? orderId)
         {
             if (string.IsNullOrEmpty(Id))
             {
@@ -81,7 +81,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(CreatePaymentViewModel createPayment, string? Id)
+        public async Task<IActionResult> Edit(CreatePaymentViewModel createPayment, string? Id, string? orderId)
         {
             if (!ModelState.IsValid)
             {
@@ -100,12 +100,6 @@ namespace OrderFlow.Areas.Admin.Controllers
             }
 
             await _paymentService.UpdatePaymentAsync(paymentId, createPayment);
-
-            var orderId = await _paymentService.All<Payment>()
-                                               .AsNoTracking()
-                                               .Where(p => p.Id.Equals(paymentId))
-                                               .Select(p => p.OrderID)
-                                               .FirstOrDefaultAsync();
 
             return RedirectToAction("Detail", "Order", new { id = orderId });
         }
