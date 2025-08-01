@@ -36,6 +36,25 @@ namespace OrderFlow.Services.Core
             await this.SaveChangesAsync();
         }
 
+        public async Task<IEnumerable<IndexNotificationViewModel>?> GetAllNotificationsAsync()
+        {
+            var notification = await this.All<Notification>()
+                                          .OrderBy(n => n.IsRead)
+                                          .ThenByDescending(n => n.CreatedAt)
+                                          .Select(notification => new IndexNotificationViewModel
+                                          {
+                                              NotificationID = notification.Id,
+                                              Title = notification.Title,
+                                              CreatedAt = notification.CreatedAt,
+                                              IsRead = notification.IsRead,
+                                              OrderId = notification.OrderId,
+                                              SenderName = notification.Sender!.UserName
+                                          })
+                                          .ToListAsync();
+
+            return notification;
+        }
+
         public async Task<IEnumerable<IndexNotificationViewModel>?> GetAllNotificationsForUserAsync(Guid userId)
         {
             var notification = await this.All<Notification>()

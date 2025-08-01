@@ -11,5 +11,6 @@ namespace OrderFlow.Services.Core.Contracts
         Task UnreadAsync(Guid id);
         Task SoftDelete(Guid id);
         Task<bool> UpdateNotificationAsync(CreateNotificationViewModel createNotification, Guid notification, Guid userId);
+        Task<IEnumerable<IndexNotificationViewModel>?> GetAllNotificationsAsync();
     }
 }

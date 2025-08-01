@@ -111,7 +111,17 @@ namespace OrderFlow.Controllers
                 return NotFound();
             }
 
-            if (!await _orderService.UpdateOrderAsync(createOrderViewModel, Guid.Parse(id), Guid.Parse(this.GetUserId())))
+            if (!Guid.TryParse(id, out Guid orderId))
+            {
+                return BadRequest("Invalid Order ID format.");
+            }
+
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            {
+                return BadRequest("Invalid User ID format.");
+            }
+
+            if (!await _orderService.UpdateOrderAsync(createOrderViewModel, orderId, userId))
             {
                 return NotFound();
             }

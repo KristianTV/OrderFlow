@@ -14,7 +14,7 @@ namespace OrderFlow.Data.Configuration
                    .IsRequired();
 
             builder.Property(p => p.PaymentDescription)
-                   .IsRequired()
+                   .IsRequired(false)
                    .HasMaxLength(ValidationConstants.Payment.PaymentDescriptionMaxLength);
 
             builder.Property(p => p.Amount)

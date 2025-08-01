@@ -3,8 +3,6 @@
 @{
     ViewData["Title"] = "Order Details";
 }
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/flatly/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 <div class="container mt-5">
     <h2 class="mb-4 text-center">@ViewData["Title"] - <span class="text-primary">@Model.OrderID</span></h2>
@@ -94,18 +92,19 @@
                         <ul class="list-group mb-3">
                             @foreach (var payment in Model.Payments)
                             {
-                                <li class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <div>
-                                            <strong>@payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")</strong>
+                                <li class="list-group-item flex justify-between items-center py-3 px-4 border-b border-gray-200 last:border-b-0">
+                                    <div class="flex flex-col text-left">
+                                        <div class="flex items-center">
+                                            <strong class="text-gray-900 text-base">@payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")</strong>
                                             <span class="badge bg-primary rounded-pill ms-2">@payment.Amount.ToString("C")</span>
                                         </div>
+                                        @if (!string.IsNullOrEmpty(payment.PaymentDescription))
+                                        {
+                                            <p class="mt-1 text-gray-600 text-sm">@payment.PaymentDescription</p>
+                                        }
                                     </div>
-                                    @if (!string.IsNullOrEmpty(payment.PaymentDescription))
-                                    {
-                                        <p class="mb-0 text-muted small">@payment.PaymentDescription</p>
-                                    }
                                 </li>
+
                             }
                         </ul>
                         <h4 class="text-end mt-4">Total Paid: <span class="text-success fw-bold">@Model.TotalPrice.ToString("C")</span></h4>
@@ -128,26 +127,47 @@
                 <i class="fas fa-edit me-2"></i> Edit Order
             </a>
 
-            <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
-                <i class="fas fa-times-circle me-2"></i> Cancel Order
-            </button>
+            @if (!Model.isCanceled)
+            {
+                <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
+                    <i class="fas fa-times-circle me-2"></i> Cancel Order
+                </button>
+            }
         </div>
     </div>
 
     <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-danger">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="confirmCancelModalLabel">Confirm Cancellation</h5>
+            <div class="modal-content border-danger shadow-lg rounded-lg">
+                <div class="modal-header bg-danger text-white p-3 rounded-t-lg">
+                    <h5 class="modal-title fs-5" id="confirmCancelModalLabel">
+                        <i class="fas fa-times-circle me-2"></i> Confirm Order Cancellation
+                    </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    Are you sure you want to cancel this order? This action cannot be undone.
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-exclamation-circle text-danger fa-3x"></i>
+                    </div>
+                    <p class="lead text-gray-700">
+                        Are you sure you want to cancel this order?
+                    </p>
+                    <p class="text-muted text-sm">
+                        This action cannot be undone.
+                    </p>
+                    <p class="text-muted text-sm mt-2">
+                        Order ID: <strong>@Model.OrderID</strong>
+                    </p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
-                    <form method="post" asp-area="" asp-controller="Order" asp-action="Cancel" asp-route-id="@Model.OrderID">
-                        <button type="submit" class="btn btn-danger">Yes, Cancel Order</button>
+                <div class="modal-footer d-flex justify-content-center p-3">
+                    <button type="button" class="btn btn-secondary px-4 py-2 rounded-md" data-bs-dismiss="modal">
+                        <i class="fas fa-check me-2"></i> No, Keep Order
+                    </button>
+                    <form method="post" asp-area="" asp-controller="Order" asp-action="Cancel" asp-route-id="@Model.OrderID" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger px-4 py-2 rounded-md">
+                            <i class="fas fa-ban me-2"></i> Yes, Cancel Order
+                        </button>
                     </form>
                 </div>
             </div>

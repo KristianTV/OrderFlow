@@ -31,7 +31,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid user ID.");
             }
 
-            var notifications = await _notificationService.GetAllNotificationsForUserAsync(userId);
+            var notifications = await _notificationService.GetAllNotificationsAsync();
 
             if (sortBy != null)
             {
