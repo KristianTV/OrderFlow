@@ -50,7 +50,7 @@
                     <hr />
                     <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Status:</div>
-                        @if (!Model.isCanceled && Model.Status.Equals("Completed") )
+                        @if (!Model.isCanceled && !Model.Status.Equals("Completed") )
                         {
                             <div class="col-sm-8">
                                 <div class="dropdown">

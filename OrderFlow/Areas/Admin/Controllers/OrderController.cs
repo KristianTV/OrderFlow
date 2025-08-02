@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
+using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Order;
 
@@ -18,21 +19,54 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(bool? hideCompleted, string? searchId = null, string? statusFilter = null, string? sortOrder = null)
         {
-            var orders = await _orderService.All<Order>()
-                                            .AsNoTracking()
-                                            .Select(order => new IndexOrderViewModel
-                                            {
-                                                OrderID = order.OrderID,
-                                                OrderDate = order.OrderDate,
-                                                DeliveryAddress = order.DeliveryAddress,
-                                                PickupAddress = order.PickupAddress,
-                                                Status = order.Status.ToString(),
-                                                isCanceled = order.isCanceled
-                                            }).ToListAsync();
+            var orders = _orderService.All<Order>()
+                                      .AsNoTracking();
 
-            return View(orders);
+            if (!string.IsNullOrEmpty(searchId))
+            {
+                orders = orders.Where(o => o.OrderID.ToString().Contains(searchId));
+            }
+
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                if (!Enum.TryParse(statusFilter, out OrderStatus orderStatus))
+                {
+                    return BadRequest();
+                }
+                orders = orders.Where(o => o.Status.Equals(orderStatus));
+            }
+
+            if (hideCompleted.HasValue && hideCompleted.Value)
+            {
+                orders = orders.Where(o => o.Status != OrderStatus.Completed);
+            }
+
+            switch (sortOrder)
+            {
+                case "date_desc":
+                    orders = orders.OrderByDescending(o => o.OrderDate);
+                    break;
+                case "date_asc":
+                    orders = orders.OrderBy(o => o.OrderDate);
+                    break;
+                default:
+                    orders = orders.OrderBy(o => o.OrderDate);
+                    break;
+            }
+
+            IEnumerable<IndexOrderViewModel> indexOrders = await orders.Select(order => new IndexOrderViewModel
+            {
+                OrderID = order.OrderID,
+                OrderDate = order.OrderDate,
+                DeliveryAddress = order.DeliveryAddress,
+                PickupAddress = order.PickupAddress,
+                Status = order.Status.ToString(),
+                isCanceled = order.isCanceled
+            }).ToListAsync();
+
+            return View(indexOrders);
         }
 
         [HttpGet]
@@ -198,7 +232,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Failed to cancel the order.");
             }
 
-            return RedirectToAction(nameof(Detail), "Order",new { id = id});
+            return RedirectToAction(nameof(Detail), "Order", new { id = id });
         }
 
         [HttpPost]
@@ -235,7 +269,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            if (!await _orderService.ChangeOrderStatusAsync(orderId,status))
+            if (!await _orderService.ChangeOrderStatusAsync(orderId, status))
             {
                 return BadRequest("Failed to uncancel the order.");
             }
