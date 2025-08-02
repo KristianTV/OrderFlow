@@ -5,82 +5,77 @@
     ViewData["Title"] = "User List";
 }
 
-<h1>User Management</h1>
+<h1 class="mb-4 text-center">User Management</h1>
 
-<div class="container mx-auto p-4">
-    <ul class="list-group">
-        @if (Model != null && Model.Any())
-        {
-            @foreach (var userRow in Model)
-            {
-                <li class="list-group-item flex justify-between items-center py-3 px-4 border-b border-gray-200 last:border-b-0">
-                    <div class="flex flex-col text-left flex-grow">
-                        <strong class="text-gray-900 text-lg">
-                            <i class="fas fa-user-circle me-2 text-blue-600"></i> @userRow.UserName
-                        </strong>
-                        <div class="mt-2 text-gray-600 text-sm flex flex-wrap items-center">
-                            <span class="font-semibold me-2">Roles:</span>
-                            @if (userRow.Roles != null && userRow.Roles.Any())
-                            {
-                                @foreach (var role in userRow.Roles)
-                                {
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 me-1 mb-1">
-                                        <i class="@GetRoleIconClass(role) me-1"></i> @role
-                                    </span>
-                                }
-                            }
-                            else
-                            {
-                                <span class="italic text-gray-500">No roles assigned</span>
-                            }
-                        </div>
-                    </div>
-                    <div class="ms-auto">
-                        <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton_@userRow.UserId" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-edit me-2"></i> Manage Roles
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end me-3" aria-labelledby="dropdownMenuButton_@userRow.UserId">
-                                <li><h6 class="dropdown-header">Assign/Remove Role</h6></li>
-                                <li>
-                                    <form asp-area="Admin" asp-action="ChangeRow" asp-controller="Role" asp-route-id="@userRow.UserId" asp-route-role="Admin" method="post">
-                                        <button type="submit" class="dropdown-item @(userRow.Roles.Contains("Admin") ? "active" : "")">
-                                            <i class="fas fa-user-shield me-2"></i> Admin
-                                        </button>
-                                    </form>
-                                </li>
-                                <li>
-                                    <form asp-area="Admin" asp-action="ChangeRow" asp-controller="Role" asp-route-id="@userRow.UserId" asp-route-role="Driver" method="post">
-                                        <button type="submit" class="dropdown-item @(userRow.Roles.Contains("Driver") ? "active" : "")">
-                                            <i class="fas fa-truck me-2"></i> Driver
-                                        </button>
-                                    </form>
-                                </li>
-                                <li>
-                                    <form asp-area="Admin" asp-action="ChangeRow" asp-controller="Role" asp-route-id="@userRow.UserId" asp-route-role="Speditor" method="post">
-                                        <button type="submit" class="dropdown-item @(userRow.Roles.Contains("Speditor") ? "active" : "")">
-                                            <i class="fas fa-boxes me-2"></i> Speditor
-                                        </button>
-                                    </form>
-                                </li>
-                                <li>
-                                    <form asp-area="Admin" asp-action="ChangeRow" asp-controller="Role" asp-route-id="@userRow.UserId" asp-route-role="User" method="post">
-                                        <button type="submit" class="dropdown-item @(userRow.Roles.Contains("User") ? "active" : "")">
-                                            <i class="fas fa-user me-2"></i> User
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </li>
-            }
-        }
-        else
-        {
-            <li class="list-group-item py-3 px-4 text-gray-600">No users found.</li>
-        }
-    </ul>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div id="statusMessage" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+                <span id="statusMessageText"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <ul class="list-group shadow-sm">
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var userRow in Model)
+                    {
+                        <li class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center py-3">
+                            <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center flex-grow-1 mb-2 mb-sm-0">
+                                <strong class="me-2 text-primary d-flex align-items-center mb-1 mb-sm-0">
+                                    <i class="fas fa-user-circle me-2"></i> @userRow.UserName
+                                </strong>
+                                <div class="d-flex flex-wrap align-items-center">
+                                    <span class="fw-semibold me-2 text-muted">Roles:</span>
+                                    @if (userRow.Roles != null && userRow.Roles.Any())
+                                    {
+                                        @foreach (var role in userRow.Roles)
+                                        {
+                                            <span class="badge bg-info me-1 mb-1">
+                                                <i class="@GetRoleIconClass(role) me-1"></i> @role
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="fst-italic text-muted">No roles assigned</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="ms-auto">
+                                <div class="dropdown">
+                                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton_@userRow.UserId" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-edit me-2"></i> Manage Roles
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuButton_@userRow.UserId">
+                                        <li><h6 class="dropdown-header">Assign Role</h6></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        @foreach (var roleName in new string[] { "Admin", "Driver", "Speditor", "User" })
+                                        {
+                                            <li>
+                                                <form asp-area="Admin" asp-action="ChangeRow" asp-controller="Role" asp-route-id="@userRow.UserId" asp-route-role="@roleName" method="post">
+                                                    <button type="submit" class="dropdown-item @(userRow.Roles.Contains(roleName) ? "active" : "")">
+                                                        <i class="@GetRoleIconClass(roleName) me-2"></i>
+                                                        @(userRow.Roles.Contains(roleName) ? "" : "Assign ") @roleName
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <li class="list-group-item text-center text-muted py-3">
+                        <i class="fas fa-info-circle me-2"></i> No users found in the system.
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
 </div>
 
 @functions {
