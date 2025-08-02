@@ -50,7 +50,7 @@
                     <hr />
                     <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Status:</div>
-                        @if (!Model.isCanceled)
+                        @if (!Model.isCanceled && Model.Status.Equals("Completed") )
                         {
                             <div class="col-sm-8">
                                 <div class="dropdown">
@@ -208,17 +208,20 @@
             <a class="btn btn-primary btn-lg me-2" asp-area="Admin" asp-controller="Order" asp-action="Edit" asp-route-id="@Model.OrderID">
                 <i class="fas fa-edit me-2"></i> Edit Order
             </a>
-            @if (!Model.isCanceled)
+            @if (!Model.Status.Equals("Completed"))
             {
-                <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
-                    <i class="fas fa-times-circle me-2"></i> Cancel Order
-                </button>
-            }
-            else
-            {
-                <form method="post" asp-area="Admin" asp-controller="Order" asp-action="Reactivate" asp-route-id="@Model.OrderID" class="d-inline">
-                    <button type="submit" class="btn btn-success btn-lg"> <i class="fas fa-check me-2"></i> Reactivate Order</button>
-                </form>
+                @if (!Model.isCanceled)
+                {
+                    <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
+                        <i class="fas fa-times-circle me-2"></i> Cancel Order
+                    </button>
+                }
+                else
+                {
+                    <form method="post" asp-area="Admin" asp-controller="Order" asp-action="Reactivate" asp-route-id="@Model.OrderID" class="d-inline">
+                        <button type="submit" class="btn btn-success btn-lg"> <i class="fas fa-check me-2"></i> Reactivate Order</button>
+                    </form>
+                }
             }
         </div>
     </div>

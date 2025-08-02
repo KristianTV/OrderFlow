@@ -76,6 +76,7 @@ namespace OrderFlow.Services.Core
                     return true;
 
                 order.Status = OrderStatus.Completed;
+                order.DeliveryDate = DateTime.UtcNow;
                 await this.SaveChangesAsync();
                 return true;
             }
@@ -139,6 +140,9 @@ namespace OrderFlow.Services.Core
 
             if (order != null)
             {
+                if (order.Status.Equals(OrderStatus.Completed))
+                    return false;
+
                 order.DeliveryAddress = createOrder.DeliveryAddress;
                 order.PickupAddress = createOrder.PickupAddress;
                 order.DeliveryInstructions = createOrder.DeliveryInstructions;
