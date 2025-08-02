@@ -2,6 +2,7 @@
 @model IEnumerable<AssignedOrdersToTruckViewModel>;
 @{
     ViewData["Title"] = "Assigned Orders";
+    var truckId = Context.Request.RouteValues["id"]?.ToString() ?? "";
 }
 
 <div class="row justify-content-center">
@@ -89,6 +90,10 @@
                     </div>
                 }
             </div>
+
+            <a class="btn btn-secondary" asp-area="Driver" asp-action="Detail" asp-controller="Truck" asp-route-id="@truckId">
+                <i class="fas fa-arrow-left me-2"></i> Back
+            </a>
         </div>
     </div>
 </div>
