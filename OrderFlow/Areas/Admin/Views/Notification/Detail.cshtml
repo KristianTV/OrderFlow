@@ -73,24 +73,27 @@
                         <a class="btn btn-primary btn-lg me-2" asp-area="Admin" asp-action="Edit" asp-controller="Notification" asp-route-id="@notificationID">
                             <i class="fas fa-edit me-2"></i> Edit
                         </a>
-                        @if (Model.IsRead)
+                        @if (Model.isMarkable)
                         {
-                            <form asp-area="Admin" asp-controller="Notification" asp-action="MarkAsUnread" asp-route-id="@notificationID" method="post" class="d-inline me-2">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-warning btn-lg">
-                                    <i class="fas fa-eye-slash me-2"></i> Mark as Unread
-                                </button>
-                            </form>
-                        }
-                        else
-                        {
-                            <form asp-area="Admin" asp-controller="Notification" asp-action="MarkAsRead" asp-route-id="@notificationID" method="post" class="d-inline me-2">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-info btn-lg">
-                                    <i class="fas fa-check-circle me-2"></i> Mark as Read
-                                </button>
-                            </form>
-                        }
+                            @if (Model.IsRead)
+                            {
+                                <form asp-area="Admin" asp-controller="Notification" asp-action="MarkAsUnread" asp-route-id="@notificationID" method="post" class="d-inline me-2">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-warning btn-lg">
+                                        <i class="fas fa-eye-slash me-2"></i> Mark as Unread
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-area="Admin" asp-controller="Notification" asp-action="MarkAsRead" asp-route-id="@notificationID" method="post" class="d-inline me-2">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-info btn-lg">
+                                        <i class="fas fa-check-circle me-2"></i> Mark as Read
+                                    </button>
+                                </form>
+                            }
+}
                         <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
                             <i class="fas fa-trash-alt me-2"></i> Delete
                         </button>

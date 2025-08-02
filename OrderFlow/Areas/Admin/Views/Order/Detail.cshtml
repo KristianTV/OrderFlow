@@ -7,7 +7,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 <div class="container mt-5">
-    <h2 class="mb-4 text-center">@ViewData["Title"] - <span class="text-primary">@Model.OrderID</span></h2>
+    <div class="row">
+        <h2 class="mb-4 text-center">@ViewData["Title"] - <span class="text-primary">@Model.OrderID</span></h2>
+        
+    </div>
     <div class="row">
         <div class="col-md-7">
             <div class="card shadow-lg mb-4 border-primary">
@@ -50,7 +53,7 @@
                     <hr />
                     <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Status:</div>
-                        @if (!Model.isCanceled && !Model.Status.Equals("Completed") )
+                        @if (!Model.isCanceled && !Model.Status.Equals("Completed"))
                         {
                             <div class="col-sm-8">
                                 <div class="dropdown">
@@ -215,6 +218,9 @@
                     <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
                         <i class="fas fa-times-circle me-2"></i> Cancel Order
                     </button>
+                    <a class="btn btn-success btn-lg shadow-sm" asp-area="Admin" asp-controller="Notification" asp-action="Create" asp-route-orderId="@Model.OrderID">
+                        <i class="fas fa-plus-circle me-2"></i> Create Notification
+                    </a>
                 }
                 else
                 {

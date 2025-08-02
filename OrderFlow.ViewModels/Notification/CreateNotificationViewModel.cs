@@ -12,7 +12,7 @@
 
         public IDictionary<Guid, string>? Orders { get; set; } = new Dictionary<Guid, string>();
 
-        public IDictionary<Guid, string>? Receivers { get; set; } = new Dictionary<Guid, string>();
+        public IDictionary<Guid, string?>? Receivers { get; set; } = new Dictionary<Guid, string?>();
 
     }
 }

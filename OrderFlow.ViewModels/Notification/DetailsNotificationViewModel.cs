@@ -13,5 +13,7 @@
         public string? SenderName { get; set; }
 
         public Guid? OrderId { get; set; }
+
+        public bool isMarkable { get; set; } = true;
     }
 }
