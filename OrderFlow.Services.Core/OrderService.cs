@@ -55,6 +55,17 @@ namespace OrderFlow.Services.Core
                     return true;
 
                 order.Status = result;
+
+                await this.DbSet<Notification>()
+                          .AddAsync(new Notification
+                          {
+                                Title = $"Order status changed to {result}",
+                                OrderId = order.OrderID,
+                                Message = $"Order status changed to {result}",
+                                CreatedAt = DateTime.UtcNow,
+                                ReceiverId = order.UserID
+                          });
+
                 await this.SaveChangesAsync();
                 return true;
             }
@@ -77,6 +88,17 @@ namespace OrderFlow.Services.Core
 
                 order.Status = OrderStatus.Completed;
                 order.DeliveryDate = DateTime.UtcNow;
+
+                await this.DbSet<Notification>()
+                         .AddAsync(new Notification
+                         {
+                             Title = $"Order status changed to {OrderStatus.Completed}",
+                             OrderId = order.OrderID,
+                             Message = $"Order status changed to {OrderStatus.Completed}",
+                             CreatedAt = DateTime.UtcNow,
+                             ReceiverId = order.UserID
+                         });
+
                 await this.SaveChangesAsync();
                 return true;
             }
