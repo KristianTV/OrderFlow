@@ -62,6 +62,7 @@
                                             <th scope="col">Select</th>
                                             <th scope="col">Pickup Address</th>
                                             <th scope="col">Delivery Address</th>
+                                            <th scope="col">Load Capacity</th> 
                                             <th scope="col">Status</th>
                                         </tr>
                                     </thead>
@@ -73,11 +74,15 @@
                                                     <input type="checkbox" asp-for="Orders[i].IsSelected" class="form-check-input" />
                                                     <input type="hidden" asp-for="Orders[i].OrderID" />
                                                     <input type="hidden" asp-for="Orders[i].PickupAddress" />
-                                                    <input type="hidden" asp-for="Orders[i].DeliveryAddress" />
+                                                    <input type="hidden" asp-for="Orders[i].LoadCapacity" />
                                                     <input type="hidden" asp-for="Orders[i].OrderStatus" />
                                                 </td>
                                                 <td>@Model.Orders[i].PickupAddress</td>
-                                                <td>@Model.Orders[i].DeliveryAddress</td>
+                                                <td>
+                                                    <input asp-for="Orders[i].DeliveryAddress" class="form-control form-control-sm" />
+                                                    <span asp-validation-for="Orders[i].DeliveryAddress" class="text-danger d-block mt-1"></span>
+                                                </td>
+                                                <td><strong>@Model.Orders[i].LoadCapacity kg</strong></td>
                                                 <td>
                                                     <span class="badge @GetStatusBadgeClass(Model.Orders[i].OrderStatus) fs-6">
                                                         @Model.Orders[i].OrderStatus

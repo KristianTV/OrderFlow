@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data;
+using OrderFlow.Data.Models;
 using OrderFlow.Data.Repository;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Payment;
@@ -10,6 +11,11 @@ namespace OrderFlow.Services.Core
     {
         public PaymentService(OrderFlowDbContext _context) : base(_context)
         {
+        }
+
+        public IQueryable<Payment> GetAll()
+        {
+            return this.GetAll().AsQueryable();
         }
 
         public async Task CreatePaymentAsync(CreatePaymentViewModel createPayment, Guid orderId)

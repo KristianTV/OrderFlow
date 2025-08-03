@@ -69,26 +69,10 @@ namespace OrderFlow.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Create(string? orderId)
         {
-            Dictionary<Guid, string> orders = await _orderService.All<Order>()
-                                                                 .Include(order => order.User)
-                                                                 .Where(order => !(new[] { OrderStatus.Completed,
-                                                                                           OrderStatus.Cancelled,
-                                                                                           OrderStatus.Failed
-                                                                                          }.Contains(order.Status)))
-                                                                  .ToDictionaryAsync(
-                                                                                order => order.OrderID,
-                                                                                order => order.OrderID.ToString() + " - " + order.User.UserName
-                                                                            );
-
-            Dictionary<Guid, string?> receivers = await _userManager.Users.ToDictionaryAsync(
-                                                                                            user => user.Id,
-                                                                                            user => user.UserName
-                                                                                           );
-
             CreateNotificationViewModel createNotification = new CreateNotificationViewModel
             {
-                Receivers = receivers,
-                Orders = orders,
+                Receivers = await GetUsers(),
+                Orders = await GetOrders(),
             };
 
             if (!string.IsNullOrEmpty(orderId))
@@ -99,10 +83,10 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return BadRequest("Invalid Order ID format.");
                 }
 
-                var receiverId = await _orderService.All<Order>()
-                                              .Where(o => o.OrderID.Equals(orderGuid))
-                                              .Select(o => o.UserID)
-                                              .SingleOrDefaultAsync();
+                var receiverId = await _orderService.GetAll()
+                                                    .Where(o => o.OrderID.Equals(orderGuid))
+                                                    .Select(o => o.UserID)
+                                                    .SingleOrDefaultAsync();
 
                 createNotification.OrderId = orderGuid;
                 createNotification.ReceiverId = receiverId;
@@ -113,11 +97,13 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateNotificationViewModel createPayment)
+        public async Task<IActionResult> Create(CreateNotificationViewModel createNotification)
         {
             if (!ModelState.IsValid)
             {
-                return View(createPayment);
+                createNotification.Receivers = await GetUsers();
+                createNotification.Orders = await GetOrders();
+                return View(createNotification);
             }
 
             if (!Guid.TryParse(this.GetUserId(), out var senderId))
@@ -126,7 +112,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid sender ID.");
             }
 
-            await _notificationService.CreateNotificationAsync(createPayment, senderId);
+            await _notificationService.CreateNotificationAsync(createNotification, senderId);
 
             return RedirectToAction(nameof(Index), "Notification");
         }
@@ -149,18 +135,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            Dictionary<Guid, string> orders = await _orderService.All<Order>()
-                                                            .ToDictionaryAsync(
-                                                                              order => order.OrderID,
-                                                                              order => order.OrderID.ToString()
-                                                                          );
-
-            Dictionary<Guid, string> recivers = await _userManager.Users.ToDictionaryAsync(
-                                                                                            user => user.Id,
-                                                                                            user => user.UserName
-                                                                                           );
-
-            CreateNotificationViewModel? createNotification = await _notificationService.All<Notification>()
+            CreateNotificationViewModel? createNotification = await _notificationService.GetAll()
                                                                                         .Where(n => n.Id.Equals(notification) &&
                                                                                                      n.SenderId.Equals(userId))
                                                                                         .Select(o => new CreateNotificationViewModel
@@ -169,8 +144,6 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                                                             Message = o.Message,
                                                                                             ReceiverId = o.ReceiverId,
                                                                                             OrderId = o.OrderId,
-                                                                                            Receivers = recivers,
-                                                                                            Orders = orders
                                                                                         }).SingleOrDefaultAsync();
 
             if (createNotification == null)
@@ -178,14 +151,20 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            createNotification.Receivers = await GetUsers();
+            createNotification.Orders = await GetOrders();
+
             return View(createNotification);
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(CreateNotificationViewModel createNotification, string? id)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid){
+                createNotification.Receivers = await GetUsers();
+                createNotification.Orders = await GetOrders();
                 return View(createNotification);
+            }
 
             if (id == null)
             {
@@ -194,7 +173,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             if (!Guid.TryParse(id, out Guid notification))
             {
-                return BadRequest("Invalid Notification ID format.");
+                return RedirectToAction("Error", "Home", new { area = "Admin", statusCode = 400 });
             }
 
             if (!Guid.TryParse(this.GetUserId(), out Guid userId))
@@ -227,7 +206,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            DetailsNotificationViewModel? notificationViewModel = await _notificationService.All<Notification>()
+            DetailsNotificationViewModel? notificationViewModel = await _notificationService.GetAll()
                                                                                      .AsNoTracking()
                                                                                      .Include(n => n.Sender)
                                                                                      .Where(n => n.Id.Equals(notificationID))
@@ -248,7 +227,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            if (_notificationService.All<Notification>().Any(n => n.Id.Equals(notificationID) && n.ReceiverId.Equals(userId)))
+            if (_notificationService.GetAll().Any(n => n.Id.Equals(notificationID) && n.ReceiverId.Equals(userId)))
             {
                 await _notificationService.ReadAsync(notificationID);
 
@@ -279,7 +258,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            if (!await _notificationService.All<Notification>()
+            if (!await _notificationService.GetAll()
                                            .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
             {
                 return NotFound("Notification not found or does not belong to the user.");
@@ -308,7 +287,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            if (!await _notificationService.All<Notification>()
+            if (!await _notificationService.GetAll()
                                            .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
             {
                 return NotFound("Notification not found or does not belong to the user.");
@@ -330,13 +309,35 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 return BadRequest("Invalid Notification ID format.");
             }
-            if (!await _notificationService.All<Notification>()
+            if (!await _notificationService.GetAll()
                                            .AnyAsync(n => n.Id.Equals(notificationId)))
             {
                 return NotFound("Notification not found or does not belong to the user.");
             }
             await _notificationService.SoftDelete(notificationId);
             return RedirectToAction(nameof(Index), "Notification");
+        }
+
+        private async Task<Dictionary<Guid, string?>> GetUsers()
+        {
+            return await _userManager.Users.ToDictionaryAsync(
+                                                             user => user.Id,
+                                                             user => user.UserName
+                                                             );
+        }
+
+        private async Task<Dictionary<Guid, string>> GetOrders()
+        {
+            return await _orderService.GetAll()
+                                      .Include(order => order.User)
+                                      .Where(order => !(new[] { OrderStatus.Completed,
+                                                                OrderStatus.Cancelled,
+                                                                OrderStatus.Failed
+                                                               }.Contains(order.Status)))
+                                       .ToDictionaryAsync(
+                                                     order => order.OrderID,
+                                                     order => order.OrderID.ToString() + " - " + order.User.UserName
+                                                 );
         }
     }
 }

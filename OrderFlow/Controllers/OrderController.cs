@@ -26,7 +26,7 @@ namespace OrderFlow.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            var orders = _orderService.All<Order>()
+            var orders = _orderService.GetAll()
                                      .AsNoTracking();
 
             if (!string.IsNullOrEmpty(searchId))
@@ -117,7 +117,7 @@ namespace OrderFlow.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            CreateOrderViewModel? createOrderViewModel = await _orderService.All<Order>()
+            CreateOrderViewModel? createOrderViewModel = await _orderService.GetAll()
                                                                      .Where(o => o.OrderID.Equals(orderId) &&
                                                                                  o.UserID.Equals(userId))
                                                                      .Select(o => new CreateOrderViewModel

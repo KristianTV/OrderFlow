@@ -242,7 +242,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            var order = await _orderService.All<Order>()
+            var order = await _orderService.GetAll()
                                            .AsNoTracking()
                                            .Where(o => o.OrderID.Equals(orderId))
                                            .SingleOrDefaultAsync();

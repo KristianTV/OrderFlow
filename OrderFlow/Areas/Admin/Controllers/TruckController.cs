@@ -28,7 +28,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var orders = await _truckService.All<Truck>()
+            var orders = await _truckService.GetAll()
                                             .AsNoTracking()
                                             .Include(t => t.Driver)
                                             .Select(truck => new IndexTruckViewModel
@@ -55,20 +55,9 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return View(new CreateTruckViewModel());
             }
 
-            Dictionary<Guid, string> drivers = users.ToDictionary(
-                user => user.Id,
-                user => user.UserName
-            );
-
-            if (drivers == null || !drivers.Any())
-            {
-                ModelState.AddModelError(string.Empty, "No drivers available. Please add a driver first.");
-                return View(new CreateTruckViewModel());
-            }
-
             CreateTruckViewModel createTruckViewModel = new CreateTruckViewModel
             {
-                Drivers = drivers
+                Drivers = GetUsersInRole(UserRoles.Driver.ToString())
             };
 
             return View(createTruckViewModel);
@@ -78,10 +67,16 @@ namespace OrderFlow.Areas.Admin.Controllers
         public async Task<IActionResult> Create(CreateTruckViewModel createTruckViewModel)
         {
             if (!ModelState.IsValid)
+            {
+                createTruckViewModel.Drivers = GetUsersInRole(UserRoles.Driver.ToString());
                 return View(createTruckViewModel);
+            }
 
             if (!await _truckService.CreateTruckAsync(createTruckViewModel))
+            {
+                createTruckViewModel.Drivers = GetUsersInRole(UserRoles.Driver.ToString());
                 return View(createTruckViewModel);
+            }
 
             return RedirectToAction(nameof(Index), "Truck");
         }
@@ -99,27 +94,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Truck ID format.");
             }
 
-            var users = await _userManager.GetUsersInRoleAsync("Driver");
-
-            if (users == null || !users.Any())
-            {
-                ModelState.AddModelError(string.Empty, "No drivers available. Please add a driver first.");
-                return View(new CreateTruckViewModel());
-            }
-
-            Dictionary<Guid, string> drivers = users.ToDictionary(
-                user => user.Id,
-                user => user.UserName
-            );
-
-            if (drivers == null || !drivers.Any())
-            {
-                ModelState.AddModelError(string.Empty, "No drivers available. Please add a driver first.");
-                return View(new CreateTruckViewModel());
-            }
-
-
-            CreateTruckViewModel? createTruckViewModel = await _truckService.All<Truck>()
+            CreateTruckViewModel? createTruckViewModel = await _truckService.GetAll()
                                                                             .AsNoTracking()
                                                                             .Where(o => o.TruckID.Equals(truckId))
                                                                             .Select(o => new CreateTruckViewModel
@@ -127,13 +102,14 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                                                 DriverID = o.DriverID,
                                                                                 LicensePlate = o.LicensePlate,
                                                                                 Capacity = o.Capacity,
-                                                                                Drivers = drivers
                                                                             }).SingleOrDefaultAsync();
 
             if (createTruckViewModel == null)
             {
                 return NotFound();
             }
+
+            createTruckViewModel.Drivers = GetUsersInRole(UserRoles.Driver.ToString());
 
             return View(createTruckViewModel);
         }
@@ -142,7 +118,10 @@ namespace OrderFlow.Areas.Admin.Controllers
         public async Task<IActionResult> Edit(CreateTruckViewModel createTruckViewModel, string? id)
         {
             if (!ModelState.IsValid)
+            {
+                createTruckViewModel.Drivers = GetUsersInRole(UserRoles.Driver.ToString());
                 return View(createTruckViewModel);
+            }
 
             if (id == null)
             {
@@ -174,7 +153,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            var order = _truckService.All<Truck>()
+            var order = _truckService.GetAll()
                                      .AsNoTracking()
                                      .Include(o => o.Driver)
                                      .Include(to => to.TruckOrders)
@@ -211,36 +190,41 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            var orders = await _orderService.All<Order>()
-                                            .AsNoTracking()
-                                            .Where(o => new[] { OrderStatus.Pending,
-                                                                OrderStatus.Delayed,
-                                                                OrderStatus.OnHold
-                                                                }.Contains(o.Status))
-                                            .Select(o => new OrderViewModel
-                                            {
-                                                OrderID = o.OrderID,
-                                                DeliveryAddress = o.DeliveryAddress,
-                                                PickupAddress = o.PickupAddress,
-                                                OrderStatus = o.Status.ToString()
-                                            }).ToListAsync();
+            AssignOrdersToTruckViewModel? truck = await _truckService.GetAll()
+                                                                    .AsNoTracking()
+                                                                    .Include(t => t.Driver)
+                                                                    .Where(t => t.TruckID.Equals(truckID))
+                                                                    .Select(t => new AssignOrdersToTruckViewModel
+                                                                    {
+                                                                        LicensePlate = t.LicensePlate,
+                                                                        Capacity = t.Capacity,
+                                                                        DriverName = t.Driver!.UserName!
+                                                                    }).SingleOrDefaultAsync();
+
+            List<OrderViewModel?> orders = await _orderService.GetAll()
+                                                       .AsNoTracking()
+                                                       .Where(o => new[] { OrderStatus.Pending,
+                                                                            OrderStatus.Delayed,
+                                                                            OrderStatus.OnHold
+                                                                            }.Contains(o.Status) &&
+                                                                    o.LoadCapacity <= truck.Capacity
+                                                                     )
+                                                       .Select(o => new OrderViewModel
+                                                       {
+                                                           OrderID = o.OrderID,
+                                                           DeliveryAddress = o.DeliveryAddress,
+                                                           PickupAddress = o.PickupAddress,
+                                                           OrderStatus = o.Status.ToString(),
+                                                           LoadCapacity = o.LoadCapacity,
+                                                       }).ToListAsync();
+
 
             if (orders == null)
             {
                 return BadRequest("No Order were found.");
             }
 
-            var truck = await _truckService.All<Truck>()
-                                           .AsNoTracking()
-                                           .Include(t => t.Driver)
-                                           .Where(t => t.TruckID.Equals(truckID))
-                                           .Select(t => new AssignOrdersToTruckViewModel
-                                           {
-                                               LicensePlate = t.LicensePlate,
-                                               Capacity = t.Capacity,
-                                               DriverName = t.Driver!.UserName!,
-                                               Orders = orders
-                                           }).SingleOrDefaultAsync();
+            truck.Orders = orders;
 
             return View(truck);
         }
@@ -322,7 +306,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            var orders = await _orderService.All<Order>()
+            var orders = await _orderService.GetAll()
                                             .AsNoTracking()
                                             .Where(o => new[] { OrderStatus.InProgress }.Contains(o.Status))
                                             .Select(o => new AssignedOrdersToTruckViewModel
@@ -332,11 +316,6 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                 PickupAddress = o.PickupAddress,
                                                 OrderStatus = o.Status.ToString()
                                             }).ToListAsync();
-
-            if (orders == null)
-            {
-                return BadRequest("No Order were found.");
-            }
 
             return View(orders);
         }
@@ -355,6 +334,16 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             await _orderService.ChangeStatusToCompletedAsync(orderID);
             return RedirectToAction(nameof(Detail), "Truck", new { id = id });
+        }
+
+        private Dictionary<Guid, string?>? GetUsersInRole(string roleName)
+        {
+            return _userManager.GetUsersInRoleAsync(roleName)
+                               .Result
+                               .ToDictionary(
+                                       user => user.Id,
+                                       user => user.UserName
+                                       );
         }
     }
 }

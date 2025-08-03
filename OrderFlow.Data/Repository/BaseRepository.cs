@@ -35,7 +35,7 @@ namespace OrderFlow.Data.Repository
             await DbSet<T>().AddRangeAsync(entities);
         }
 
-        public IQueryable<T> All<T>() where T : class
+        protected IQueryable<T> All<T>() where T : class
         {
             return DbSet<T>().AsQueryable();
         }

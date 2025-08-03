@@ -14,6 +14,11 @@ namespace OrderFlow.Services.Core
         {
         }
 
+        public IQueryable<Notification> GetAll()
+        {
+            return this.GetAll().AsQueryable();
+        }
+
         public async Task CreateNotificationAsync(CreateNotificationViewModel createNotification, Guid senderId)
         {
             if (createNotification == null)
@@ -38,7 +43,7 @@ namespace OrderFlow.Services.Core
 
         public async Task<IEnumerable<IndexNotificationViewModel>?> GetAllNotificationsAsync(Guid userId)
         {
-            var notification = await this.All<Notification>()
+            var notification = await this.GetAll()
                                           .OrderBy(n => n.IsRead)
                                           .ThenByDescending(n => n.CreatedAt)
                                           .Select(notification => new IndexNotificationViewModel
@@ -59,7 +64,7 @@ namespace OrderFlow.Services.Core
 
         public async Task<IEnumerable<IndexNotificationViewModel>?> GetAllNotificationsForUserAsync(Guid userId)
         {
-            var notification = await this.All<Notification>()
+            var notification = await this.GetAll()
                                          .Include(n => n.Sender)
                                          .Where(n => n.ReceiverId.Equals(userId))
                                          .OrderBy(n => n.IsRead)

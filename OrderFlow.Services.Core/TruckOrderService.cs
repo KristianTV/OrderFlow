@@ -10,21 +10,34 @@ namespace OrderFlow.Services.Core
 {
     public class TruckOrderService : BaseRepository, ITruckOrderService
     {
-        public TruckOrderService(OrderFlowDbContext _context) : base(_context)
+        private readonly IOrderService _orderService;
+        private readonly INotificationService _notificationService;
+
+        public TruckOrderService(OrderFlowDbContext _context, IOrderService orderService, INotificationService notificationService) : base(_context)
         {
+            _orderService = orderService;
+            _notificationService = notificationService;
+        }
+
+        public IQueryable<TruckOrder> GetAll()
+        {
+            return this.All<TruckOrder>().AsQueryable();
         }
 
         public async Task<int> AssignOrdersToTruckAsync(IEnumerable<OrderViewModel> assignOrders, Guid truckID)
         {
-            //Todo kg check 
+            bool added = false;
             if (assignOrders == null || assignOrders == null || !assignOrders.Any())
             {
-                return 0;
+                throw new ArgumentNullException(nameof(assignOrders));
             }
 
             foreach (var order in assignOrders)
             {
-                if (this.DbSet<TruckOrder>().Any(o => o.OrderID.Equals(order.OrderID)))
+
+                if (this.GetAll().Any(to => to.OrderID.Equals(order.OrderID) &&
+                                            to.TruckID.Equals(truckID) &&
+                                            to.DeliverAddress.Equals(order.DeliveryAddress)))
                 {
                     continue;
                 }
@@ -32,12 +45,30 @@ namespace OrderFlow.Services.Core
                 await this.AddAsync(new TruckOrder
                 {
                     OrderID = order.OrderID,
-                    TruckID = truckID
+                    TruckID = truckID,
+                    AssignedDate = DateTime.UtcNow,
+                    DeliverAddress = order.DeliveryAddress,
                 });
 
-                var orderForEdit = await this.All<Order>().Where(o => o.OrderID.Equals(order.OrderID)).SingleOrDefaultAsync();
+                await _orderService.ChangeOrderStatusAsync(order.OrderID, OrderStatus.InProgress.ToString());
+                added = true;
+            }
 
-                orderForEdit.Status = OrderStatus.InProgress;
+            if (added)
+            {
+                await _notificationService.AddAsync(new Notification
+                {
+                    Title = "Orders Assigned",
+                    Message = $"Orders have been assigned to truck {truckID}.",
+                    CreatedAt = DateTime.UtcNow,
+                    ReceiverId = this.GetAll()
+                                     .Include(to => to.Truck)
+                                     .ThenInclude(t => t.Driver)
+                                     .Where(to => to.TruckID.Equals(truckID))
+                                     .OrderByDescending(to => to.AssignedDate)
+                                     .Select(to => to.Truck.Driver.Id)
+                                     .FirstOrDefault()
+                });
             }
 
             return await this.SaveChangesAsync();
@@ -47,18 +78,33 @@ namespace OrderFlow.Services.Core
         {
             if (truckID == Guid.Empty || orderID == Guid.Empty)
             {
-                return;
+                throw new ArgumentException("Truck ID and Order ID cannot be empty.");
             }
 
-            var truckOrder = await this.DbSet<TruckOrder>().Where(o => o.OrderID.Equals(orderID) && o.TruckID.Equals(truckID)).SingleOrDefaultAsync();
+            var truckOrder = await this.GetAll()
+                                       .Where(o => o.OrderID.Equals(orderID) &&
+                                                   o.TruckID.Equals(truckID)).SingleOrDefaultAsync();
 
             if (truckOrder != null)
             {
                 this.Delete(truckOrder);
 
-                var orderForEdit = await this.All<Order>().Where(o => o.OrderID.Equals(orderID)).SingleOrDefaultAsync();
+                await _orderService.ChangeOrderStatusAsync(orderID, OrderStatus.InProgress.ToString());
 
-                orderForEdit.Status = OrderStatus.Pending;
+                await _notificationService.AddAsync(new Notification
+                {
+                    Title = "Order Remove",
+                    Message = $"Order {orderID} have been remove from truck {truckID}.",
+                    OrderId = orderID,
+                    CreatedAt = DateTime.UtcNow,
+                    ReceiverId = this.GetAll()
+                                     .Include(to => to.Truck)
+                                     .ThenInclude(t => t.Driver)
+                                     .Where(to => to.TruckID.Equals(truckID))
+                                     .OrderByDescending(to => to.AssignedDate)
+                                     .Select(to => to.Truck.Driver.Id)
+                                     .FirstOrDefault()
+                });
 
                 await this.SaveChangesAsync();
             }

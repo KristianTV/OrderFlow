@@ -28,7 +28,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest("Invalid Driver ID format.");
             }
 
-            var orders = await _truckService.All<Truck>()
+            var orders = await _truckService.GetAll()
                                             .AsNoTracking()
                                             .Include(t => t.Driver)
                                             .Where(t => t.DriverID == driverId)
@@ -63,7 +63,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest("Invalid Driver ID format.");
             }
 
-            var order = _truckService.All<Truck>()
+            var order = _truckService.GetAll()
                                      .AsNoTracking()
                                      .Include(o => o.Driver)
                                      .Include(to => to.TruckOrders)
@@ -105,7 +105,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest("Invalid Driver ID format.");
             }
 
-            var orders = await _orderService.All<Order>()
+            var orders = await _orderService.GetAll()
                                             .AsNoTracking()
                                             .Include(o => o.OrderTrucks)
                                             .ThenInclude(to => to.Truck)

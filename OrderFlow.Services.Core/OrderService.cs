@@ -10,8 +10,11 @@ namespace OrderFlow.Services.Core
 {
     public class OrderService : BaseRepository, IOrderService
     {
-        public OrderService(OrderFlowDbContext _context) : base(_context)
+        private readonly INotificationService _notificationService;
+
+        public OrderService(OrderFlowDbContext _context, INotificationService notificationService) : base(_context)
         {
+            _notificationService = notificationService;
         }
 
         public async Task<bool> CancelOrderAsync(Guid? orderId, Guid? userId)
@@ -20,7 +23,7 @@ namespace OrderFlow.Services.Core
                 return false;
 
             Order? order = await this.GetAll()
-                                     .Where(x => x.OrderID.Equals(orderId) && 
+                                     .Where(x => x.OrderID.Equals(orderId) &&
                                                  x.UserID.Equals(userId)).SingleOrDefaultAsync();
 
             if (order != null)
@@ -30,6 +33,16 @@ namespace OrderFlow.Services.Core
 
                 order.isCanceled = true;
                 order.Status = OrderStatus.Cancelled;
+
+                await _notificationService.AddAsync(new Notification
+                {
+                    Title = $"Order {orderId} has been Cancelled",
+                    OrderId = order.OrderID,
+                    Message = $"Order {orderId} has been Cancelled",
+                    CreatedAt = DateTime.UtcNow,
+                    ReceiverId = order.UserID
+                });
+
                 await this.SaveChangesAsync();
                 return true;
             }
@@ -42,7 +55,7 @@ namespace OrderFlow.Services.Core
             if (orderId == null || string.IsNullOrEmpty(status) || orderId == Guid.Empty)
                 return false;
 
-            if (!Enum.TryParse<OrderStatus>(status,true,out var result))
+            if (!Enum.TryParse<OrderStatus>(status, true, out var result))
             {
                 return false;
             }
@@ -58,15 +71,14 @@ namespace OrderFlow.Services.Core
 
                 order.Status = result;
 
-                await this.DbSet<Notification>()
-                          .AddAsync(new Notification
-                          {
-                                Title = $"Order status changed to {result}",
-                                OrderId = order.OrderID,
-                                Message = $"Order status changed to {result}",
-                                CreatedAt = DateTime.UtcNow,
-                                ReceiverId = order.UserID
-                          });
+                await _notificationService.AddAsync(new Notification
+                {
+                    Title = $"Order status changed to {result}",
+                    OrderId = order.OrderID,
+                    Message = $"Order status changed to {result}",
+                    CreatedAt = DateTime.UtcNow,
+                    ReceiverId = order.UserID
+                });
 
                 await this.SaveChangesAsync();
                 return true;
@@ -91,15 +103,14 @@ namespace OrderFlow.Services.Core
                 order.Status = OrderStatus.Completed;
                 order.DeliveryDate = DateTime.UtcNow;
 
-                await this.DbSet<Notification>()
-                         .AddAsync(new Notification
-                         {
-                             Title = $"Order status changed to {OrderStatus.Completed}",
-                             OrderId = order.OrderID,
-                             Message = $"Order status changed to {OrderStatus.Completed}",
-                             CreatedAt = DateTime.UtcNow,
-                             ReceiverId = order.UserID
-                         });
+                await _notificationService.AddAsync(new Notification
+                                            {
+                                                Title = $"Order status changed to {OrderStatus.Completed}",
+                                                OrderId = order.OrderID,
+                                                Message = $"Order status changed to {OrderStatus.Completed}",
+                                                CreatedAt = DateTime.UtcNow,
+                                                ReceiverId = order.UserID
+                                            });
 
                 await this.SaveChangesAsync();
                 return true;
@@ -110,12 +121,12 @@ namespace OrderFlow.Services.Core
 
         public IQueryable<Order> GetAll()
         {
-            return this.All<Order>().AsQueryable();
+            return this.GetAll().AsQueryable();
         }
 
         public async Task<bool> ReactivateOrderAsync(Guid orderId)
         {
-            if (orderId == null || orderId == Guid.Empty )
+            if (orderId == null || orderId == Guid.Empty)
                 return false;
 
             Order? order = await this.GetAll()

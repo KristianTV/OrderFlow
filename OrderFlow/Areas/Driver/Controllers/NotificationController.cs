@@ -76,7 +76,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            DetailsNotificationViewModel? notificationViewModel = await _notificationService.All<Notification>()
+            DetailsNotificationViewModel? notificationViewModel = await _notificationService.GetAll()
                                                                                      .AsNoTracking()
                                                                                      .Include(n => n.Sender)
                                                                                      .Where(n => n.Id.Equals(notificationID) && n.ReceiverId.Equals(userId))
@@ -124,7 +124,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            if (!await _notificationService.All<Notification>()
+            if (!await _notificationService.GetAll()
                                            .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
             {
                 return NotFound("Notification not found or does not belong to the user.");
@@ -153,7 +153,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            if (!await _notificationService.All<Notification>()
+            if (!await _notificationService.GetAll()
                                            .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
             {
                 return NotFound("Notification not found or does not belong to the user.");

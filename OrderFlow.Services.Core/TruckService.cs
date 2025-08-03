@@ -14,6 +14,11 @@ namespace OrderFlow.Services.Core
         {
         }
 
+        public IQueryable<Truck> GetAll()
+        {
+            return this.GetAll().AsQueryable();
+        }
+
         public async Task<bool> CreateTruckAsync(CreateTruckViewModel createTruckViewModel)
         {
             if (createTruckViewModel == null || string.IsNullOrWhiteSpace(createTruckViewModel.LicensePlate) || createTruckViewModel.Capacity <= 0)
@@ -32,7 +37,7 @@ namespace OrderFlow.Services.Core
 
         public async Task<bool> SoftDeleteTruckAsync(Guid truckID)
         {
-            Truck? truck = await this.DbSet<Truck>().Where(t => t.TruckID.Equals(truckID)).SingleOrDefaultAsync();
+            Truck? truck = await this.GetAll().Where(t => t.TruckID.Equals(truckID)).SingleOrDefaultAsync();
 
             if (truck != null)
             {
@@ -54,7 +59,7 @@ namespace OrderFlow.Services.Core
             if (createTruckViewModel == null || truckID == Guid.Empty)
                 return false;
 
-            Truck? truck = await this.DbSet<Truck>().Where(t => t.TruckID.Equals(truckID))
+            Truck? truck = await this.GetAll().Where(t => t.TruckID.Equals(truckID))
                                                    .SingleOrDefaultAsync();
 
             if (truck == null)

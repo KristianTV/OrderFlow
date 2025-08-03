@@ -62,7 +62,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return View(new CreatePaymentViewModel());
             }
 
-            var editPayment = await _paymentService.All<Payment>()
+            var editPayment = await _paymentService.GetAll()
                                                    .AsNoTracking()
                                                    .Where(p => p.Id.Equals(paymentId))
                                                    .Select(p => new CreatePaymentViewModel
@@ -117,7 +117,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 ModelState.AddModelError(string.Empty, "Invalid Payment ID format.");
                 return RedirectToAction("Index", "Home");
             }
-            var orderId = await _paymentService.All<Payment>()
+            var orderId = await _paymentService.GetAll()
                                                .AsNoTracking()
                                                .Where(p => p.Id.Equals(paymentId))
                                                .Select(p => p.OrderID)
