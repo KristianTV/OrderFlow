@@ -7,5 +7,10 @@
 
         public Guid TruckID { get; set; }
         public Truck Truck { get; set; } = null!;
+
+        public string DeliverAddress { get; set; } = string.Empty;
+
+        public DateTime AssignedDate { get; set; }
+        public DateTime? DeliveryDate { get; set; }
     }
 }

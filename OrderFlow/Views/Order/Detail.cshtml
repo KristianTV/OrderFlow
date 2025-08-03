@@ -63,11 +63,17 @@
                         </div>
                     }
 
-                    @if (!string.IsNullOrEmpty(Model.TruckLicensePlate))
+
+                    @if (Model.TrucksLicensePlates.Any())
                     {
                         <div class="row mb-2">
-                            <div class="col-sm-4 text-muted">Truck Assigned:</div>
-                            <div class="col-sm-8"><strong>@Model.TruckLicensePlate</strong></div>
+                            <div class="col-sm-4 text-muted">Trucks Assigned:</div>
+                            @foreach (var truckLicensePlate in Model.TrucksLicensePlates)
+                            {
+
+                                <div class="col-sm-8"><strong>truckLicensePlate</strong></div>
+
+                            }
                         </div>
                     }
                     else

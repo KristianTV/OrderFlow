@@ -28,8 +28,11 @@ namespace OrderFlow.Data.Configuration
                    .HasMaxLength(ValidationConstants.Order.DeliveryInstructionsMaxLength);
 
             builder.Property(o => o.Status)
+                   .IsRequired();
+
+            builder.Property(o => o.LoadCapacity)
                    .IsRequired()
-                   .HasMaxLength(ValidationConstants.Order.StatusMaxLength);
+                   .HasDefaultValue(0);
 
             builder.Property(o => o.isCanceled)
                    .HasDefaultValue(false);
@@ -42,9 +45,9 @@ namespace OrderFlow.Data.Configuration
                    .WithMany()
                    .HasForeignKey(o => o.UserID);
 
-            builder.HasOne(o => o.TruckOrder)
+            builder.HasMany(o => o.OrderTrucks)
                    .WithOne(to => to.Order)
-                   .HasForeignKey<TruckOrder>(to => to.OrderID);
+                   .HasForeignKey(to => to.OrderID);
         }
     }
 }

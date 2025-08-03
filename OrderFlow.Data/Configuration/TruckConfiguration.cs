@@ -20,8 +20,7 @@ namespace OrderFlow.Data.Configuration
                    .HasDefaultValue(0);
 
             builder.Property(t => t.Status)
-                   .IsRequired()
-                   .HasMaxLength(ValidationConstants.Truck.StatusMaxLength);
+                   .IsRequired();
 
             builder.HasOne(t => t.Driver)
                    .WithMany()

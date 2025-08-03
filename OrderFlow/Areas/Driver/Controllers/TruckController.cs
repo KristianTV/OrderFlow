@@ -38,7 +38,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                                                 DriverName = truck.Driver!.UserName!,
                                                 LicensePlate = truck.LicensePlate,
                                                 Capacity = truck.Capacity,
-                                                Status = truck.Status
+                                                Status = truck.Status.ToString()
                                             })
                                             .ToListAsync();
 
@@ -75,7 +75,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                                          DriverName = o.Driver!.UserName!,
                                          LicensePlate = o.LicensePlate,
                                          Capacity = o.Capacity,
-                                         Status = o.Status,
+                                         Status = o.Status.ToString(),
                                          TruckOrders = o.TruckOrders
                                      }).SingleOrDefault();
 
@@ -107,12 +107,12 @@ namespace OrderFlow.Areas.Driver.Controllers
 
             var orders = await _orderService.All<Order>()
                                             .AsNoTracking()
-                                            .Include(o => o.TruckOrder)
+                                            .Include(o => o.OrderTrucks)
                                             .ThenInclude(to => to.Truck)
                                             .Where(o => new[] { OrderStatus.InProgress }.Contains(o.Status) &&
-                                                        o.TruckOrder != null &&
-                                                        o.TruckOrder.TruckID.Equals(truckID) &&
-                                                        o.TruckOrder.Truck.DriverID.Equals(driverId)
+                                                        o.OrderTrucks != null &&
+                                                        o.OrderTrucks.Any(to => to.TruckID.Equals(truckID) && 
+                                                                                to.Truck!.DriverID.Equals(driverId))
                                                         )
                                             .Select(o => new AssignedOrdersToTruckViewModel
                                             {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
+using OrderFlow.Data.Models.Enums;
 using OrderFlow.Data.Repository;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Truck;
@@ -22,7 +23,7 @@ namespace OrderFlow.Services.Core
             {
                 LicensePlate = createTruckViewModel.LicensePlate,
                 Capacity = createTruckViewModel.Capacity,
-                Status = "Available",
+                Status = TruckStatus.Available,
                 DriverID = createTruckViewModel.DriverID
             });
 

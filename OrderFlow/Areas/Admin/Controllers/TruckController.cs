@@ -37,7 +37,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                 DriverName = truck.Driver!.UserName!,
                                                 LicensePlate = truck.LicensePlate,
                                                 Capacity = truck.Capacity,
-                                                Status = truck.Status
+                                                Status = truck.Status.ToString(),
                                             })
                                             .ToListAsync();
 
@@ -186,7 +186,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                                          DriverName = o.Driver!.UserName!,
                                          LicensePlate = o.LicensePlate,
                                          Capacity = o.Capacity,
-                                         Status = o.Status,
+                                         Status = o.Status.ToString(),
                                          TruckOrders = o.TruckOrders
                                      }).SingleOrDefault();
 

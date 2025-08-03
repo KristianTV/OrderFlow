@@ -185,8 +185,8 @@ namespace OrderFlow.Controllers
                                      .AsNoTracking()
                                      .Include(o => o.User)
                                      .Include(o => o.Payments)
-                                     .Include(o => o.TruckOrder)
-                                     .Include(o => o.TruckOrder!.Truck)
+                                     .Include(o => o.OrderTrucks)
+                                     .ThenInclude(to => to.Truck)
                                      .Where(o => o.OrderID.Equals(Guid.Parse(id)) && o.UserID.Equals(userId))
                                      .Select(o => new DetailsOrderViewModel
                                      {
@@ -199,7 +199,7 @@ namespace OrderFlow.Controllers
                                          DeliveryInstructions = o.DeliveryInstructions,
                                          Status = o.Status.ToString(),
                                          isCanceled = o.isCanceled,
-                                         TruckLicensePlate = o.TruckOrder!.Truck.LicensePlate,
+                                         TrucksLicensePlates = o.OrderTrucks.Select(to => to.Truck.LicensePlate).ToList(),
                                          Payments = o.Payments.ToList(),
                                          TotalPrice = o.Payments.ToList().Sum(p => p.Amount)
                                      }).SingleOrDefault();

@@ -1,4 +1,6 @@
-﻿namespace OrderFlow.Data.Models
+﻿using OrderFlow.Data.Models.Enums;
+
+namespace OrderFlow.Data.Models
 {
     public class Truck
     {
@@ -11,7 +13,7 @@
 
         public int Capacity { get; set; } = 0;
 
-        public string Status { get; set; } = "Available";
+        public TruckStatus Status { get; set; } = TruckStatus.Available;
 
         public ICollection<TruckOrder> TruckOrders { get; set; } = new HashSet<TruckOrder>();
 

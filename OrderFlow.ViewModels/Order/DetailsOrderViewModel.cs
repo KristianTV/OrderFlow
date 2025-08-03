@@ -19,7 +19,7 @@
 
         public bool isCanceled { get; set; }
 
-        public string? TruckLicensePlate { get; set; }
+        public ICollection<string?> TrucksLicensePlates { get; set; } = new List<string?>();
 
         public ICollection<OrderFlow.Data.Models.Payment> Payments { get; set; } = new HashSet<OrderFlow.Data.Models.Payment>();
 

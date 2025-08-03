@@ -15,13 +15,15 @@ namespace OrderFlow.Data.Models
         public string DeliveryAddress { get; set; } = string.Empty;
         public string PickupAddress { get; set; } = string.Empty;
 
+        public int LoadCapacity { get; set; } = 0;
+
         public string? DeliveryInstructions { get; set; }
 
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
         public bool isCanceled { get; set; } = false;
 
-        public TruckOrder? TruckOrder { get; set; }
+        public ICollection<TruckOrder>? OrderTrucks { get; set; } = new List<TruckOrder>();
 
         public ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();
 
