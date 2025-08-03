@@ -121,7 +121,7 @@ namespace OrderFlow.Services.Core
 
         public IQueryable<Order> GetAll()
         {
-            return this.GetAll().AsQueryable();
+            return this.All<Order>().AsQueryable();
         }
 
         public async Task<bool> ReactivateOrderAsync(Guid orderId)

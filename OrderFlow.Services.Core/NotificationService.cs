@@ -16,7 +16,7 @@ namespace OrderFlow.Services.Core
 
         public IQueryable<Notification> GetAll()
         {
-            return this.GetAll().AsQueryable();
+            return this.All<Notification>().AsQueryable();
         }
 
         public async Task CreateNotificationAsync(CreateNotificationViewModel createNotification, Guid senderId)

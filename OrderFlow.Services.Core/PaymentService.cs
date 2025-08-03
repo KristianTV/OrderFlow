@@ -15,7 +15,7 @@ namespace OrderFlow.Services.Core
 
         public IQueryable<Payment> GetAll()
         {
-            return this.GetAll().AsQueryable();
+            return this.All<Payment>().AsQueryable();
         }
 
         public async Task CreatePaymentAsync(CreatePaymentViewModel createPayment, Guid orderId)

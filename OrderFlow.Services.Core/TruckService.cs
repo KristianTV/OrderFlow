@@ -16,7 +16,7 @@ namespace OrderFlow.Services.Core
 
         public IQueryable<Truck> GetAll()
         {
-            return this.GetAll().AsQueryable();
+            return this.All<Truck>().AsQueryable();
         }
 
         public async Task<bool> CreateTruckAsync(CreateTruckViewModel createTruckViewModel)

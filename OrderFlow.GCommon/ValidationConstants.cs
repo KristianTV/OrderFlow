@@ -20,23 +20,31 @@
 
         public static class Notification
         {
-            public static int TitleMaxLenght = 100;
-            public static int MessageMaxLength = 500;
+            public const int TitleMaxLenght = 100;
+            public const int TitleMinLenght = 1;
+            public const int MessageMaxLength = 500;
+            public const int MessageMinLength = 5;
         }
 
         public static class Truck
         {
-            public static int LicensePlateMaxLength = 20;
+            public const int LicensePlateMaxLength = 20;
+            public const int LicensePlateMinLength = 8;
+
+            public const int CapacityMaxLength = int.MaxValue;
+            public const int CapacityMinLength = 1;
         }
 
         public static class TruckOrder
         {
-            public static int DeliverAddressMaxLength = 250;
+            public const int DeliverAddressMaxLength = 250;
+            public const int DeliverAddressMinLength = 250;
         }
 
         public static class Payment
         {
-            public static int PaymentDescriptionMaxLength = 100;
+            public const int PaymentDescriptionMaxLength = 100;
+            public const int PaymentDescriptionMinLength = 100;
         }
     }
 }
