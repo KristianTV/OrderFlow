@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
@@ -11,17 +12,19 @@ namespace OrderFlow.Areas.Admin.Controllers
     {
         private readonly ILogger<OrderController> _logger;
         private readonly IOrderService _orderService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public OrderController(ILogger<OrderController> logger, IOrderService orderService)
+        public OrderController(ILogger<OrderController> logger, IOrderService orderService, UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
             _orderService = orderService;
+            _userManager = userManager;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index(bool? hideCompleted, string? searchId = null, string? statusFilter = null, string? sortOrder = null)
         {
-            var orders = _orderService.All<Order>()
+            var orders = _orderService.GetAll()
                                       .AsNoTracking();
 
             if (!string.IsNullOrEmpty(searchId))
@@ -72,22 +75,30 @@ namespace OrderFlow.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            AdminCreateOrderViewModel adminCreateOrderViewModel = new AdminCreateOrderViewModel
+            {
+                Users = GetUsersInRole(UserRoles.User.ToString()),
+            };
+
+            return View(adminCreateOrderViewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateOrderViewModel createOrderViewModel)
+        public async Task<IActionResult> Create(AdminCreateOrderViewModel createOrderViewModel)
         {
             if (!ModelState.IsValid)
-                return View(createOrderViewModel);
-
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
             {
-                return BadRequest("Invalid User ID format.");
+                createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
+
+                return View(createOrderViewModel);
             }
 
-            if (!await _orderService.CreateOrderAsync(createOrderViewModel, userId))
+            if (!await _orderService.CreateOrderAsync(createOrderViewModel))
+            {
+                createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
+
                 return View(createOrderViewModel);
+            }
 
             return RedirectToAction(nameof(Index), "Order");
         }
@@ -105,15 +116,18 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            CreateOrderViewModel? createOrderViewModel = await _orderService.All<Order>()
-                                                                            .AsNoTracking()
-                                                                            .Where(o => o.OrderID.Equals(orderId))
-                                                                            .Select(o => new CreateOrderViewModel
-                                                                            {
-                                                                                DeliveryAddress = o.DeliveryAddress,
-                                                                                PickupAddress = o.PickupAddress,
-                                                                                DeliveryInstructions = o.DeliveryInstructions
-                                                                            }).SingleOrDefaultAsync();
+            AdminCreateOrderViewModel? createOrderViewModel = await _orderService.GetAll()
+                                                                           .AsNoTracking()
+                                                                           .Where(o => o.OrderID.Equals(orderId))
+                                                                           .Select(o => new AdminCreateOrderViewModel
+                                                                           {
+                                                                               UsersId = o.UserID,
+                                                                               DeliveryAddress = o.DeliveryAddress,
+                                                                               PickupAddress = o.PickupAddress,
+                                                                               DeliveryInstructions = o.DeliveryInstructions
+                                                                           }).SingleOrDefaultAsync();
+
+            createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
 
             if (createOrderViewModel == null)
             {
@@ -124,10 +138,14 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(CreateOrderViewModel createOrderViewModel, string? id)
+        public async Task<IActionResult> Edit(AdminCreateOrderViewModel createOrderViewModel, string? id)
         {
             if (!ModelState.IsValid)
+            {
+                createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
+
                 return View(createOrderViewModel);
+            }
 
             if (id == null)
             {
@@ -139,7 +157,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            var order = await _orderService.All<Order>()
+            var order = await _orderService.GetAll()
                                            .AsNoTracking()
                                            .Where(o => o.OrderID.Equals(orderId))
                                            .SingleOrDefaultAsync();
@@ -149,7 +167,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            if (!await _orderService.UpdateOrderAsync(createOrderViewModel, orderId, order.UserID))
+            if (!await _orderService.UpdateOrderAsync(createOrderViewModel, orderId))
             {
                 return NotFound();
             }
@@ -174,7 +192,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            var order = _orderService.All<Order>()
+            var order = _orderService.GetAll()
                                      .AsNoTracking()
                                      .Include(o => o.User)
                                      .Include(o => o.Payments)
@@ -193,7 +211,13 @@ namespace OrderFlow.Areas.Admin.Controllers
                                          Status = o.Status.ToString(),
                                          isCanceled = o.isCanceled,
                                          TrucksLicensePlates = o.OrderTrucks.Select(to => to.Truck!.LicensePlate).ToList(),
-                                         Payments = o.Payments.ToList(),
+                                         Payments = o.Payments.Select(payment => new PaymentViewModel
+                                         {
+                                             Id = payment.Id,
+                                             PaymentDate = payment.PaymentDate,
+                                             Amount = payment.Amount,
+                                             PaymentDescription = payment.PaymentDescription
+                                         }).ToList(),
                                          TotalPrice = o.Payments.ToList().Sum(p => p.Amount)
                                      }).SingleOrDefault();
 
@@ -276,5 +300,17 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             return RedirectToAction(nameof(Detail), "Order", new { id = id });
         }
+
+
+        private Dictionary<Guid, string?>? GetUsersInRole(string roleName)
+        {
+            return _userManager.GetUsersInRoleAsync(roleName)
+                               .Result
+                               .ToDictionary(
+                                       user => user.Id,
+                                       user => user.UserName
+                                       );
+        }
+
     }
 }

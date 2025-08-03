@@ -13,6 +13,8 @@
 
         public string PickupAddress { get; set; } = string.Empty;
 
+        public int LoadCapacity { get; set; } = 0;
+
         public string? DeliveryInstructions { get; set; }
 
         public string Status { get; set; } = string.Empty;
@@ -21,7 +23,7 @@
 
         public ICollection<string?> TrucksLicensePlates { get; set; } = new List<string?>();
 
-        public ICollection<OrderFlow.Data.Models.Payment> Payments { get; set; } = new HashSet<OrderFlow.Data.Models.Payment>();
+        public ICollection<PaymentViewModel> Payments { get; set; } = new HashSet<PaymentViewModel>();
 
         public decimal TotalPrice { get; set; }
     }

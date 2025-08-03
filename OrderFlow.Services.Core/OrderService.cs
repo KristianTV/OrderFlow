@@ -19,7 +19,9 @@ namespace OrderFlow.Services.Core
             if (orderId == null || userId == null || orderId == Guid.Empty || userId == Guid.Empty)
                 return false;
 
-            Order? order = await this.DbSet<Order>().Where(x => x.OrderID.Equals(orderId) && x.UserID.Equals(userId)).SingleOrDefaultAsync();
+            Order? order = await this.GetAll()
+                                     .Where(x => x.OrderID.Equals(orderId) && 
+                                                 x.UserID.Equals(userId)).SingleOrDefaultAsync();
 
             if (order != null)
             {
@@ -45,7 +47,7 @@ namespace OrderFlow.Services.Core
                 return false;
             }
 
-            Order? order = await this.DbSet<Order>()
+            Order? order = await this.GetAll()
                                      .Where(x => x.OrderID.Equals(orderId))
                                      .SingleOrDefaultAsync();
 
@@ -78,8 +80,8 @@ namespace OrderFlow.Services.Core
             if (orderID == Guid.Empty)
                 return false;
 
-            Order? order = await this.DbSet<Order>().Where(x => x.OrderID.Equals(orderID))
-                                                    .SingleOrDefaultAsync();
+            Order? order = await this.GetAll().Where(x => x.OrderID.Equals(orderID))
+                                              .SingleOrDefaultAsync();
 
             if (order != null)
             {
@@ -106,26 +108,9 @@ namespace OrderFlow.Services.Core
             return false;
         }
 
-        public async Task<bool> CreateOrderAsync(CreateOrderViewModel createOrderViewModel, Guid? userId)
+        public IQueryable<Order> GetAll()
         {
-            if (createOrderViewModel == null || !userId.HasValue)
-                return false;
-
-            Order newOrder = new Order
-            {
-                UserID = (Guid)userId,
-                OrderDate = DateTime.UtcNow,
-                DeliveryAddress = createOrderViewModel.DeliveryAddress,
-                PickupAddress = createOrderViewModel.PickupAddress,
-                DeliveryInstructions = createOrderViewModel.DeliveryInstructions,
-                Status = OrderStatus.Pending,
-            };
-
-            await this.AddAsync(newOrder);
-
-            int changes = await this.SaveChangesAsync();
-
-            return changes > 0;
+            return this.All<Order>().AsQueryable();
         }
 
         public async Task<bool> ReactivateOrderAsync(Guid orderId)
@@ -133,7 +118,7 @@ namespace OrderFlow.Services.Core
             if (orderId == null || orderId == Guid.Empty )
                 return false;
 
-            Order? order = await this.DbSet<Order>()
+            Order? order = await this.GetAll()
                                      .Where(x => x.OrderID.Equals(orderId))
                                      .SingleOrDefaultAsync();
 
@@ -151,12 +136,58 @@ namespace OrderFlow.Services.Core
             return false;
         }
 
+        public async Task<bool> CreateOrderAsync(CreateOrderViewModel createOrderViewModel, Guid? userId)
+        {
+            if (createOrderViewModel == null || !userId.HasValue)
+                return false;
+
+            Order newOrder = new Order
+            {
+                UserID = (Guid)userId,
+                OrderDate = DateTime.UtcNow,
+                DeliveryAddress = createOrderViewModel.DeliveryAddress,
+                PickupAddress = createOrderViewModel.PickupAddress,
+                DeliveryInstructions = createOrderViewModel.DeliveryInstructions,
+                Status = OrderStatus.Pending,
+                LoadCapacity = createOrderViewModel.LoadCapacity,
+            };
+
+            await this.AddAsync(newOrder);
+
+            int changes = await this.SaveChangesAsync();
+
+            return changes > 0;
+        }
+
+        public async Task<bool> CreateOrderAsync(AdminCreateOrderViewModel createOrderViewModel)
+        {
+            if (createOrderViewModel == null)
+                return false;
+
+            Order newOrder = new Order
+            {
+                UserID = createOrderViewModel.UsersId,
+                OrderDate = DateTime.UtcNow,
+                DeliveryAddress = createOrderViewModel.DeliveryAddress,
+                PickupAddress = createOrderViewModel.PickupAddress,
+                DeliveryInstructions = createOrderViewModel.DeliveryInstructions,
+                Status = OrderStatus.Pending,
+                LoadCapacity = createOrderViewModel.LoadCapacity,
+            };
+
+            await this.AddAsync(newOrder);
+
+            int changes = await this.SaveChangesAsync();
+
+            return changes > 0;
+        }
+
         public async Task<bool> UpdateOrderAsync(CreateOrderViewModel createOrder, Guid? orderId, Guid? userId)
         {
             if (createOrder == null || orderId == Guid.Empty || userId == Guid.Empty)
                 return false;
 
-            Order? order = await this.DbSet<Order>().Where(x => x.OrderID.Equals(orderId) &&
+            Order? order = await this.GetAll().Where(x => x.OrderID.Equals(orderId) &&
                                                                 x.UserID.Equals(userId))
                                                     .SingleOrDefaultAsync();
 
@@ -168,6 +199,32 @@ namespace OrderFlow.Services.Core
                 order.DeliveryAddress = createOrder.DeliveryAddress;
                 order.PickupAddress = createOrder.PickupAddress;
                 order.DeliveryInstructions = createOrder.DeliveryInstructions;
+                order.LoadCapacity = createOrder.LoadCapacity;
+                int changes = await this.SaveChangesAsync();
+                return changes > 0;
+            }
+            return false;
+        }
+
+        public async Task<bool> UpdateOrderAsync(AdminCreateOrderViewModel createOrder, Guid? orderId)
+        {
+            if (createOrder == null || orderId == Guid.Empty)
+                return false;
+
+            Order? order = await this.GetAll().Where(x => x.OrderID.Equals(orderId) &&
+                                                          x.UserID.Equals(createOrder.UsersId))
+                                                    .SingleOrDefaultAsync();
+
+            if (order != null)
+            {
+                if (order.Status.Equals(OrderStatus.Completed))
+                    return false;
+
+                order.UserID = createOrder.UsersId;
+                order.DeliveryAddress = createOrder.DeliveryAddress;
+                order.PickupAddress = createOrder.PickupAddress;
+                order.DeliveryInstructions = createOrder.DeliveryInstructions;
+                order.LoadCapacity = createOrder.LoadCapacity;
                 int changes = await this.SaveChangesAsync();
                 return changes > 0;
             }

@@ -181,7 +181,7 @@ namespace OrderFlow.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            var order = _orderService.All<Order>()
+            var order = _orderService.GetAll()
                                      .AsNoTracking()
                                      .Include(o => o.User)
                                      .Include(o => o.Payments)
@@ -200,7 +200,13 @@ namespace OrderFlow.Controllers
                                          Status = o.Status.ToString(),
                                          isCanceled = o.isCanceled,
                                          TrucksLicensePlates = o.OrderTrucks.Select(to => to.Truck.LicensePlate).ToList(),
-                                         Payments = o.Payments.ToList(),
+                                         Payments = o.Payments.Select(payment => new PaymentViewModel
+                                                                                     {
+                                                                                         Id = payment.Id,
+                                                                                         PaymentDate = payment.PaymentDate,
+                                                                                         Amount = payment.Amount,
+                                                                                         PaymentDescription = payment.PaymentDescription
+                                                                                     }).ToList(),
                                          TotalPrice = o.Payments.ToList().Sum(p => p.Amount)
                                      }).SingleOrDefault();
 

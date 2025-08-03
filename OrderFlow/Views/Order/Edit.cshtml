@@ -28,6 +28,12 @@
                         <span asp-validation-for="@Model.PickupAddress" class="text-danger mt-1 d-block"></span>
                     </div>
 
+                    <div class="mb-3">
+                        <label asp-for="@Model.LoadCapacity" class="form-label"></label>
+                        <input asp-for="@Model.LoadCapacity" class="form-control" type="number" placeholder="e.g., 1000 (in kg or m³)" />
+                        <span asp-validation-for="@Model.LoadCapacity" class="text-danger mt-1 d-block"></span>
+                    </div>
+
                     <div class="mb-4">
                         <label asp-for="@Model.DeliveryInstructions" class="form-label"></label>
                         <textarea asp-for="@Model.DeliveryInstructions" class="form-control" rows="4" placeholder="e.g., Leave at front door, call upon arrival, etc."></textarea>

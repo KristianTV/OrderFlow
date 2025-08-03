@@ -6,10 +6,16 @@
 
         public static class Order
         {
-            public static int DeliveryInstructionsMaxLength = 500;
+            public const int DeliveryInstructionsMaxLength = 500;
+            public const int DeliveryInstructionsMinLength = 1;
 
-            public static int DeliveryAddressMaxLength = 250;
-            public static int PickupAddressMaxLength = 250;
+            public const int DeliveryAddressMaxLength = 250;
+            public const int DeliveryAddressMinLength = 3;
+            public const int PickupAddressMaxLength = 250;
+            public const int PickupAddressMinLength = 3;
+
+            public const int LoadCapacityMaxLength = int.MaxValue;
+            public const int LoadCapacityMinLength = 1;
         }
 
         public static class Notification

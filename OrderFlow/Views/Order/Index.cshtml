@@ -91,10 +91,6 @@
                                     @order.Status
                                 </span>
                             </p>
-                            @if (order.isCanceled)
-                            {
-                                <p class="text-danger fw-bold mt-2 mb-0"><i class="fas fa-times-circle me-1"></i> This order is canceled.</p>
-                            }
                         </div>
                         <div class="card-footer text-end bg-light border-top-0">
                             <a class="btn btn-primary" asp-area="" asp-controller="Order" asp-action="Detail" asp-route-id="@order.OrderID">
