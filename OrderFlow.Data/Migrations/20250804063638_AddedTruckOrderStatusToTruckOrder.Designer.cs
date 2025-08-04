@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrderFlow.Data;
 
@@ -11,9 +12,11 @@ using OrderFlow.Data;
 namespace OrderFlow.Data.Migrations
 {
     [DbContext(typeof(OrderFlowDbContext))]
-    partial class OrderFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250804063638_AddedTruckOrderStatusToTruckOrder")]
+    partial class AddedTruckOrderStatusToTruckOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,25 +55,25 @@ namespace OrderFlow.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("9451ecbc-52a1-4cf9-abd2-e53387a4a9e5"),
+                            Id = new Guid("e622256a-bbad-4a6d-8f7f-1ad64c4fbff0"),
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = new Guid("8ec94a14-bb02-4b0e-a244-e0eb2381eb33"),
+                            Id = new Guid("38f712e4-5106-47fc-b591-64b17dfda98d"),
                             Name = "Speditor",
                             NormalizedName = "SPEDITOR"
                         },
                         new
                         {
-                            Id = new Guid("a8eec74b-9849-4cb1-b50d-08d72b399c9b"),
+                            Id = new Guid("60ff4740-66a0-4cd1-b37a-464d47a6643f"),
                             Name = "Driver",
                             NormalizedName = "DRIVER"
                         },
                         new
                         {
-                            Id = new Guid("f4da4019-1117-458f-93df-4fc077748d43"),
+                            Id = new Guid("42c7bfc0-b7b3-4614-a824-5ebc2df06b58"),
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -162,23 +165,23 @@ namespace OrderFlow.Data.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = new Guid("b5bc30f8-6e7d-4939-8560-4d6894e9dfa7"),
-                            RoleId = new Guid("9451ecbc-52a1-4cf9-abd2-e53387a4a9e5")
+                            UserId = new Guid("be58cb43-41ea-450f-8d6e-e772337ed88e"),
+                            RoleId = new Guid("e622256a-bbad-4a6d-8f7f-1ad64c4fbff0")
                         },
                         new
                         {
-                            UserId = new Guid("eb9ed273-de23-4578-a88f-db79c4369c0f"),
-                            RoleId = new Guid("8ec94a14-bb02-4b0e-a244-e0eb2381eb33")
+                            UserId = new Guid("b9621218-5d9d-403d-8a28-a0b4aeadffee"),
+                            RoleId = new Guid("38f712e4-5106-47fc-b591-64b17dfda98d")
                         },
                         new
                         {
-                            UserId = new Guid("b16257e5-039f-47fb-acf0-f68b23f4f9f3"),
-                            RoleId = new Guid("a8eec74b-9849-4cb1-b50d-08d72b399c9b")
+                            UserId = new Guid("02c7a524-25a9-4eaf-8824-9fd7f63102de"),
+                            RoleId = new Guid("60ff4740-66a0-4cd1-b37a-464d47a6643f")
                         },
                         new
                         {
-                            UserId = new Guid("afabf75b-6dc5-4d09-9f30-2596c35e0b61"),
-                            RoleId = new Guid("f4da4019-1117-458f-93df-4fc077748d43")
+                            UserId = new Guid("1413b3f2-7d67-4d96-8eba-98dc561ab855"),
+                            RoleId = new Guid("42c7bfc0-b7b3-4614-a824-5ebc2df06b58")
                         });
                 });
 
@@ -269,69 +272,69 @@ namespace OrderFlow.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("b5bc30f8-6e7d-4939-8560-4d6894e9dfa7"),
+                            Id = new Guid("be58cb43-41ea-450f-8d6e-e772337ed88e"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "cb31dcb4-ed56-4c63-ad72-bd71a53fe45b",
+                            ConcurrencyStamp = "d9cbf1f1-1ac5-4802-a7ed-9a8a7c1fa351",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = true,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFhcFwgV2rNLeBgostD3W7Z8WIO82o0OahfynZ1tdXLtbKazmsqz8OrMfJ1XQXl1LQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBgGzbuyPGYgcC3cfAe/DBYEf5UZBBmRdtPKDkBwzvtHHoYguFE9A+n1gA4oBtsufg==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "beb043c4-429d-49f2-b0e4-0b26c8bd92ff",
+                            SecurityStamp = "ab8bc231-ecc4-4c3a-9b8d-99f908fc0dba",
                             TwoFactorEnabled = false,
                             UserName = "Admin"
                         },
                         new
                         {
-                            Id = new Guid("eb9ed273-de23-4578-a88f-db79c4369c0f"),
+                            Id = new Guid("b9621218-5d9d-403d-8a28-a0b4aeadffee"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "f4e5d3d1-1140-48b9-bc27-1cdc2d99be50",
+                            ConcurrencyStamp = "d0bbeac1-5ea6-4426-92e9-d58dbe8c2c0c",
                             Email = "speditor@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = true,
                             NormalizedEmail = "SPEDITOR@GMAIL.COM",
                             NormalizedUserName = "SPEDITOR",
-                            PasswordHash = "AQAAAAIAAYagAAAAENgwdQ2O6bX+fXoEmRHuiX9EEYARhHUMp08ZwromGG/KIVRHGWsrEuNyeHIagGswfQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPEdy6cqy8f6gIQmhVxv9VIm8GZ+h2WCYYb4QFCvdEl8FtfgBnUfkBtMJqd55Ayg5w==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "a7e81cca-9915-4ea5-8a8a-f8c468f08573",
+                            SecurityStamp = "abec831a-ed5a-423f-ac20-db0795a0bba2",
                             TwoFactorEnabled = false,
                             UserName = "Speditor"
                         },
                         new
                         {
-                            Id = new Guid("b16257e5-039f-47fb-acf0-f68b23f4f9f3"),
+                            Id = new Guid("02c7a524-25a9-4eaf-8824-9fd7f63102de"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "e0386c0f-4baa-433b-aabc-dc6aaf2ba5ff",
+                            ConcurrencyStamp = "a8f21416-c537-4166-9d30-b4e22e02acfa",
                             Email = "driver@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = true,
                             NormalizedEmail = "DRIVER@GMAIL.COM",
                             NormalizedUserName = "DRIVER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPuZ01tnmKhAHFO9nXImmyzDwFB1+HDN76HIb6lWf+0bRj6EVxWSTdOlWsIC/SMItQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEI4z0c9h4Je9m9UftshOl1EgSzmXdkWtBWxaKEUR2Co5iihTcIzVheLD7emQ9s/cUA==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "1683b6d2-be30-433c-bbae-ccf56ec72f98",
+                            SecurityStamp = "83cb6dee-c5f1-4b28-8b6d-707b7329855e",
                             TwoFactorEnabled = false,
                             UserName = "Driver"
                         },
                         new
                         {
-                            Id = new Guid("afabf75b-6dc5-4d09-9f30-2596c35e0b61"),
+                            Id = new Guid("1413b3f2-7d67-4d96-8eba-98dc561ab855"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "7cb710bc-3306-422c-bf83-4c22962cd82a",
+                            ConcurrencyStamp = "3eb0de4f-3b07-4daf-b198-0742098dc7c2",
                             Email = "user@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = true,
                             NormalizedEmail = "USER@GMAIL.COM",
                             NormalizedUserName = "USER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHDHzhr0th2RRFuYB/3KfIFQGWFnTPvZkdBKASWiX4uzLtS3pHXBgXwp62uFNGzz4A==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOTZ9b1aqA3LpWes5iV2oVH7zxu8iIZWjr5RD376lJsP8W8tPRVhh3aYql2+oepnaA==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "3a898dfd-8268-491a-851a-f3ce8a99a8eb",
+                            SecurityStamp = "4a61533a-2dfe-456d-bd83-aefc1ad8b2e0",
                             TwoFactorEnabled = false,
                             UserName = "User"
                         });
@@ -375,9 +378,6 @@ namespace OrderFlow.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<Guid?>("TruckId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
@@ -385,8 +385,6 @@ namespace OrderFlow.Data.Migrations
                     b.HasIndex("ReceiverId");
 
                     b.HasIndex("SenderId");
-
-                    b.HasIndex("TruckId");
 
                     b.ToTable("Notifications");
                 });
@@ -597,17 +595,11 @@ namespace OrderFlow.Data.Migrations
                         .WithMany()
                         .HasForeignKey("SenderId");
 
-                    b.HasOne("OrderFlow.Data.Models.Truck", "Truck")
-                        .WithMany("Notifications")
-                        .HasForeignKey("TruckId");
-
                     b.Navigation("Order");
 
                     b.Navigation("Receiver");
 
                     b.Navigation("Sender");
-
-                    b.Navigation("Truck");
                 });
 
             modelBuilder.Entity("OrderFlow.Data.Models.Order", b =>
@@ -673,8 +665,6 @@ namespace OrderFlow.Data.Migrations
 
             modelBuilder.Entity("OrderFlow.Data.Models.Truck", b =>
                 {
-                    b.Navigation("Notifications");
-
                     b.Navigation("TruckOrders");
                 });
 #pragma warning restore 612, 618

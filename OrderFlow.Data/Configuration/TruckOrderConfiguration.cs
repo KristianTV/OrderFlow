@@ -30,6 +30,9 @@ namespace OrderFlow.Data.Configuration
                    .WithMany(o => o.OrderTrucks)
                    .HasForeignKey(to => to.OrderID)
                    .OnDelete(DeleteBehavior.NoAction);
+            
+            builder.Property(to => to.Status)
+                   .IsRequired();
 
             builder.HasQueryFilter(t => !t.Truck.isDeleted);
         }

@@ -201,7 +201,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                                         DriverName = t.Driver!.UserName!
                                                                     }).SingleOrDefaultAsync();
 
-            List<OrderViewModel?> orders = await _orderService.GetAll()
+            List<OrderViewModel> orders = await _orderService.GetAll()
                                                        .AsNoTracking()
                                                        .Where(o => new[] { OrderStatus.Pending,
                                                                             OrderStatus.Delayed,
@@ -218,6 +218,12 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                            LoadCapacity = o.LoadCapacity,
                                                        }).ToListAsync();
 
+            int loadedCapacity = await _truckOrderService.GetAll()
+                                                         .AsNoTracking()
+                                                         .Where(to => to.TruckID.Equals(truckID) &&
+                                                                      to.Status.Equals(TruckOrderStatus.Assigned))
+                                                         .Select(to => to.Order.LoadCapacity)
+                                                         .SumAsync();
 
             if (orders == null)
             {
@@ -225,6 +231,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             }
 
             truck.Orders = orders;
+            truck.LoadedCapacity = loadedCapacity;
 
             return View(truck);
         }

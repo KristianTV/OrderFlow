@@ -25,7 +25,7 @@
                     </div>
                     <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Capacity:</div>
-                        <div class="col-sm-8"><i class="fas fa-weight-hanging me-1"></i> @Model.Capacity kg</div>
+                        <div class="col-sm-8"><i class="fas fa-weight-hanging me-1"></i> <span id="currentCapacity">@Model.LoadedCapacity</span> kg / @Model.Capacity kg</div>
                     </div>
                 </div>
             </div>
@@ -62,7 +62,7 @@
                                             <th scope="col">Select</th>
                                             <th scope="col">Pickup Address</th>
                                             <th scope="col">Delivery Address</th>
-                                            <th scope="col">Load Capacity</th> 
+                                            <th scope="col">Load Capacity</th>
                                             <th scope="col">Status</th>
                                         </tr>
                                     </thead>
@@ -71,10 +71,10 @@
                                         {
                                             <tr>
                                                 <td>
-                                                    <input type="checkbox" asp-for="Orders[i].IsSelected" class="form-check-input" />
+                                                    <input type="checkbox" asp-for="Orders[i].IsSelected" class="form-check-input order-checkbox" data-load-capacity="@Model.Orders[i].LoadCapacity" />
                                                     <input type="hidden" asp-for="Orders[i].OrderID" />
                                                     <input type="hidden" asp-for="Orders[i].PickupAddress" />
-                                                    <input type="hidden" asp-for="Orders[i].LoadCapacity" />
+                                                    <input type="hidden" asp-for="Orders[i].LoadCapacity" class="order-load-capacity-hidden" />
                                                     <input type="hidden" asp-for="Orders[i].OrderStatus" />
                                                 </td>
                                                 <td>@Model.Orders[i].PickupAddress</td>
@@ -98,7 +98,7 @@
                             <a class="btn btn-secondary btn-lg" asp-area="Admin" asp-action="Detail" asp-controller="Truck" asp-route-id="@id">
                                 <i class="fas fa-times-circle me-2"></i> Cancel
                             </a>
-                            <button type="submit" class="btn btn-primary btn-lg">
+                            <button type="submit" class="btn btn-primary btn-lg" id="assignOrdersButton">
                                 <i class="fas fa-truck-loading me-2"></i> Assign Selected Orders
                             </button>
                         </div>
@@ -122,4 +122,43 @@
         "Failed" => "bg-danger",
         _ => "bg-light text-dark"
     };
+}
+
+@section Scripts {
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var totalCapacity = @Html.Raw(Model.Capacity);
+            var currentLoadedCapacity = @Html.Raw(Model.LoadedCapacity);
+
+            function updateCapacityAndCheckboxes() {
+                $('#currentCapacity').text(currentLoadedCapacity);
+
+                if (currentLoadedCapacity >= totalCapacity) {
+                    $('.order-checkbox:not(:checked)').prop('disabled', true);
+                } else {
+                    $('.order-checkbox').prop('disabled', false);
+                    $('.order-checkbox:not(:checked)').each(function() {
+                        var loadCapacity = parseFloat($(this).data('load-capacity'));
+                        if (currentLoadedCapacity + loadCapacity > totalCapacity) {
+                            $(this).prop('disabled', true);
+                        }
+                    });
+                }
+            }
+
+            updateCapacityAndCheckboxes();
+
+            $('.order-checkbox').on('change', function () {
+                var loadCapacity = parseFloat($(this).data('load-capacity'));
+
+                if ($(this).is(':checked')) {
+                    currentLoadedCapacity += loadCapacity;
+                } else {
+                    currentLoadedCapacity -= loadCapacity;
+                }
+                updateCapacityAndCheckboxes();
+            });
+        });
+    </script>
 }

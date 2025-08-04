@@ -6,5 +6,6 @@
         public int Capacity { get; set; }
         public string DriverName { get; set; } = string.Empty;
         public List<OrderViewModel> Orders { get; set; } = new List<OrderViewModel>();
+        public int LoadedCapacity { get; set; } = 0;
     }
 }

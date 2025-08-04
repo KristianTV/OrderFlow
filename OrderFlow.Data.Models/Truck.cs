@@ -17,6 +17,8 @@ namespace OrderFlow.Data.Models
 
         public ICollection<TruckOrder> TruckOrders { get; set; } = new HashSet<TruckOrder>();
 
+        public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
+
         public bool isDeleted { get; set; } = false;
     }
 }

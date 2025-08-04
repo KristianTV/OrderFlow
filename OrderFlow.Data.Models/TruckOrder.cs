@@ -1,4 +1,6 @@
-﻿namespace OrderFlow.Data.Models
+﻿using OrderFlow.Data.Models.Enums;
+
+namespace OrderFlow.Data.Models
 {
     public class TruckOrder
     {
@@ -12,5 +14,7 @@
 
         public DateTime AssignedDate { get; set; }
         public DateTime? DeliveryDate { get; set; }
+
+        public TruckOrderStatus Status { get; set; } = TruckOrderStatus.Assigned;
     }
 }
