@@ -35,8 +35,12 @@ namespace OrderFlow.Data.Configuration
                 .HasForeignKey(n => n.SenderId);
 
             builder.HasOne(n => n.Order)
-                .WithMany(o => o.Notifications)
-                .HasForeignKey(n => n.OrderId);
+                   .WithMany(o => o.Notifications)
+                   .HasForeignKey(n => n.OrderId);
+
+            builder.HasOne(n => n.Truck)
+                   .WithMany(o => o.Notifications)
+                   .HasForeignKey(n => n.TruckId);
 
             builder.Property(n => n.IsDeleted)
                    .IsRequired()

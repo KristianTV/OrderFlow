@@ -20,6 +20,9 @@
         public Guid? OrderId { get; set; }
         public Order? Order { get; set; }
 
+        public Guid? TruckId { get; set; }
+        public Truck? Truck { get; set; }
+
         public bool IsDeleted { get; set; } = false;
     }
 }
