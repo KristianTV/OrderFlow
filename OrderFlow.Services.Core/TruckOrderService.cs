@@ -159,5 +159,35 @@ namespace OrderFlow.Services.Core
                 }
             }
         }
+
+        public async Task CompleteTruckOrderAsync(Guid orderID)
+        {
+            TruckOrder? order = await this.GetAll()
+                                          .Include (to => to.Truck)
+                                          .ThenInclude(t => t.Driver)
+                                          .Where(x => x.OrderID.Equals(orderID) &&
+                                                      x.Status.Equals(TruckOrderStatus.Assigned))
+                                          .SingleOrDefaultAsync();
+
+            if (order != null)
+            {
+                if (order.Status == TruckOrderStatus.Delivered)
+                    return;
+
+                order.Status = TruckOrderStatus.Delivered;
+                order.AssignedDate = DateTime.UtcNow;
+
+                await _notificationService.AddAsync(new Notification
+                {
+                    Title = $"Order {orderID} has been delivered",
+                    OrderId = order.OrderID,
+                    Message = $"Order {orderID} has been delivered",
+                    CreatedAt = DateTime.UtcNow,
+                    ReceiverId = order.Truck.DriverID,
+                });
+
+                await this.SaveChangesAsync();
+            }
+        }
     }
 }

@@ -31,6 +31,11 @@ namespace OrderFlow.Controllers
 
             var user = await userManager.FindByIdAsync(userId);
 
+            if (user == null)
+            {
+                return View();
+            }
+
             if (await userManager.IsInRoleAsync(user, "Admin"))
             {
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });

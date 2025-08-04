@@ -44,7 +44,7 @@
         public static class Payment
         {
             public const int PaymentDescriptionMaxLength = 100;
-            public const int PaymentDescriptionMinLength = 100;
+            public const int PaymentDescriptionMinLength = 1;
         }
     }
 }

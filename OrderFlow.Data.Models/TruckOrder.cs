@@ -4,6 +4,8 @@ namespace OrderFlow.Data.Models
 {
     public class TruckOrder
     {
+        public Guid TruckOrderId { get; set; } = Guid.NewGuid();
+
         public Guid OrderID { get; set; }
         public Order Order { get; set; } = null!;
 

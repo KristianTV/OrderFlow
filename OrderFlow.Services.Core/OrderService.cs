@@ -23,6 +23,7 @@ namespace OrderFlow.Services.Core
                 return false;
 
             Order? order = await this.GetAll()
+                                     .Include(o => o.OrderTrucks)
                                      .Where(x => x.OrderID.Equals(orderId) &&
                                                  x.UserID.Equals(userId)).SingleOrDefaultAsync();
 
@@ -33,6 +34,14 @@ namespace OrderFlow.Services.Core
 
                 order.isCanceled = true;
                 order.Status = OrderStatus.Cancelled;
+
+                if (order.OrderTrucks.Any(o => o.Status.Equals(TruckOrderStatus.Assigned)))
+                {
+                    foreach (var truckOrder in order.OrderTrucks)
+                    {
+                        truckOrder.Status = TruckOrderStatus.Cancelled;
+                    }
+                }
 
                 await _notificationService.AddAsync(new Notification
                 {
@@ -104,13 +113,13 @@ namespace OrderFlow.Services.Core
                 order.DeliveryDate = DateTime.UtcNow;
 
                 await _notificationService.AddAsync(new Notification
-                                            {
-                                                Title = $"Order status changed to {OrderStatus.Completed}",
-                                                OrderId = order.OrderID,
-                                                Message = $"Order status changed to {OrderStatus.Completed}",
-                                                CreatedAt = DateTime.UtcNow,
-                                                ReceiverId = order.UserID
-                                            });
+                {
+                    Title = $"Order status changed to {OrderStatus.Completed}",
+                    OrderId = order.OrderID,
+                    Message = $"Order status changed to {OrderStatus.Completed}",
+                    CreatedAt = DateTime.UtcNow,
+                    ReceiverId = order.UserID
+                });
 
                 await this.SaveChangesAsync();
                 return true;
@@ -130,6 +139,7 @@ namespace OrderFlow.Services.Core
                 return false;
 
             Order? order = await this.GetAll()
+                                     .Include(x => x.OrderTrucks)
                                      .Where(x => x.OrderID.Equals(orderId))
                                      .SingleOrDefaultAsync();
 
@@ -140,6 +150,17 @@ namespace OrderFlow.Services.Core
 
                 order.isCanceled = false;
                 order.Status = OrderStatus.Pending;
+
+                if (order.OrderTrucks.Any(o => o.Status.Equals(TruckOrderStatus.Cancelled)))
+                {
+                    foreach (var truckOrder in order.OrderTrucks)
+                    {
+                        truckOrder.Status = TruckOrderStatus.Assigned;
+                    }
+
+                    order.Status = OrderStatus.InProgress;
+                }
+
                 await this.SaveChangesAsync();
                 return true;
             }
@@ -240,6 +261,51 @@ namespace OrderFlow.Services.Core
                 return changes > 0;
             }
             return false;
+        }
+
+        public async Task CompleteOrderAsync(Guid orderID, ITruckOrderService _truckOrderService, ITruckService _truckService)
+        {
+            if (orderID == Guid.Empty)
+                throw new ArgumentNullException(nameof(orderID));
+
+            Order? order = await this.GetAll()
+                                     .Include(o => o.OrderTrucks)
+                                     .Where(x => x.OrderID.Equals(orderID))
+                                     .SingleOrDefaultAsync();
+
+            if (order != null)
+            {
+                if (order.OrderTrucks == null || !order.OrderTrucks.Any(to => to.Status.Equals(TruckOrderStatus.Assigned)))
+                    throw new ArgumentNullException(nameof(order.OrderTrucks));
+
+                Guid truckID = order.OrderTrucks.Where(to => to.Status.Equals(TruckOrderStatus.Assigned))
+                                                                         .Select(to => to.TruckID)
+                                                                         .FirstOrDefault();
+
+                if (order.DeliveryAddress.Equals(
+                            order.OrderTrucks.Where(to => to.Status.Equals(TruckOrderStatus.Assigned))
+                                             .Select(to => to.DeliverAddress).FirstOrDefault()))
+                {
+                    await this.ChangeStatusToCompletedAsync(orderID);
+                    await _truckOrderService.CompleteTruckOrderAsync(orderID);
+                }
+                else
+                {
+                    await this.ChangeOrderStatusAsync(orderID, OrderStatus.OnHold.ToString());
+                    await _truckOrderService.CompleteTruckOrderAsync(orderID);
+                }
+
+                if (!_truckService.GetAll().Any(t => t.TruckID.Equals(truckID) &&
+                                                     t.Status.Equals(TruckOrderStatus.Assigned)))
+                {
+                    if (!_truckService.GetTruckStatus(truckID).Equals(TruckStatus.Available.ToString()))
+                    {
+                        _truckService.ChangeTruckStatus(truckID, TruckStatus.Available.ToString());
+                        await this.SaveChangesAsync();
+                    }
+                }
+            }
+
         }
     }
 }

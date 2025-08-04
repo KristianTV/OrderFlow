@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrderFlow.Data;
 
@@ -11,9 +12,11 @@ using OrderFlow.Data;
 namespace OrderFlow.Data.Migrations
 {
     [DbContext(typeof(OrderFlowDbContext))]
-    partial class OrderFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250804125254_AddTruckOrderId")]
+    partial class AddTruckOrderId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

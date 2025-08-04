@@ -15,5 +15,6 @@ namespace OrderFlow.Services.Core.Contracts
         Task<bool> CreateOrderAsync(AdminCreateOrderViewModel createOrderViewModel);
         Task<bool> UpdateOrderAsync(CreateOrderViewModel createOrder, Guid? orderId, Guid? userId);
         Task<bool> UpdateOrderAsync(AdminCreateOrderViewModel createOrder, Guid? orderId);
+        Task CompleteOrderAsync(Guid orderID, ITruckOrderService truckOrderService, ITruckService _truckService);
     }
 }

@@ -12,12 +12,14 @@ namespace OrderFlow.Areas.Driver.Controllers
         private readonly ILogger<TruckController> _logger;
         private readonly ITruckService _truckService;
         private readonly IOrderService _orderService;
+        private readonly ITruckOrderService _truckOrderService;
 
-        public TruckController(ILogger<TruckController> logger, ITruckService truckService, IOrderService orderService)
+        public TruckController(ILogger<TruckController> logger, ITruckService truckService, IOrderService orderService,ITruckOrderService truckOrderService)
         {
             _logger = logger;
             _truckService = truckService;
             _orderService = orderService;
+            _truckOrderService = truckOrderService;
         }
 
         [HttpGet]
@@ -109,10 +111,10 @@ namespace OrderFlow.Areas.Driver.Controllers
                                             .AsNoTracking()
                                             .Include(o => o.OrderTrucks)
                                             .ThenInclude(to => to.Truck)
-                                            .Where(o => new[] { OrderStatus.InProgress }.Contains(o.Status) &&
-                                                        o.OrderTrucks != null &&
+                                            .Where(o => o.OrderTrucks != null &&
                                                         o.OrderTrucks.Any(to => to.TruckID.Equals(truckID) && 
-                                                                                to.Truck!.DriverID.Equals(driverId))
+                                                                                to.Truck!.DriverID.Equals(driverId)&&
+                                                                                to.Status.Equals(TruckOrderStatus.Assigned))
                                                         )
                                             .Select(o => new AssignedOrdersToTruckViewModel
                                             {
@@ -142,19 +144,9 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest("Invalid Truck ID format.");
             }
 
-            await _orderService.ChangeStatusToCompletedAsync(orderID);
+            await _orderService.CompleteOrderAsync(orderID, _truckOrderService,_truckService);
 
             return RedirectToAction(nameof(Index), "Truck");
         }
     }
 }
-
-
-//**
-//  Driver can do 
-//  see assigned orders 
-//  complete assigned orders
-//  see completed orders
-//  see all trucks that he drives
-//  see details of a truck that he drives
-//**//

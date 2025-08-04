@@ -9,7 +9,13 @@ namespace OrderFlow.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<TruckOrder> builder)
         {
-            builder.HasKey(to => new { to.OrderID, to.TruckID });
+            builder.HasKey(to => to.TruckOrderId);
+
+            builder.Property(to => to.OrderID)
+                   .IsRequired();
+
+            builder.Property(to => to.TruckID)
+                  .IsRequired();
 
             builder.Property(to => to.DeliverAddress)
                    .IsRequired()
