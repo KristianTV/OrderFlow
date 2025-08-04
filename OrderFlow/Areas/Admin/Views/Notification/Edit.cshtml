@@ -1,5 +1,5 @@
 ﻿@using OrderFlow.ViewModels.Notification
-@model CreateNotificationViewModel;
+@model AdminCreateNotificationViewModel;
 @{
     ViewData["Title"] = "Edit Notification";
     var id = Context.Request.RouteValues["id"]?.ToString() ?? ""; 
@@ -55,6 +55,21 @@
                             }
                         </select>
                         <span asp-validation-for="OrderId" class="text-danger mt-1 d-block"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="TruckId" class="form-label">Associated Truck (Optional)</label>
+                        <select asp-for="TruckId" class="form-select">
+                            <option value="">-- Select Truck --</option>
+                            @if (Model.Trucks != null)
+                            {
+                                foreach (var order in Model.Trucks)
+                                {
+                                    <option value="@order.Key">@order.Value</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="TruckId" class="text-danger mt-1 d-block"></span>
                     </div>
 
                     <hr />

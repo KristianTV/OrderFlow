@@ -1,5 +1,5 @@
 ﻿@using OrderFlow.ViewModels.Notification
-@model DetailsNotificationViewModel;
+@model DriverDetailsNotificationViewModel;
 @{
     ViewData["Title"] = "Notification Details";
     var notificationID = Context.Request.RouteValues["id"]?.ToString() ?? "";
@@ -56,6 +56,26 @@
                             <div class="col-sm-4 text-muted">Associated Order:</div>
                             <div class="col-sm-8">
                                 <p class="mb-0 text-muted fst-italic">No order associated.</p>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.TruckId.HasValue)
+                    {
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Associated Truck:</div>
+                            <div class="col-sm-8">
+                                <a asp-area="Admin" asp-controller="Truck" asp-action="Detail" asp-route-id="@Model.TruckId" class="text-decoration-none">
+                                    <i class="fas fa-truck me-1"></i> View Associated Truck
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Associated Truck:</div>
+                            <div class="col-sm-8">
+                                <p class="mb-0 text-muted fst-italic">No truck associated.</p>
                             </div>
                         </div>
                     }

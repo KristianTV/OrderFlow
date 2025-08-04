@@ -69,6 +69,7 @@ namespace OrderFlow.Controllers
                                                                            DeliveryAddress = order.DeliveryAddress,
                                                                            PickupAddress = order.PickupAddress,
                                                                            Status = order.Status.ToString(),
+                                                                           
                                                                            isCanceled = order.isCanceled
                                                                        }).ToListAsync();
 
@@ -124,7 +125,8 @@ namespace OrderFlow.Controllers
                                                                      {
                                                                          DeliveryAddress = o.DeliveryAddress,
                                                                          PickupAddress = o.PickupAddress,
-                                                                         DeliveryInstructions = o.DeliveryInstructions
+                                                                         DeliveryInstructions = o.DeliveryInstructions,
+                                                                         LoadCapacity = o.LoadCapacity,
                                                                      }).SingleOrDefaultAsync();
 
             if (createOrderViewModel == null)
@@ -196,6 +198,7 @@ namespace OrderFlow.Controllers
                                          DeliveryDate = o.DeliveryDate,
                                          DeliveryAddress = o.DeliveryAddress,
                                          PickupAddress = o.PickupAddress,
+                                         LoadCapacity = o.LoadCapacity,
                                          DeliveryInstructions = o.DeliveryInstructions,
                                          Status = o.Status.ToString(),
                                          isCanceled = o.isCanceled,

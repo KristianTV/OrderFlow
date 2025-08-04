@@ -98,7 +98,8 @@ namespace OrderFlow.Services.Core
                                                   to.Status.Equals(TruckOrderStatus.Assigned))
                                      .OrderByDescending(to => to.AssignedDate)
                                      .Select(to => to.Truck.Driver.Id)
-                                     .FirstOrDefault()
+                                     .FirstOrDefault(),
+                    TruckId = truckID,
                 });
 
                 if (!_truckService.GetTruckStatus(truckID).Equals(TruckStatus.Unavailable.ToString()))
@@ -140,7 +141,8 @@ namespace OrderFlow.Services.Core
                                                   to.Status.Equals(TruckOrderStatus.Assigned))
                                      .OrderByDescending(to => to.AssignedDate)
                                      .Select(to => to.Truck.Driver.Id)
-                                     .FirstOrDefault()
+                                     .FirstOrDefault(),
+                    TruckId = truckID,
                 });
 
                 this.Delete(truckOrder);

@@ -13,14 +13,16 @@ namespace OrderFlow.Areas.Admin.Controllers
         private readonly ILogger<NotificationController> _logger;
         private readonly INotificationService _notificationService;
         private readonly IOrderService _orderService;
+        private readonly ITruckService _truckService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public NotificationController(ILogger<NotificationController> logger, INotificationService notificationService, IOrderService orderService, UserManager<ApplicationUser> userManager)
+        public NotificationController(ILogger<NotificationController> logger, INotificationService notificationService, IOrderService orderService, ITruckService truckService, UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
             _notificationService = notificationService;
             _orderService = orderService;
             _userManager = userManager;
+            _truckService = truckService;
         }
 
         [HttpGet]
@@ -69,10 +71,11 @@ namespace OrderFlow.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Create(string? orderId)
         {
-            CreateNotificationViewModel createNotification = new CreateNotificationViewModel
+            AdminCreateNotificationViewModel createNotification = new AdminCreateNotificationViewModel
             {
                 Receivers = await GetUsers(),
                 Orders = await GetOrders(),
+                Trucks = await GetTrucks(),
             };
 
             if (!string.IsNullOrEmpty(orderId))
@@ -97,12 +100,13 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateNotificationViewModel createNotification)
+        public async Task<IActionResult> Create(AdminCreateNotificationViewModel createNotification)
         {
             if (!ModelState.IsValid)
             {
                 createNotification.Receivers = await GetUsers();
                 createNotification.Orders = await GetOrders();
+                createNotification.Trucks = await GetTrucks();
                 return View(createNotification);
             }
 
@@ -135,16 +139,16 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            CreateNotificationViewModel? createNotification = await _notificationService.GetAll()
-                                                                                        .Where(n => n.Id.Equals(notification) &&
-                                                                                                     n.SenderId.Equals(userId))
-                                                                                        .Select(o => new CreateNotificationViewModel
-                                                                                        {
-                                                                                            Title = o.Title,
-                                                                                            Message = o.Message,
-                                                                                            ReceiverId = o.ReceiverId,
-                                                                                            OrderId = o.OrderId,
-                                                                                        }).SingleOrDefaultAsync();
+            AdminCreateNotificationViewModel? createNotification = await _notificationService.GetAll()
+                                                                                             .Where(n => n.Id.Equals(notification) &&
+                                                                                                          n.SenderId.Equals(userId))
+                                                                                             .Select(o => new AdminCreateNotificationViewModel
+                                                                                             {
+                                                                                                 Title = o.Title,
+                                                                                                 Message = o.Message,
+                                                                                                 ReceiverId = o.ReceiverId,
+                                                                                                 OrderId = o.OrderId,
+                                                                                             }).SingleOrDefaultAsync();
 
             if (createNotification == null)
             {
@@ -153,16 +157,19 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             createNotification.Receivers = await GetUsers();
             createNotification.Orders = await GetOrders();
+            createNotification.Trucks = await GetTrucks();
 
             return View(createNotification);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(CreateNotificationViewModel createNotification, string? id)
+        public async Task<IActionResult> Edit(AdminCreateNotificationViewModel createNotification, string? id)
         {
-            if (!ModelState.IsValid){
+            if (!ModelState.IsValid)
+            {
                 createNotification.Receivers = await GetUsers();
                 createNotification.Orders = await GetOrders();
+                createNotification.Trucks = await GetTrucks();
                 return View(createNotification);
             }
 
@@ -206,20 +213,21 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            DetailsNotificationViewModel? notificationViewModel = await _notificationService.GetAll()
-                                                                                     .AsNoTracking()
-                                                                                     .Include(n => n.Sender)
-                                                                                     .Where(n => n.Id.Equals(notificationID))
-                                                                                     .Select(n => new DetailsNotificationViewModel
-                                                                                     {
-                                                                                         Title = n.Title,
-                                                                                         Message = n.Message,
-                                                                                         CreatedAt = n.CreatedAt,
-                                                                                         IsRead = n.IsRead,
-                                                                                         OrderId = n.OrderId,
-                                                                                         SenderName = n.Sender!.UserName,
-                                                                                         isMarkable = n.ReceiverId.Equals(userId)
-                                                                                     }).SingleOrDefaultAsync();
+            DriverDetailsNotificationViewModel? notificationViewModel = await _notificationService.GetAll()
+                                                                                                  .AsNoTracking()
+                                                                                                  .Include(n => n.Sender)
+                                                                                                  .Where(n => n.Id.Equals(notificationID))
+                                                                                                  .Select(n => new DriverDetailsNotificationViewModel
+                                                                                                  {
+                                                                                                      Title = n.Title,
+                                                                                                      Message = n.Message,
+                                                                                                      CreatedAt = n.CreatedAt,
+                                                                                                      IsRead = n.IsRead,
+                                                                                                      OrderId = n.OrderId,
+                                                                                                      TruckId = n.TruckId,
+                                                                                                      SenderName = n.Sender!.UserName,
+                                                                                                      isMarkable = n.ReceiverId.Equals(userId)
+                                                                                                  }).SingleOrDefaultAsync();
 
 
             if (notificationViewModel == null)
@@ -334,9 +342,20 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                                 OrderStatus.Cancelled,
                                                                 OrderStatus.Failed
                                                                }.Contains(order.Status)))
-                                       .ToDictionaryAsync(
+                                      .ToDictionaryAsync(
                                                      order => order.OrderID,
                                                      order => order.OrderID.ToString() + " - " + order.User.UserName
+                                                 );
+
+        }
+
+        private async Task<Dictionary<Guid, string>> GetTrucks()
+        {
+            return await _truckService.GetAll()
+                                      .Include(t => t.Driver)
+                                      .ToDictionaryAsync(
+                                                     t => t.TruckID,
+                                                     t => t.TruckID.ToString() + " - " + t.Driver.UserName
                                                  );
         }
     }

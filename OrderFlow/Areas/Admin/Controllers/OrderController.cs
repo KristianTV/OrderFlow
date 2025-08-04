@@ -124,6 +124,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                                                UsersId = o.UserID,
                                                                                DeliveryAddress = o.DeliveryAddress,
                                                                                PickupAddress = o.PickupAddress,
+                                                                               LoadCapacity = o.LoadCapacity,
                                                                                DeliveryInstructions = o.DeliveryInstructions
                                                                            }).SingleOrDefaultAsync();
 
@@ -209,6 +210,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                                          PickupAddress = o.PickupAddress,
                                          DeliveryInstructions = o.DeliveryInstructions,
                                          Status = o.Status.ToString(),
+                                         LoadCapacity = o.LoadCapacity,
                                          isCanceled = o.isCanceled,
                                          TrucksLicensePlates = o.OrderTrucks.Select(to => to.Truck!.LicensePlate).ToList(),
                                          Payments = o.Payments.Select(payment => new PaymentViewModel

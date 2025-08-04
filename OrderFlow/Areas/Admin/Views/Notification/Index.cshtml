@@ -1,5 +1,5 @@
 ﻿@using OrderFlow.ViewModels.Notification
-@model IEnumerable<IndexNotificationViewModel>;
+@model IEnumerable<DriverIndexNotificationViewModel>;
 @{
     ViewData["Title"] = "All Notifications";
     string currentSort = ViewData["CurrentSort"] as string ?? "All";
@@ -59,6 +59,12 @@
                             {
                                 <p class="card-text mb-3">
                                     <strong><i class="fas fa-box-open me-1"></i> Order ID:</strong> <a asp-area="Admin" asp-controller="Order" asp-action="Detail" asp-route-id="@notification.OrderId" class="text-decoration-none">@notification.OrderId.Value.ToString().Substring(0, 8)...</a>
+                                </p>
+                            }
+                            @if (notification.TruckId.HasValue)
+                            {
+                                <p class="card-text mb-3">
+                                    <strong><i class="fas fa-truck me-1"></i> TruckId ID:</strong> <a asp-area="Admin" asp-controller="Truck" asp-action="Detail" asp-route-id="@notification.TruckId" class="text-decoration-none">@notification.TruckId.Value.ToString().Substring(0, 8)...</a>
                                 </p>
                             }
                         </div>

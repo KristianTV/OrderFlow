@@ -26,7 +26,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest("Invalid user ID.");
             }
 
-            var notifications = await _notificationService.GetAllNotificationsForUserAsync(userId);
+            var notifications = await _notificationService.GetAllNotificationsForDriverAsync(userId);
 
             if (sortBy != null)
             {
@@ -76,19 +76,20 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest("Invalid User ID format.");
             }
 
-            DetailsNotificationViewModel? notificationViewModel = await _notificationService.GetAll()
-                                                                                     .AsNoTracking()
-                                                                                     .Include(n => n.Sender)
-                                                                                     .Where(n => n.Id.Equals(notificationID) && n.ReceiverId.Equals(userId))
-                                                                                     .Select(n => new DetailsNotificationViewModel
-                                                                                     {
-                                                                                         Title = n.Title,
-                                                                                         Message = n.Message,
-                                                                                         CreatedAt = n.CreatedAt,
-                                                                                         IsRead = n.IsRead,
-                                                                                         OrderId = n.OrderId,
-                                                                                         SenderName = n.Sender!.UserName,
-                                                                                     }).SingleOrDefaultAsync();
+            DriverDetailsNotificationViewModel? notificationViewModel = await _notificationService.GetAll()
+                                                                                                  .AsNoTracking()
+                                                                                                  .Include(n => n.Sender)
+                                                                                                  .Where(n => n.Id.Equals(notificationID) && n.ReceiverId.Equals(userId))
+                                                                                                  .Select(n => new DriverDetailsNotificationViewModel
+                                                                                                  {
+                                                                                                      Title = n.Title,
+                                                                                                      Message = n.Message,
+                                                                                                      CreatedAt = n.CreatedAt,
+                                                                                                      IsRead = n.IsRead,
+                                                                                                      OrderId = n.OrderId,
+                                                                                                      TruckId = n.TruckId,
+                                                                                                      SenderName = n.Sender!.UserName,
+                                                                                                  }).SingleOrDefaultAsync();
 
 
             if (notificationViewModel == null)
