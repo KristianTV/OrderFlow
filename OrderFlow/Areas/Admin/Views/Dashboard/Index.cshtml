@@ -1,6 +1,109 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using OrderFlow.ViewModels.Dashboard
+@model AdminIndexDashboardViewModel
 @{
+    ViewData["Title"] = "Admin Dashboard";
 }
-<p>Welcome to the Admin Area!</p>
+
+<div class="container mt-5">
+    <h2 class="mb-4 text-center text-primary">
+        <i class="fas fa-user-shield me-2"></i> @ViewData["Title"]
+    </h2>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg border-primary h-100 rounded-lg">
+                <div class="card-header bg-primary text-white p-3 rounded-t-lg">
+                    <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i> Order Statistics</h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Active Orders:</span>
+                        <span class="badge bg-info fs-5 p-2 rounded-pill">@Model.TotalActiveOrders</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Completed Orders:</span>
+                        <span class="badge bg-success fs-5 p-2 rounded-pill">@Model.TotalCompletedOrders</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Cancelled Orders:</span>
+                        <span class="badge bg-danger fs-5 p-2 rounded-pill">@Model.TotalCancelledOrders</span>
+                    </div>
+                    <div class="mt-auto pt-3 border-top">
+                        <a asp-area="Admin" asp-controller="Order" asp-action="Index" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="fas fa-eye me-2"></i> View All Orders
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg border-success h-100 rounded-lg">
+                <div class="card-header bg-success text-white p-3 rounded-t-lg">
+                    <h5 class="mb-0"><i class="fas fa-truck me-2"></i> Truck Status</h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Active Trucks:</span>
+                        <span class="badge bg-primary fs-5 p-2 rounded-pill">@Model.TotalActiveTrucks</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Inactive Trucks:</span>
+                        <span class="badge bg-secondary fs-5 p-2 rounded-pill">@Model.TotalInactiveTrucks</span>
+                    </div>
+                    <div class="mt-auto pt-3 border-top">
+                        <a asp-area="Admin" asp-controller="Truck" asp-action="Index" class="btn btn-outline-success btn-sm w-100">
+                            <i class="fas fa-truck-loading me-2"></i> Manage Trucks
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg border-warning h-100 rounded-lg">
+                <div class="card-header bg-warning text-white p-3 rounded-t-lg">
+                    <h5 class="mb-0"><i class="fas fa-bell me-2"></i> Notifications</h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Total Notifications:</span>
+                        <span class="badge bg-dark fs-5 p-2 rounded-pill">@Model.TotalNotifications</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Active Notifications:</span>
+                        <span class="badge bg-danger fs-5 p-2 rounded-pill">@Model.TotalActiveNotifications</span>
+                    </div>
+                    <div class="mt-auto pt-3 border-top">
+                        <a asp-area="Admin" asp-controller="Notification" asp-action="Index" class="btn btn-outline-warning btn-sm w-100">
+                            <i class="fas fa-bell-slash me-2"></i> Manage Notifications
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg border-info h-100 rounded-lg">
+                <div class="card-header bg-info text-white p-3 rounded-t-lg">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i> Truck Order Status</h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Active Truck Orders:</span>
+                        <span class="badge bg-primary fs-5 p-2 rounded-pill">@Model.TotalActiveTruckOrders</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Completed Truck Orders:</span>
+                        <span class="badge bg-success fs-5 p-2 rounded-pill">@Model.TotalCompletedTruckOrders</span>
+                    </div>
+                    <div class="mt-auto pt-3 border-top">
+                        <a asp-area="Admin" asp-controller="Truck" asp-action="Index" class="btn btn-outline-info btn-sm w-100">
+                            <i class="fas fa-route me-2"></i> View Truck Routes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
