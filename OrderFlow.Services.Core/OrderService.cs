@@ -37,7 +37,7 @@ namespace OrderFlow.Services.Core
 
                 if (order.OrderTrucks.Any(o => o.Status.Equals(TruckOrderStatus.Assigned)))
                 {
-                    foreach (var truckOrder in order.OrderTrucks)
+                    foreach (var truckOrder in order.OrderTrucks.Where(to => to.Status.Equals(TruckOrderStatus.Assigned)))
                     {
                         truckOrder.Status = TruckOrderStatus.Cancelled;
                     }
@@ -295,8 +295,11 @@ namespace OrderFlow.Services.Core
                     await _truckOrderService.CompleteTruckOrderAsync(orderID);
                 }
 
-                if (!_truckService.GetAll().Any(t => t.TruckID.Equals(truckID) &&
-                                                     t.Status.Equals(TruckOrderStatus.Assigned)))
+                if (!_truckService.GetAll()
+                                  .AsNoTracking()
+                                  .Include(t => t.TruckOrders)
+                                  .Any(t => t.TruckID.Equals(truckID) &&
+                                            t.TruckOrders.Any(to => to.Status.Equals(TruckOrderStatus.Assigned))))
                 {
                     if (!_truckService.GetTruckStatus(truckID).Equals(TruckStatus.Available.ToString()))
                     {
@@ -304,6 +307,10 @@ namespace OrderFlow.Services.Core
                         await this.SaveChangesAsync();
                     }
                 }
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(order));
             }
 
         }

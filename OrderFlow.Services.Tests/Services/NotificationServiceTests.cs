@@ -207,7 +207,8 @@ namespace OrderFlow.Tests.Services
             await _context.Notifications.AddAsync(new Notification { Id = notificationId, Title = "Already Deleted", IsDeleted = true, CreatedAt = DateTime.UtcNow });
             await _context.SaveChangesAsync();
 
-            await _service.SoftDelete(notificationId);
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.SoftDelete(notificationId));
+            Assert.That(ex.Message, Is.EqualTo("Notification not found."));
 
             var notification = await _context.Notifications.IgnoreQueryFilters().SingleAsync(n => n.Id == notificationId);
             Assert.That(notification.IsDeleted, Is.True);
