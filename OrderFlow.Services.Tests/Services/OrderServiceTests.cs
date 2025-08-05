@@ -1,16 +1,11 @@
-﻿using NUnit.Framework;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
+using Moq;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Order;
-using Moq;
-using System.Collections.Generic;
 
 namespace OrderFlow.Tests.Services
 {
