@@ -23,7 +23,12 @@ namespace OrderFlow.Services.Core
         {
             if (createNotification == null)
             {
-                throw new ArgumentNullException(nameof(createNotification), "CreateNotificationViewModel cannot be null.");
+                throw new ArgumentNullException("Create Notification View Model cannot be null.");
+            }
+
+            if (createNotification.ReceiverId == Guid.Empty)
+            {
+                throw new ArgumentException("Receiver ID cannot be empty.");
             }
 
             await this.AddAsync(new Notification
@@ -98,6 +103,10 @@ namespace OrderFlow.Services.Core
                 notification.IsRead = true;
                 await this.SaveChangesAsync();
             }
+            else
+            {
+                throw new InvalidOperationException("Notification not found.");
+            }
         }
 
         public async Task SoftDelete(Guid i)
@@ -114,11 +123,16 @@ namespace OrderFlow.Services.Core
                 notification.IsDeleted = true;
                 await this.SaveChangesAsync();
             }
+            else
+            {
+                throw new InvalidOperationException("Notification not found.");
+            }
         }
 
         public async Task UnreadAsync(Guid id)
         {
-            Notification? notification = await this.DbSet<Notification>().Where(x => x.Id.Equals(id)).SingleOrDefaultAsync();
+            Notification? notification = await this.GetAll()
+                                                   .Where(x => x.Id.Equals(id)).SingleOrDefaultAsync();
 
             if (notification != null)
             {
@@ -130,6 +144,10 @@ namespace OrderFlow.Services.Core
                 notification.IsRead = false;
                 await this.SaveChangesAsync();
             }
+            else
+            {
+                throw new InvalidOperationException("Notification not found.");
+            }
         }
 
         public async Task<bool> UpdateNotificationAsync(CreateNotificationViewModel createNotification, Guid notification, Guid userId)
@@ -139,7 +157,7 @@ namespace OrderFlow.Services.Core
                 throw new ArgumentNullException(nameof(createNotification), "CreateNotificationViewModel cannot be null.");
             }
 
-            Notification? existingNotification = await this.DbSet<Notification>()
+            Notification? existingNotification = await this.GetAll()
                                                            .Where(n => n.Id.Equals(notification) && n.SenderId.Equals(userId))
                                                            .SingleOrDefaultAsync();
 
@@ -190,7 +208,7 @@ namespace OrderFlow.Services.Core
                 throw new ArgumentNullException(nameof(createNotification), "CreateNotificationViewModel cannot be null.");
             }
 
-            Notification? existingNotification = await this.DbSet<Notification>()
+            Notification? existingNotification = await this.GetAll()
                                                            .Where(n => n.Id.Equals(notification) && n.SenderId.Equals(userId))
                                                            .SingleOrDefaultAsync();
 
