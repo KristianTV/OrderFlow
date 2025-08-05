@@ -175,7 +175,7 @@ namespace OrderFlow.Services.Core
                     return;
 
                 order.Status = TruckOrderStatus.Delivered;
-                order.AssignedDate = DateTime.UtcNow;
+                order.DeliveryDate = DateTime.UtcNow;
 
                 await _notificationService.AddAsync(new Notification
                 {

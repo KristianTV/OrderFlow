@@ -53,9 +53,9 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th scope="col">Order ID</th>
-                                        <th scope="col">Description</th>
-                                        <th scope="col">Pickup Location</th>
                                         <th scope="col">Drop-off Location</th>
+                                        <th scope="col">Assigned Date</th>
+                                        <th scope="col">Delivery Date</th>
                                         <th scope="col">Status</th>
                                     </tr>
                                 </thead>
@@ -63,13 +63,13 @@
                                     @foreach (var truckOrder in Model.TruckOrders)
                                     {
                                         <tr>
-                                            <td>@truckOrder.OrderID</td>
-                                            <td>@truckOrder.Order.DeliveryInstructions</td>
-                                            <td>@truckOrder.Order.PickupAddress</td>
-                                            <td>@truckOrder.Order.DeliveryAddress</td>
-                                            <td><span class="badge @GetStatusBadgeClass(truckOrder.Order.Status.ToString()) fs-6">@truckOrder.Order.Status</span></td>
+                                            <td>@truckOrder.OrderId</td>
+                                            <td>@truckOrder.DeliverAddress</td>
+                                            <td>@truckOrder.AssignedDate</td>
+                                            <td>@truckOrder.DeliveryDate</td>
+                                            <td><span class="badge @GetStatusBadgeClass(truckOrder.Status.ToString()) fs-6">@truckOrder.Status</span></td>
                                         </tr>
-                                    }
+                                }
                                 </tbody>
                             </table>
                         </div>
@@ -91,22 +91,15 @@
             <i class="fas fa-arrow-left me-2"></i> Back to All Trucks
         </a>
     </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 @functions {
     private string GetStatusBadgeClass(string status) => status switch
     {
-        "Pending" => "bg-warning ",
-        "InProgress" => "bg-primary",
-        "Completed" => "bg-success",
+        "Assigned" => "bg-warning ",
+        "Delivered" => "bg-success",
         "Cancelled" => "bg-danger",
-        "OnHold" => "bg-secondary",
-        "Failed" => "bg-danger",
-        "Delayed" => "bg-danger",
-        "Available" => "bg-success", 
-        "InTransit" => "bg-primary", 
-        "Maintenance" => "bg-warning text-dark", 
-        "OutOfService" => "bg-danger", 
         _ => "bg-light text-dark"
     };
 }

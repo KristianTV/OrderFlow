@@ -5,6 +5,7 @@ using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Truck;
+using System.Threading.Tasks;
 
 namespace OrderFlow.Areas.Admin.Controllers
 {
@@ -142,7 +143,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public IActionResult Detail(string? id)
+        public async Task<IActionResult> Detail(string? id)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -153,28 +154,42 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            var order = _truckService.GetAll()
-                                     .AsNoTracking()
-                                     .Include(o => o.Driver)
-                                     .Include(to => to.TruckOrders)
-                                     .ThenInclude(to => to.Order)
-                                     .Where(o => o.TruckID.Equals(truckID))
-                                     .Select(o => new DetailsTruckViewModel
-                                     {
-                                         TruckID = o.TruckID,
-                                         DriverName = o.Driver!.UserName!,
-                                         LicensePlate = o.LicensePlate,
-                                         Capacity = o.Capacity,
-                                         Status = o.Status.ToString(),
-                                         TruckOrders = o.TruckOrders
-                                     }).SingleOrDefault();
+            DetailsTruckViewModel? truckDetail = await _truckService.GetAll()
+                                                                    .AsNoTracking()
+                                                                    .Include(o => o.Driver)
+                                                                    .Include(to => to.TruckOrders)
+                                                                    .ThenInclude(to => to.Order)
+                                                                    .Where(o => o.TruckID.Equals(truckID))
+                                                                    .Select(o => new DetailsTruckViewModel
+                                                                    {
+                                                                        TruckID = o.TruckID,
+                                                                        DriverName = o.Driver!.UserName!,
+                                                                        LicensePlate = o.LicensePlate,
+                                                                        Capacity = o.Capacity,
+                                                                        Status = o.Status.ToString(),
+                                                                    }).SingleOrDefaultAsync();
 
-            if (order == null)
+            if (truckDetail == null)
             {
                 return NotFound();
             }
 
-            return View(order);
+            truckDetail.TruckOrders = await _truckOrderService.GetAll()
+                                                              .AsNoTracking()
+                                                              .Where(to => to.TruckID.Equals(truckID))
+                                                              .Select(to => new TruckOrderVewModel
+                                                              {
+                                                                  OrderId = to.OrderID,
+                                                                  DeliverAddress = to.DeliverAddress,
+                                                                  AssignedDate = to.AssignedDate,
+                                                                  DeliveryDate = to.DeliveryDate,
+                                                                  Status = to.Status.ToString()
+                                                              })
+                                                              .OrderByDescending(to => to.AssignedDate)
+                                                              .ToListAsync();
+
+            
+            return View(truckDetail);
         }
 
         [HttpGet]
@@ -313,16 +328,17 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid Order ID format.");
             }
 
-            var orders = await _orderService.GetAll()
-                                            .AsNoTracking()
-                                            .Where(o => new[] { OrderStatus.InProgress }.Contains(o.Status))
-                                            .Select(o => new AssignedOrdersToTruckViewModel
-                                            {
-                                                OrderID = o.OrderID,
-                                                DeliveryAddress = o.DeliveryAddress,
-                                                PickupAddress = o.PickupAddress,
-                                                OrderStatus = o.Status.ToString()
-                                            }).ToListAsync();
+            var orders = await _truckOrderService.GetAll()
+                                                 .AsNoTracking()
+                                                 .Where(to => to.Status.Equals(TruckOrderStatus.Assigned))
+                                                 .Select(to => new TruckOrderVewModel
+                                                 {
+                                                     OrderId = to.OrderID,
+                                                     DeliverAddress = to.DeliverAddress,
+                                                     AssignedDate = to.AssignedDate,
+                                                     Status = to.Status.ToString(),
+                                                 })
+                                                 .ToListAsync();
 
             return View(orders);
         }
@@ -340,7 +356,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             }
 
             await _orderService.ChangeStatusToCompletedAsync(orderID);
-            return RedirectToAction(nameof(Detail), "Truck", new { id = id });
+            return RedirectToAction(nameof(Index), "Truck");
         }
 
         private Dictionary<Guid, string?>? GetUsersInRole(string roleName)

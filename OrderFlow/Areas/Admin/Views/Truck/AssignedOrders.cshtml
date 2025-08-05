@@ -1,5 +1,5 @@
 ﻿@using OrderFlow.ViewModels.Truck
-@model IEnumerable<AssignedOrdersToTruckViewModel>;
+@model IEnumerable<TruckOrderVewModel>;
 @{
     ViewData["Title"] = "Assigned Orders"; 
 }
@@ -18,7 +18,6 @@
                             <thead class="table-light">
                                 <tr>
                                     <th scope="col">Order ID</th>
-                                    <th scope="col">Pickup Address</th>
                                     <th scope="col">Delivery Address</th>
                                     <th scope="col">Status</th>
                                     <th scope="col">Actions</th>
@@ -28,20 +27,52 @@
                                 @foreach (var order in Model)
                                 {
                                     <tr>
-                                        <td>@order.OrderID</td>
-                                        <td>@order.PickupAddress</td>
-                                        <td>@order.DeliveryAddress</td>
+                                        <td>@order.OrderId</td>
+                                        <td>@order.DeliverAddress</td>
                                         <td>
-                                            <span class="badge @GetStatusBadgeClass(order.OrderStatus)">
-                                                @order.OrderStatus
+                                            <span class="badge @GetStatusBadgeClass(order.Status)">
+                                                @order.Status
                                             </span>
                                         </td>
                                         <td>
-                                            <form asp-area="Admin" asp-action="ChangeStatusToCompleted" asp-route-id="@order.OrderID" method="post" onsubmit="return confirm('Are you sure you want to mark this order as completed?');">
-                                                <button type="submit" class="btn btn-success btn-sm">
-                                                    <i class="fas fa-check-circle me-1"></i> Complete
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#confirmCompletionModal_@order.OrderId">
+                                                <i class="fas fa-check-circle me-1"></i> Complete
+                                            </button>
+
+                                            <div class="modal fade" id="confirmCompletionModal_@order.OrderId" tabindex="-1" aria-labelledby="confirmCompletionModalLabel_@order.OrderId" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content border-success shadow-lg rounded-lg">
+                                                        <div class="modal-header bg-success text-white p-3 rounded-t-lg">
+                                                            <h5 class="modal-title fs-5" id="confirmCompletionModalLabel_@order.OrderId">
+                                                                <i class="fas fa-check-circle me-2"></i> Confirm Order Completion
+                                                            </h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body p-4 text-center">
+                                                            <div class="mb-3">
+                                                                <i class="fas fa-exclamation-triangle text-warning fa-3x"></i>
+                                                            </div>
+                                                            <p class="lead text-gray-700">
+                                                                Are you sure you want to mark order <strong>@order.OrderId</strong> as completed?
+                                                            </p>
+                                                            <p class="text-muted text-sm">
+                                                                This action cannot be undone.
+                                                            </p>
+                                                        </div>
+                                                        <div class="modal-footer d-flex justify-content-center p-3">
+                                                            <button type="button" class="btn btn-secondary px-4 py-2 rounded-md" data-bs-dismiss="modal">
+                                                                Cancel
+                                                            </button>
+                                                            <form method="post" asp-area="Admin" asp-controller="Truck" asp-action="ChangeStatusToCompleted" asp-route-id="@order.OrderId" class="d-inline">
+                                                                @Html.AntiForgeryToken()
+                                                                <button type="submit" class="btn btn-success px-4 py-2 rounded-md">
+                                                                    <i class="fas fa-check me-2"></i> Yes, Complete Order
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -63,11 +94,9 @@
 @functions {
     private string GetStatusBadgeClass(string status) => status switch
     {
-        "Pending" => "bg-warning text-dark",
-        "Delayed" => "bg-danger",
-        "OnHold" => "bg-secondary",
-        "Completed" => "bg-success",
-        "InTransit" => "bg-info text-dark",
+        "Assigned" => "bg-warning ",
+        "Delivered" => "bg-success",
+        "Cancelled" => "bg-danger",
         _ => "bg-light text-dark"
     };
 }

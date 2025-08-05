@@ -1,6 +1,4 @@
-﻿using OrderFlow.Data.Models;
-
-namespace OrderFlow.ViewModels.Truck
+﻿namespace OrderFlow.ViewModels.Truck
 {
     public class DetailsTruckViewModel
     {
@@ -14,6 +12,6 @@ namespace OrderFlow.ViewModels.Truck
 
         public string Status { get; set; } = "Available";
 
-        public ICollection<TruckOrder> TruckOrders { get; set; } = new HashSet<TruckOrder>();
+        public ICollection<TruckOrderVewModel> TruckOrders { get; set; } = new HashSet<TruckOrderVewModel>();
     }
 }

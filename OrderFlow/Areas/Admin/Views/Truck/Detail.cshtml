@@ -60,9 +60,9 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th scope="col">Order ID</th>
-                                        <th scope="col">Description</th>
-                                        <th scope="col">Pickup Location</th>
                                         <th scope="col">Drop-off Location</th>
+                                        <th scope="col">Assigned Date</th>
+                                        <th scope="col">Delivery Date</th>
                                         <th scope="col">Status</th>
                                         <th scope="col">Actions</th>
                                     </tr>
@@ -71,21 +71,54 @@
                                     @foreach (var truckOrder in Model.TruckOrders)
                                     {
                                         <tr>
-                                            <td>@truckOrder.OrderID</td>
-                                            <td>@truckOrder.Order.DeliveryInstructions</td>
-                                            <td>@truckOrder.Order.PickupAddress</td>
-                                            <td>@truckOrder.Order.DeliveryAddress</td>
-                                            <td><span class="badge @GetStatusBadgeClass(truckOrder.Order.Status.ToString()) fs-6">@truckOrder.Order.Status</span></td>
+                                            <td>@truckOrder.OrderId</td>
+                                            <td>@truckOrder.DeliverAddress</td>
+                                            <td>@truckOrder.AssignedDate</td>
+                                            <td>@truckOrder.DeliveryDate</td>
+                                            <td><span class="badge @GetStatusBadgeClass(truckOrder.Status.ToString()) fs-6">@truckOrder.Status</span></td>
                                             <td>
-                                                @if (truckOrder.Order.Status.ToString() == "InProgress" || truckOrder.Order.Status.ToString() == "Pending" || truckOrder.Order.Status.ToString() == "OnHold" || truckOrder.Order.Status.ToString() == "Delayed")
+                                                @if (truckOrder.Status.ToString() == "Assigned")
                                                 {
-                                                    <form asp-area="Admin" asp-controller="Truck" asp-action="RemoveOrder" method="post" onsubmit="return confirm('Are you sure you want to remove this order from the truck?');">
-                                                        <input type="hidden" name="truckId" value="@Model.TruckID" />
-                                                        <input type="hidden" name="orderId" value="@truckOrder.OrderID" />
-                                                        <button type="submit" class="btn btn-danger btn-sm">
-                                                            <i class="fas fa-minus-circle me-1"></i> Remove
-                                                        </button>
-                                                    </form>
+                                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmRemovalModal_@truckOrder.OrderId">
+                                                        <i class="fas fa-minus-circle me-1"></i> Remove
+                                                    </button>
+
+                                                    <div class="modal fade" id="confirmRemovalModal_@truckOrder.OrderId" tabindex="-1" aria-labelledby="confirmRemovalModalLabel_@truckOrder.OrderId" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content border-danger shadow-lg rounded-lg">
+                                                                <div class="modal-header bg-danger text-white p-3 rounded-t-lg">
+                                                                    <h5 class="modal-title fs-5" id="confirmRemovalModalLabel_@truckOrder.OrderId">
+                                                                        <i class="fas fa-exclamation-triangle me-2"></i> Confirm Order Removal
+                                                                    </h5>
+                                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body p-4 text-center">
+                                                                    <div class="mb-3">
+                                                                        <i class="fas fa-trash-alt text-danger fa-3x"></i>
+                                                                    </div>
+                                                                    <p class="lead text-gray-700">
+                                                                        Are you sure you want to remove order <strong>@truckOrder.OrderId</strong> from this truck?
+                                                                    </p>
+                                                                    <p class="text-muted text-sm">
+                                                                        This action will unassign the order but will not delete it from the system.
+                                                                    </p>
+                                                                </div>
+                                                                <div class="modal-footer d-flex justify-content-center p-3">
+                                                                    <button type="button" class="btn btn-secondary px-4 py-2 rounded-md" data-bs-dismiss="modal">
+                                                                        Cancel
+                                                                    </button>
+                                                                    <form method="post" asp-area="Admin" asp-controller="Truck" asp-action="RemoveOrder" class="d-inline">
+                                                                        <input type="hidden" name="truckId" value="@Model.TruckID" />
+                                                                        <input type="hidden" name="orderId" value="@truckOrder.OrderId" />
+                                                                        @Html.AntiForgeryToken()
+                                                                        <button type="submit" class="btn btn-danger px-4 py-2 rounded-md">
+                                                                            <i class="fas fa-trash-alt me-2"></i> Yes, Remove Order
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 }
                                                 else
                                                 {
@@ -142,17 +175,9 @@
 @functions {
     private string GetStatusBadgeClass(string status) => status switch
     {
-        "Pending" => "bg-warning ",
-        "InProgress" => "bg-primary",
-        "Completed" => "bg-success",
+        "Assigned" => "bg-warning ",
+        "Delivered" => "bg-success",
         "Cancelled" => "bg-danger",
-        "OnHold" => "bg-secondary",
-        "Failed" => "bg-danger",
-        "Delayed" => "bg-danger",
-        "Available" => "bg-success", 
-        "InTransit" => "bg-primary", 
-        "Maintenance" => "bg-warning text-dark", 
-        "OutOfService" => "bg-danger", 
         _ => "bg-light text-dark"
     };
 }
