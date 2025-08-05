@@ -5,7 +5,6 @@ using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Truck;
-using System.Threading.Tasks;
 
 namespace OrderFlow.Areas.Admin.Controllers
 {
@@ -188,7 +187,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                               .OrderByDescending(to => to.AssignedDate)
                                                               .ToListAsync();
 
-            
+
             return View(truckDetail);
         }
 

@@ -15,12 +15,12 @@ namespace OrderFlow.Services.Core
 
         public IQueryable<Payment> GetAll()
         {
-            return this.All<Payment>().AsQueryable();
+            return All<Payment>().AsQueryable();
         }
 
         public async Task CreatePaymentAsync(CreatePaymentViewModel createPayment, Guid orderId)
         {
-            await this.AddAsync(new Data.Models.Payment
+            await AddAsync(new Payment
             {
 
                 Amount = createPayment.Amount,
@@ -29,7 +29,7 @@ namespace OrderFlow.Services.Core
                 PaymentDate = DateTime.UtcNow
             });
 
-            await this.SaveChangesAsync();
+            await SaveChangesAsync();
         }
 
         public async Task DeletePaymentAsync(Guid paymentId)
@@ -39,15 +39,15 @@ namespace OrderFlow.Services.Core
                 throw new ArgumentException("Payment ID cannot be empty.", nameof(paymentId));
             }
 
-            var payment = this.All<Data.Models.Payment>().SingleOrDefault(p => p.Id == paymentId);
+            var payment = All<Payment>().SingleOrDefault(p => p.Id == paymentId);
 
             if (payment == null)
             {
                 throw new KeyNotFoundException($"Payment with ID {paymentId} not found.");
             }
-            this.Delete(payment);
+            Delete(payment);
 
-            await this.SaveChangesAsync();
+            await SaveChangesAsync();
         }
 
         public async Task UpdatePaymentAsync(Guid paymentId, CreatePaymentViewModel createPayment)
@@ -61,7 +61,7 @@ namespace OrderFlow.Services.Core
                 throw new ArgumentNullException(nameof(createPayment), "CreatePaymentViewModel cannot be null.");
             }
 
-            var payment = await this.All<Data.Models.Payment>().SingleOrDefaultAsync(p => p.Id == paymentId);
+            var payment = await All<Payment>().SingleOrDefaultAsync(p => p.Id == paymentId);
 
             if (payment == null)
             {
@@ -71,7 +71,7 @@ namespace OrderFlow.Services.Core
             payment.Amount = createPayment.Amount;
             payment.PaymentDescription = createPayment.PaymentDescription;
 
-            await this.SaveChangesAsync();
+            await SaveChangesAsync();
 
         }
     }

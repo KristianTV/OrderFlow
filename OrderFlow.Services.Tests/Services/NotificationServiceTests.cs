@@ -4,7 +4,7 @@ using OrderFlow.Data.Models;
 using OrderFlow.Services.Core;
 using OrderFlow.ViewModels.Notification;
 
-namespace OrderFlow.Tests.Services
+namespace OrderFlow.Services.Tests.Services
 {
     [TestFixture]
     public class NotificationServiceTests
@@ -39,7 +39,7 @@ namespace OrderFlow.Tests.Services
         [Test]
         public async Task CreateNotificationAsync_ShouldCreateNotificationSuccessfully()
         {
-            
+
             var sender = await AddUser("SenderUser");
             var receiver = await AddUser("ReceiverUser");
             var createNotificationViewModel = new CreateNotificationViewModel
@@ -50,10 +50,10 @@ namespace OrderFlow.Tests.Services
                 OrderId = Guid.NewGuid()
             };
 
-            
+
             await _service.CreateNotificationAsync(createNotificationViewModel, sender.Id);
 
-           
+
             var notification = await _context.Notifications.SingleOrDefaultAsync();
             Assert.That(notification, Is.Not.Null);
             Assert.That(notification.Title, Is.EqualTo("Test Notification"));

@@ -34,21 +34,21 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             int totalActiveOrders = await _orderService.GetAll()
                                                        .AsNoTracking()
-                                                       .Where(o => !new[] {OrderStatus.Cancelled,OrderStatus.Failed,OrderStatus.Completed}.Contains(o.Status))
+                                                       .Where(o => !new[] { OrderStatus.Cancelled, OrderStatus.Failed, OrderStatus.Completed }.Contains(o.Status))
                                                        .CountAsync();
-         int totalCompletedOrdersawait = await _orderService.GetAll()
-                                                            .AsNoTracking()
-                                                            .Where(o => o.Status.Equals(OrderStatus.Completed))
-                                                            .CountAsync();
+            int totalCompletedOrdersawait = await _orderService.GetAll()
+                                                               .AsNoTracking()
+                                                               .Where(o => o.Status.Equals(OrderStatus.Completed))
+                                                               .CountAsync();
             int totalCancelledOrders = await _orderService.GetAll()
                                                             .AsNoTracking()
                                                             .Where(o => o.Status.Equals(OrderStatus.Cancelled))
                                                             .CountAsync();
-           
-                int totalActiveTrucks = await _truckService.GetAll()
-                                                           .AsNoTracking()
-                                                           .Where(t => t.Status.Equals(TruckStatus.Available))
-                                                           .CountAsync();
+
+            int totalActiveTrucks = await _truckService.GetAll()
+                                                       .AsNoTracking()
+                                                       .Where(t => t.Status.Equals(TruckStatus.Available))
+                                                       .CountAsync();
             int totalInactiveTrucks = await _truckService.GetAll()
                                                            .AsNoTracking()
                                                            .Where(t => t.Status.Equals(TruckStatus.Unavailable))

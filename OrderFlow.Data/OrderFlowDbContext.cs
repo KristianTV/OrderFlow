@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OrderFlow.Data.Configuration;
 using OrderFlow.Data.Models;
 
@@ -128,7 +127,7 @@ namespace OrderFlow.Data
             };
             builder.Entity<ApplicationUser>().HasData(driverUser);
 
-            var regularUser = new ApplicationUser 
+            var regularUser = new ApplicationUser
             {
                 Id = RegularUserId,
                 UserName = "User",

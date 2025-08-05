@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
 using OrderFlow.ViewModels.Role;
-using System.Threading.Tasks;
 
 namespace OrderFlow.Areas.Admin.Controllers
 {

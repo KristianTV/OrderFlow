@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Truck;
-using System.Threading.Tasks;
 
 namespace OrderFlow.Areas.Driver.Controllers
 {
@@ -15,7 +13,7 @@ namespace OrderFlow.Areas.Driver.Controllers
         private readonly IOrderService _orderService;
         private readonly ITruckOrderService _truckOrderService;
 
-        public TruckController(ILogger<TruckController> logger, ITruckService truckService, IOrderService orderService,ITruckOrderService truckOrderService)
+        public TruckController(ILogger<TruckController> logger, ITruckService truckService, IOrderService orderService, ITruckOrderService truckOrderService)
         {
             _logger = logger;
             _truckService = truckService;
@@ -81,7 +79,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                                                                         Status = o.Status.ToString()
                                                                     }).SingleOrDefaultAsync();
 
-            if(truckDetail == null)
+            if (truckDetail == null)
             {
                 return NotFound();
             }
@@ -129,7 +127,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                                                      OrderId = to.OrderID,
                                                      DeliverAddress = to.DeliverAddress,
                                                      AssignedDate = to.AssignedDate,
-                                                     Status=to.Status.ToString(),
+                                                     Status = to.Status.ToString(),
                                                  })
                                                  .ToListAsync();
 
@@ -153,7 +151,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest("Invalid Truck ID format.");
             }
 
-            await _orderService.CompleteOrderAsync(orderID, _truckOrderService,_truckService);
+            await _orderService.CompleteOrderAsync(orderID, _truckOrderService, _truckService);
 
             return RedirectToAction(nameof(Index), "Truck");
         }

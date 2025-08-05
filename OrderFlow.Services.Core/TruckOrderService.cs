@@ -23,7 +23,7 @@ namespace OrderFlow.Services.Core
 
         public IQueryable<TruckOrder> GetAll()
         {
-            return this.All<TruckOrder>().AsQueryable();
+            return All<TruckOrder>().AsQueryable();
         }
 
         public async Task<int> AssignOrdersToTruckAsync(IEnumerable<OrderViewModel> assignOrders, Guid truckID)
@@ -41,7 +41,7 @@ namespace OrderFlow.Services.Core
                                               .Select(t => t.Capacity)
                                               .SingleOrDefaultAsync();
 
-            int loadedCapacity = await this.GetAll()
+            int loadedCapacity = await GetAll()
                                            .AsNoTracking()
                                            .Where(to => to.TruckID.Equals(truckID) &&
                                                         to.Status.Equals(TruckOrderStatus.Assigned))
@@ -57,7 +57,7 @@ namespace OrderFlow.Services.Core
                     throw new InvalidOperationException("Truck capacity is full.");
                 }
 
-                if (this.GetAll().Any(to => to.OrderID.Equals(order.OrderID) &&
+                if (GetAll().Any(to => to.OrderID.Equals(order.OrderID) &&
                                             to.TruckID.Equals(truckID) &&
                                             to.DeliverAddress.Equals(order.DeliveryAddress)))
                 {
@@ -70,7 +70,7 @@ namespace OrderFlow.Services.Core
                                                .Select(o => o.LoadCapacity)
                                                .SingleOrDefaultAsync();
 
-                await this.AddAsync(new TruckOrder
+                await AddAsync(new TruckOrder
                 {
                     OrderID = order.OrderID,
                     TruckID = truckID,
@@ -90,7 +90,7 @@ namespace OrderFlow.Services.Core
                     Title = "Orders Assigned",
                     Message = $"Orders have been assigned to truck {truckID}.",
                     CreatedAt = DateTime.UtcNow,
-                    ReceiverId = this.GetAll()
+                    ReceiverId = GetAll()
                                      .AsNoTracking()
                                      .Include(to => to.Truck)
                                      .ThenInclude(t => t.Driver)
@@ -108,7 +108,7 @@ namespace OrderFlow.Services.Core
                 }
             }
 
-            return await this.SaveChangesAsync();
+            return await SaveChangesAsync();
         }
 
         public async Task RemoveOrderFromTruckAsync(Guid truckID, Guid orderID)
@@ -118,7 +118,7 @@ namespace OrderFlow.Services.Core
                 throw new ArgumentException("Truck ID and Order ID cannot be empty.");
             }
 
-            var truckOrder = await this.GetAll()
+            var truckOrder = await GetAll()
                                        .Where(to => to.OrderID.Equals(orderID) &&
                                                     to.TruckID.Equals(truckID) &&
                                                     to.Status.Equals(TruckOrderStatus.Assigned)).SingleOrDefaultAsync();
@@ -133,7 +133,7 @@ namespace OrderFlow.Services.Core
                     Message = $"Order {orderID} have been remove from truck {truckID}.",
                     OrderId = orderID,
                     CreatedAt = DateTime.UtcNow,
-                    ReceiverId = this.GetAll()
+                    ReceiverId = GetAll()
                                      .AsNoTracking()
                                      .Include(to => to.Truck)
                                      .ThenInclude(t => t.Driver)
@@ -145,16 +145,16 @@ namespace OrderFlow.Services.Core
                     TruckId = truckID,
                 });
 
-                this.Delete(truckOrder);
-               
-                await this.SaveChangesAsync();
+                Delete(truckOrder);
 
-                if (!this.GetAll().Any(t => t.TruckID.Equals(truckID) && t.Status.Equals(TruckOrderStatus.Assigned)))
+                await SaveChangesAsync();
+
+                if (!GetAll().Any(t => t.TruckID.Equals(truckID) && t.Status.Equals(TruckOrderStatus.Assigned)))
                 {
                     if (!_truckService.GetTruckStatus(truckID).Equals(TruckStatus.Available.ToString()))
                     {
                         _truckService.ChangeTruckStatus(truckID, TruckStatus.Available.ToString());
-                        await this.SaveChangesAsync();
+                        await SaveChangesAsync();
                     }
                 }
             }
@@ -162,8 +162,8 @@ namespace OrderFlow.Services.Core
 
         public async Task CompleteTruckOrderAsync(Guid orderID)
         {
-            TruckOrder? order = await this.GetAll()
-                                          .Include (to => to.Truck)
+            TruckOrder? order = await GetAll()
+                                          .Include(to => to.Truck)
                                           .ThenInclude(t => t.Driver)
                                           .Where(x => x.OrderID.Equals(orderID) &&
                                                       x.Status.Equals(TruckOrderStatus.Assigned))
@@ -186,7 +186,7 @@ namespace OrderFlow.Services.Core
                     ReceiverId = order.Truck.DriverID,
                 });
 
-                await this.SaveChangesAsync();
+                await SaveChangesAsync();
             }
         }
     }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OrderFlow.ViewModels.Order
 {
-    public class AdminCreateOrderViewModel: CreateOrderViewModel
+    public class AdminCreateOrderViewModel : CreateOrderViewModel
     {
         [Required(ErrorMessage = ErrorMessages.PropertyIsRequired)]
         [Display(Name = "User")]

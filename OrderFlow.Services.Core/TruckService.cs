@@ -143,7 +143,7 @@ namespace OrderFlow.Services.Core
             if (truckID == null || truckID == Guid.Empty)
                 throw new ArgumentNullException(nameof(truckID), "Truck ID cannot be null or empty.");
 
-            Truck? truck =  this.GetAll()
+            Truck? truck = this.GetAll()
                                 .Where(t => t.TruckID.Equals(truckID))
                                 .SingleOrDefault();
 

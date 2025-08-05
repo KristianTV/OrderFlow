@@ -24,7 +24,7 @@ namespace OrderFlow.Areas.Driver.Controllers
 
         public async Task<IActionResult> Index()
         {
-            if(!Guid.TryParse(this.GetUserId(), out Guid userId))
+            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
             {
                 _logger.LogError("User ID is not valid.");
                 return RedirectToAction("Error", "Home");
@@ -43,7 +43,7 @@ namespace OrderFlow.Areas.Driver.Controllers
             int totalActiveTruckOrders = await _truckOrderService.GetAll()
                                                                  .AsNoTracking()
                                                                  .Include(to => to.Truck)
-                                                                 .Where(t => t.Status.Equals(TruckOrderStatus.Assigned) && 
+                                                                 .Where(t => t.Status.Equals(TruckOrderStatus.Assigned) &&
                                                                  t.Truck.DriverID.Equals(userId))
                                                                  .CountAsync();
 

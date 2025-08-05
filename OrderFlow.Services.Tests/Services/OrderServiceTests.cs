@@ -7,7 +7,7 @@ using OrderFlow.Services.Core;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Order;
 
-namespace OrderFlow.Tests.Services
+namespace OrderFlow.Services.Tests.Services
 {
     [TestFixture]
     public class OrderServiceTests
