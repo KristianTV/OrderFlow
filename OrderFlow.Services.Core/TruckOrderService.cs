@@ -52,7 +52,14 @@ namespace OrderFlow.Services.Core
 
             foreach (var order in assignOrders)
             {
-                if (capacity <= 0)
+
+                capacity -= await _orderService.GetAll()
+                                               .AsNoTracking()
+                                               .Where(o => o.OrderID.Equals(order.OrderID))
+                                               .Select(o => o.LoadCapacity)
+                                               .SingleOrDefaultAsync();
+
+                if (capacity < 0)
                 {
                     throw new InvalidOperationException("Truck capacity is full.");
                 }
@@ -63,12 +70,6 @@ namespace OrderFlow.Services.Core
                 {
                     continue;
                 }
-
-                capacity -= await _orderService.GetAll()
-                                               .AsNoTracking()
-                                               .Where(o => o.OrderID.Equals(order.OrderID))
-                                               .Select(o => o.LoadCapacity)
-                                               .SingleOrDefaultAsync();
 
                 await AddAsync(new TruckOrder
                 {
@@ -176,6 +177,9 @@ namespace OrderFlow.Services.Core
 
                 order.Status = TruckOrderStatus.Delivered;
                 order.DeliveryDate = DateTime.UtcNow;
+
+                if (order.Truck.DriverID == Guid.Empty)
+                    return;
 
                 await _notificationService.AddAsync(new Notification
                 {
