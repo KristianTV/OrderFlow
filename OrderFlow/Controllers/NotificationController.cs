@@ -17,7 +17,7 @@ namespace OrderFlow.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? sortBy = null)
+        public async Task<IActionResult> Index(string? sortBy = null, bool hideSystemNotifications = false)
         {
             if (!Guid.TryParse(this.GetUserId(), out var userId))
             {
@@ -35,22 +35,26 @@ namespace OrderFlow.Controllers
                     return View(new List<IndexNotificationViewModel>()); 
                 }
 
-                IEnumerable<IndexNotificationViewModel> filteredAndSortedNotifications = notifications;
+                ViewData["hideSystemNotifications"] = hideSystemNotifications;
+                if (hideSystemNotifications)
+                {
+                    notifications = notifications.Where(n => !string.IsNullOrEmpty(n.SenderName)).ToList();
+                }
 
                 if (!string.IsNullOrEmpty(sortBy))
                 {
                     switch (sortBy.ToLower())
                     {
                         case "all":
-                            filteredAndSortedNotifications = notifications.OrderBy(n => n.IsRead).ToList();
+                            notifications = notifications.OrderBy(n => n.IsRead).ToList();
                             ViewData["CurrentSort"] = "All";
                             break;
                         case "unread":
-                            filteredAndSortedNotifications = notifications.Where(n => !n.IsRead).ToList();
+                            notifications = notifications.Where(n => !n.IsRead).ToList();
                             ViewData["CurrentSort"] = "Unread";
                             break;
                         case "read":
-                            filteredAndSortedNotifications = notifications.Where(n => n.IsRead).ToList();
+                            notifications = notifications.Where(n => n.IsRead).ToList();
                             ViewData["CurrentSort"] = "Read";
                             break;
                         default:
@@ -63,7 +67,7 @@ namespace OrderFlow.Controllers
                     ViewData["CurrentSort"] = "All";
                 }
 
-                return View(filteredAndSortedNotifications);
+                return View(notifications);
             }
             catch (Exception ex)
             {

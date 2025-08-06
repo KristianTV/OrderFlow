@@ -17,7 +17,7 @@ namespace OrderFlow.Areas.Driver.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? sortBy = null)
+        public async Task<IActionResult> Index(string? sortBy = null, bool hideSystemNotifications = false)
         {
             if (!Guid.TryParse(this.GetUserId(), out var userId))
             {
@@ -29,10 +29,16 @@ namespace OrderFlow.Areas.Driver.Controllers
             {
                 var notifications = await _notificationService.GetAllNotificationsForDriverAsync(userId);
 
-                if (notifications == null)
+                if (notifications == null || !notifications.Any())
                 {
                     _logger.LogInformation("No notifications found for user with ID: {UserId}", userId);
                     return View(new List<DriverDetailsNotificationViewModel>());
+                }
+
+                ViewData["hideSystemNotifications"] = hideSystemNotifications;
+                if (hideSystemNotifications)
+                {
+                    notifications = notifications.Where(n => !string.IsNullOrEmpty(n.SenderName)).ToList();
                 }
 
                 if (!string.IsNullOrEmpty(sortBy))
