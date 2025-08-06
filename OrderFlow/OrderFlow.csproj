@@ -25,11 +25,4 @@
     <ProjectReference Include="..\OrderFlow.ViewModels\OrderFlow.ViewModels.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Areas\Speditor\Controllers\" />
-    <Folder Include="Areas\Speditor\Views\" />
-    <Folder Include="Areas\UserIdentity\Controllers\" />
-    <Folder Include="Areas\UserIdentity\Views\" />
-  </ItemGroup>
-
 </Project>

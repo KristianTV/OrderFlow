@@ -26,7 +26,6 @@ namespace OrderFlow.Areas.Admin.Controllers
             if (users == null || !users.Any())
             {
                 _logger.LogWarning("No users found in the system.");
-                ModelState.AddModelError(string.Empty, "No users found.");
                 return NotFound();
             }
 
@@ -40,7 +39,6 @@ namespace OrderFlow.Areas.Admin.Controllers
             if (usersRows == null || !usersRows.Any())
             {
                 _logger.LogWarning("No users found in the system.");
-                ModelState.AddModelError(string.Empty, "No users found.");
                 return NotFound();
             }
             return View(usersRows);

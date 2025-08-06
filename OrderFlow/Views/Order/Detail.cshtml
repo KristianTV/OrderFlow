@@ -174,8 +174,7 @@
                     <button type="button" class="btn btn-secondary px-4 py-2 rounded-md" data-bs-dismiss="modal">
                         <i class="fas fa-check me-2"></i> No, Keep Order
                     </button>
-                    <form method="post" asp-area="" asp-controller="Order" asp-action="Cancel" asp-route-id="@Model.OrderID" class="d-inline">
-                        @Html.AntiForgeryToken()
+                    <form asp-antiforgery="true" method="post" asp-area="" asp-controller="Order" asp-action="Cancel" asp-route-id="@Model.OrderID" class="d-inline">
                         <button type="submit" class="btn btn-danger px-4 py-2 rounded-md">
                             <i class="fas fa-ban me-2"></i> Yes, Cancel Order
                         </button>

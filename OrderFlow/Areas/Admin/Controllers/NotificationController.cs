@@ -34,7 +34,6 @@ namespace OrderFlow.Areas.Admin.Controllers
                 if (!Guid.TryParse(this.GetUserId(), out Guid userId))
                 {
                     _logger.LogWarning("User ID is not valid.");
-                    ModelState.AddModelError(nameof(userId), "User ID is not valid.");
                     return BadRequest();
                 }
 
@@ -73,7 +72,6 @@ namespace OrderFlow.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while retrieving notifications.");
-                ModelState.AddModelError(string.Empty, "An error occurred while retrieving notifications.");
                 return BadRequest();
             }
         }
@@ -95,7 +93,6 @@ namespace OrderFlow.Areas.Admin.Controllers
                     if (!Guid.TryParse(orderId, out Guid orderGuid))
                     {
                         _logger.LogWarning("Invalid Order ID format: {0}", orderId);
-                        ModelState.AddModelError(nameof(orderId), string.Join("Invalid Order ID format: {0}", orderId));
                         return BadRequest();
                     }
 
@@ -113,7 +110,6 @@ namespace OrderFlow.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while preparing the create notification view.");
-                ModelState.AddModelError(string.Empty, "An error occurred while preparing the create notification view.");
                 return BadRequest();
             }
         }
@@ -168,14 +164,12 @@ namespace OrderFlow.Areas.Admin.Controllers
                 if (!Guid.TryParse(id, out Guid notificationId))
                 {
                     _logger.LogWarning("Invalid Notification ID format.");
-                    ModelState.AddModelError(nameof(notificationId), "Invalid Notification ID format.");
                     return BadRequest();
                 }
 
                 if (!Guid.TryParse(this.GetUserId(), out Guid userId))
                 {
                     _logger.LogWarning("Invalid User ID format.");
-                    ModelState.AddModelError(nameof(userId), "Invalid User ID format.");
                     return BadRequest();
                 }
 
@@ -203,7 +197,6 @@ namespace OrderFlow.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while preparing the edit notification view for ID: {0}", id);
-                ModelState.AddModelError(string.Empty, "An internal server error occurred.");
                 return BadRequest();
             }
         }
@@ -274,14 +267,12 @@ namespace OrderFlow.Areas.Admin.Controllers
                 if (!Guid.TryParse(id, out Guid notificationID))
                 {
                     _logger.LogWarning("Invalid Notification ID format.");
-                    ModelState.AddModelError(nameof(notificationID), "Invalid Notification ID format.");
                     return BadRequest();
                 }
 
                 if (!Guid.TryParse(this.GetUserId(), out Guid userId))
                 {
                     _logger.LogWarning("Invalid User ID format.");
-                    ModelState.AddModelError(nameof(userId), "Invalid User ID format.");
                     return BadRequest();
                 }
 
@@ -317,7 +308,6 @@ namespace OrderFlow.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while retrieving notification details for ID: {NotificationId}", id);
-                ModelState.AddModelError(string.Empty, "An internal server error occurred.");
                 return BadRequest();
             }
         }

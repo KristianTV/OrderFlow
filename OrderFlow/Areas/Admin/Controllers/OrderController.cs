@@ -38,7 +38,6 @@ namespace OrderFlow.Areas.Admin.Controllers
                     if (!Enum.TryParse(statusFilter, out OrderStatus orderStatus))
                     {
                         _logger.LogWarning("Invalid status filter provided.");
-                        ModelState.AddModelError(nameof(orderStatus), "Invalid status filter provided.");
                         return BadRequest();
                     }
                     orders = orders.Where(o => o.Status.Equals(orderStatus));
@@ -77,7 +76,6 @@ namespace OrderFlow.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while retrieving orders.");
-                ModelState.AddModelError(string.Empty, "An internal server error occurred. Please try again later.");
                 return BadRequest();
             }
         }
@@ -129,14 +127,12 @@ namespace OrderFlow.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(id))
             {
                 _logger.LogError(id, "Order ID must be provided.");
-                ModelState.AddModelError(nameof(id), "Order ID must be provided.");
                 return NotFound();
             }
 
             if (!Guid.TryParse(id, out Guid orderId))
             {
                 _logger.LogError(id, "Invalid Order ID format.");
-                ModelState.AddModelError(nameof(orderId), "Invalid Order ID format.");
                 return BadRequest();
             }
 
@@ -158,14 +154,12 @@ namespace OrderFlow.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while retrieving order with ID {OrderId} for editing.", orderId);
-                ModelState.AddModelError(string.Empty, "An internal server error occurred. Please try again later.");
                 return BadRequest();
             }
 
             if (createOrderViewModel == null)
             {
                 _logger.LogError(nameof(createOrderViewModel), $"Order with ID {orderId} was not found.");
-                ModelState.AddModelError(string.Empty, $"Order with ID {orderId} was not found.");
                 return NotFound();
             }
 
@@ -234,14 +228,12 @@ namespace OrderFlow.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(id))
             {
                 _logger.LogError(id, "Order ID must be provided.");
-                ModelState.AddModelError(nameof(id), "Order ID must be provided.");
                 return NotFound();
             }
 
             if (!Guid.TryParse(id, out Guid orderId))
             {
                 _logger.LogError(id, "Invalid Order ID format.");
-                ModelState.AddModelError(nameof(orderId), "Invalid Order ID format.");
                 return BadRequest();
             }
 
@@ -281,7 +273,6 @@ namespace OrderFlow.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while retrieving details for order with ID {OrderId}.", orderId);
-                ModelState.AddModelError(string.Empty, "An internal server error occurred. Please try again later.");
                 return BadRequest();
             }
 
@@ -289,7 +280,6 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
 
                 _logger.LogError(nameof(order), "An error occurred while retrieving details for order with ID {OrderId}.", orderId);
-                ModelState.AddModelError(nameof(order), $"Order with ID {orderId} was not found.");
                 return NotFound();
             }
 
