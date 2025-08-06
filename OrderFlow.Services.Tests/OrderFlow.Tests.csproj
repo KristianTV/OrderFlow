@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\OrderFlow.Data\OrderFlow.Data.csproj" />
     <ProjectReference Include="..\OrderFlow.Services.Core\OrderFlow.Services.Core.csproj" />
+    <ProjectReference Include="..\OrderFlow\OrderFlow.csproj" />
   </ItemGroup>
 
   <ItemGroup>

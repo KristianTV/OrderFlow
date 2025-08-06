@@ -4,7 +4,7 @@ using OrderFlow.Data.Models;
 using OrderFlow.Services.Core;
 using OrderFlow.ViewModels.Payment;
 
-namespace OrderFlow.Services.Tests.Services
+namespace OrderFlow.Tests.Services
 {
     [TestFixture]
     public class PaymentServiceTests

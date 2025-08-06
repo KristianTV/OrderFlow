@@ -8,7 +8,7 @@ using OrderFlow.Services.Core;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Truck;
 
-namespace OrderFlow.Services.Tests.Services
+namespace OrderFlow.Tests.Services
 {
     [TestFixture]
     public class TruckOrderServiceTests
