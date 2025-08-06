@@ -32,7 +32,6 @@ namespace OrderFlow.Areas.Driver.Controllers
                 if (notifications == null)
                 {
                     _logger.LogInformation("No notifications found for user with ID: {UserId}", userId);
-                    ModelState.AddModelError(string.Empty, "No notifications found.");
                     return View(new List<DriverDetailsNotificationViewModel>());
                 }
 
@@ -64,7 +63,6 @@ namespace OrderFlow.Areas.Driver.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while retrieving notifications for user {UserId}.", userId);
-                ModelState.AddModelError(string.Empty, "An error occurred while retrieving notifications. Please try again later.");
                 return BadRequest();
             }
         }
@@ -75,7 +73,6 @@ namespace OrderFlow.Areas.Driver.Controllers
             if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid notificationId) || !Guid.TryParse(this.GetUserId(), out Guid userId))
             {
                 _logger.LogWarning("Invalid ID or User ID format. Notification ID: {NotificationId}, User ID: {UserId}", id, this.GetUserId());
-                ModelState.AddModelError(string.Empty, "Invalid request parameters.");
                 return BadRequest();
             }
 
@@ -100,7 +97,6 @@ namespace OrderFlow.Areas.Driver.Controllers
                 if (notificationViewModel == null)
                 {
                     _logger.LogWarning("Notification with ID {NotificationId} not found for user {UserId}.", notificationId, userId);
-                    ModelState.AddModelError(string.Empty, "Notification not found or does not belong to the user.");
                     return NotFound();
                 }
 
@@ -116,7 +112,6 @@ namespace OrderFlow.Areas.Driver.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while retrieving or reading notification {NotificationId} for user {UserId}.", notificationId, userId);
-                ModelState.AddModelError(string.Empty, "An error occurred while retrieving the notification. Please try again later.");
                 return BadRequest();
             }
         }
