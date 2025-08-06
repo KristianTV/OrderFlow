@@ -39,6 +39,13 @@
                             <div class="col-sm-8"><i class="fas fa-user me-1"></i> @Model.SenderName</div>
                         </div>
                     }
+                    else
+                    {
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">From:</div>
+                            <div class="col-sm-8"><i class="fas fa-user me-1"></i> System</div>
+                        </div>
+                    }
                     @if (Model.OrderId.HasValue)
                     {
                         <div class="row mb-2">
@@ -90,9 +97,13 @@
                         <i class="fas fa-arrow-left me-2"></i> Back to All Notifications
                     </a>
                     <div>
-                        <a class="btn btn-primary btn-lg me-2" asp-area="Admin" asp-action="Edit" asp-controller="Notification" asp-route-id="@notificationID">
-                            <i class="fas fa-edit me-2"></i> Edit
-                        </a>
+                        @if (!string.IsNullOrEmpty(Model.SenderName))
+                        {
+                            <a class="btn btn-primary btn-lg me-2" asp-area="Admin" asp-action="Edit" asp-controller="Notification" asp-route-id="@notificationID">
+                                <i class="fas fa-edit me-2"></i> Edit
+                            </a>
+                        }
+
                         @if (Model.isMarkable)
                         {
                             @if (Model.IsRead)
@@ -113,7 +124,7 @@
                                     </button>
                                 </form>
                             }
-}
+                        }
                         <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
                             <i class="fas fa-trash-alt me-2"></i> Delete
                         </button>

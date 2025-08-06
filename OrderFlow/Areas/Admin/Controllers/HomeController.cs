@@ -14,6 +14,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             _logger = logger;
         }
 
+        [HttpGet("/Admin/Home/Error")]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error(int? statusCode = null)
         {
@@ -22,9 +23,9 @@ namespace OrderFlow.Areas.Admin.Controllers
                 switch (statusCode.Value)
                 {
                     case 404:
-                        return View("NotFound");
+                        return View("~/Areas/Admin/Views/Home/NotFound");
                     case 500:
-                        return View("BadRequest");
+                        return View("~/Areas/Admin/Views/Home/BadRequest");
                 }
 
             }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol.Plugins;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
@@ -28,309 +29,431 @@ namespace OrderFlow.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(string? sortBy = null)
         {
-
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            try
             {
-                _logger.LogWarning("User ID is not valid.");
-                return BadRequest("Invalid user ID.");
-            }
-
-            var notifications = await _notificationService.GetAllNotificationsAsync(userId);
-
-            if (sortBy != null)
-            {
-                switch (sortBy.ToLower())
+                if (!Guid.TryParse(this.GetUserId(), out Guid userId))
                 {
-                    case "all":
-                        notifications = notifications?.OrderBy(n => n.IsRead).ToList();
-                        ViewData["CurrentSort"] = "All";
-                        break;
-                    case "unread":
-                        notifications = notifications?.Where(n => !n.IsRead).ToList();
-                        ViewData["CurrentSort"] = "Unread";
-                        break;
-                    case "read":
-                        notifications = notifications?.Where(n => n.IsRead).ToList();
-                        ViewData["CurrentSort"] = "Read";
-                        break;
-                    default:
-                        _logger.LogWarning("Invalid status filter provided: {Status}", sortBy);
-                        return BadRequest("Invalid status filter.");
+                    _logger.LogWarning("User ID is not valid.");
+                    ModelState.AddModelError(nameof(userId), "User ID is not valid.");
+                    return BadRequest();
                 }
-            }
 
-            if (notifications == null)
+                var notifications = await _notificationService.GetAllNotificationsAsync(userId);
+
+                if (sortBy != null)
+                {
+                    switch (sortBy.ToLower())
+                    {
+                        case "all":
+                            notifications = notifications?.OrderBy(n => n.IsRead).ToList();
+                            ViewData["CurrentSort"] = "All";
+                            break;
+                        case "unread":
+                            notifications = notifications?.Where(n => !n.IsRead).ToList();
+                            ViewData["CurrentSort"] = "Unread";
+                            break;
+                        case "read":
+                            notifications = notifications?.Where(n => n.IsRead).ToList();
+                            ViewData["CurrentSort"] = "Read";
+                            break;
+                        default:
+                            _logger.LogWarning("Invalid status filter provided: {0}", sortBy);
+                            ModelState.AddModelError(nameof(sortBy),string.Join("Invalid status filter provided: {0}", sortBy));
+                            return BadRequest();
+                    }
+                }
+
+                if (notifications == null)
+                {
+                    return View(new List<object>());
+                }
+
+                return View(notifications);
+            }
+            catch (Exception ex)
             {
-                _logger.LogWarning("No notifications found for user with ID: {UserId}", userId);
-                return NotFound("No notifications found.");
+                _logger.LogError(ex, "An error occurred while retrieving notifications.");
+                ModelState.AddModelError(string.Empty, "An error occurred while retrieving notifications.");
+                return BadRequest();
             }
-
-            return View(notifications);
         }
 
         [HttpGet]
         public async Task<IActionResult> Create(string? orderId)
         {
-            AdminCreateNotificationViewModel createNotification = new AdminCreateNotificationViewModel
+            try
             {
-                Receivers = await GetUsers(),
-                Orders = await GetOrders(),
-                Trucks = await GetTrucks(),
-            };
-
-            if (!string.IsNullOrEmpty(orderId))
-            {
-                if (!Guid.TryParse(orderId, out Guid orderGuid))
+                var createNotification = new AdminCreateNotificationViewModel
                 {
-                    _logger.LogWarning("Invalid Order ID format: {OrderId}", orderId);
-                    return BadRequest("Invalid Order ID format.");
+                    Receivers = await GetUsers(),
+                    Orders = await GetOrders(),
+                    Trucks = await GetTrucks(),
+                };
+
+                if (!string.IsNullOrEmpty(orderId))
+                {
+                    if (!Guid.TryParse(orderId, out Guid orderGuid))
+                    {
+                        _logger.LogWarning("Invalid Order ID format: {0}", orderId);
+                        ModelState.AddModelError(nameof(orderId),string.Join("Invalid Order ID format: {0}", orderId));
+                        return BadRequest();
+                    }
+
+                    var receiverId = await _orderService.GetAll()
+                                                        .Where(o => o.OrderID.Equals(orderGuid))
+                                                        .Select(o => o.UserID)
+                                                        .SingleOrDefaultAsync();
+
+                    createNotification.OrderId = orderGuid;
+                    createNotification.ReceiverId = receiverId;
                 }
 
-                var receiverId = await _orderService.GetAll()
-                                                    .Where(o => o.OrderID.Equals(orderGuid))
-                                                    .Select(o => o.UserID)
-                                                    .SingleOrDefaultAsync();
-
-                createNotification.OrderId = orderGuid;
-                createNotification.ReceiverId = receiverId;
+                return View(createNotification);
             }
-
-
-            return View(createNotification);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while preparing the create notification view.");
+                ModelState.AddModelError(string.Empty, "An error occurred while preparing the create notification view.");
+                return BadRequest();
+            }
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AdminCreateNotificationViewModel createNotification)
         {
-            if (!ModelState.IsValid)
+            try
             {
+                if (!ModelState.IsValid)
+                {
+                    createNotification.Receivers = await GetUsers();
+                    createNotification.Orders = await GetOrders();
+                    createNotification.Trucks = await GetTrucks();
+                    return View(createNotification);
+                }
+
+                if (!Guid.TryParse(this.GetUserId(), out var senderId))
+                {
+                    _logger.LogWarning("Sender ID is not valid.");
+                    ModelState.AddModelError(nameof(senderId), "Sender ID is not valid.");
+                    return BadRequest();
+                }
+
+                await _notificationService.CreateNotificationAsync(createNotification, senderId);
+
+                return RedirectToAction(nameof(Index), "Notification");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while creating a notification.");
+                ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+
                 createNotification.Receivers = await GetUsers();
                 createNotification.Orders = await GetOrders();
                 createNotification.Trucks = await GetTrucks();
                 return View(createNotification);
             }
-
-            if (!Guid.TryParse(this.GetUserId(), out var senderId))
-            {
-                _logger.LogWarning("Sender ID is not valid.");
-                return BadRequest("Invalid sender ID.");
-            }
-
-            await _notificationService.CreateNotificationAsync(createNotification, senderId);
-
-            return RedirectToAction(nameof(Index), "Notification");
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(string? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                if (string.IsNullOrEmpty(id))
+                {
+                    return NotFound();
+                }
 
-            if (!Guid.TryParse(id, out Guid notification))
+                if (!Guid.TryParse(id, out Guid notificationId))
+                {
+                    _logger.LogWarning("Invalid Notification ID format.");
+                    ModelState.AddModelError(nameof(notificationId), "Invalid Notification ID format.");
+                    return BadRequest();
+                }
+
+                if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+                {
+                    _logger.LogWarning("Invalid User ID format.");
+                    ModelState.AddModelError(nameof(userId), "Invalid User ID format.");
+                    return BadRequest();
+                }
+
+                AdminCreateNotificationViewModel? createNotification = await _notificationService.GetAll()
+                                                                                                .Where(n => n.Id.Equals(notificationId) && n.SenderId.Equals(userId))
+                                                                                                .Select(o => new AdminCreateNotificationViewModel
+                                                                                                {
+                                                                                                    Title = o.Title,
+                                                                                                    Message = o.Message,
+                                                                                                    ReceiverId = o.ReceiverId,
+                                                                                                    OrderId = o.OrderId,
+                                                                                                }).SingleOrDefaultAsync();
+
+                if (createNotification == null)
+                {
+                    return NotFound();
+                }
+
+                createNotification.Receivers = await GetUsers();
+                createNotification.Orders = await GetOrders();
+                createNotification.Trucks = await GetTrucks();
+
+                return View(createNotification);
+            }
+            catch (Exception ex)
             {
-                return BadRequest("Invalid Notification ID format.");
+                _logger.LogError(ex, "An error occurred while preparing the edit notification view for ID: {0}", id);
+                ModelState.AddModelError(string.Empty, "An internal server error occurred.");
+                return BadRequest();
             }
-
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
-            {
-                return BadRequest("Invalid User ID format.");
-            }
-
-            AdminCreateNotificationViewModel? createNotification = await _notificationService.GetAll()
-                                                                                             .Where(n => n.Id.Equals(notification) &&
-                                                                                                          n.SenderId.Equals(userId))
-                                                                                             .Select(o => new AdminCreateNotificationViewModel
-                                                                                             {
-                                                                                                 Title = o.Title,
-                                                                                                 Message = o.Message,
-                                                                                                 ReceiverId = o.ReceiverId,
-                                                                                                 OrderId = o.OrderId,
-                                                                                             }).SingleOrDefaultAsync();
-
-            if (createNotification == null)
-            {
-                return NotFound();
-            }
-
-            createNotification.Receivers = await GetUsers();
-            createNotification.Orders = await GetOrders();
-            createNotification.Trucks = await GetTrucks();
-
-            return View(createNotification);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(AdminCreateNotificationViewModel createNotification, string? id)
         {
-            if (!ModelState.IsValid)
+            try
             {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return NotFound();
+                }
+
+                if (!Guid.TryParse(id, out Guid notificationId))
+                {
+                    _logger.LogWarning("Invalid Notification ID format.");
+                    ModelState.AddModelError(nameof(notificationId), "Invalid Notification ID format.");
+                    return BadRequest();
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    createNotification.Receivers = await GetUsers();
+                    createNotification.Orders = await GetOrders();
+                    createNotification.Trucks = await GetTrucks();
+                    return View(createNotification);
+                }
+
+                if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+                {
+                    _logger.LogWarning("Invalid User ID format.");
+                    ModelState.AddModelError(nameof(userId), "Invalid User ID format.");
+                    return BadRequest();
+                }
+
+                if (!await _notificationService.UpdateNotificationAsync(createNotification, notificationId, userId))
+                {
+                    _logger.LogWarning("Failed to update notification with ID {NotificationId}. It might not exist or the user is not the sender.", notificationId);
+                    return NotFound();
+                }
+
+                return RedirectToAction(nameof(Detail), "Notification", new { id = id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while editing notification with ID: {NotificationId}", id);
+                ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+
                 createNotification.Receivers = await GetUsers();
                 createNotification.Orders = await GetOrders();
                 createNotification.Trucks = await GetTrucks();
                 return View(createNotification);
             }
-
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            if (!Guid.TryParse(id, out Guid notification))
-            {
-                return RedirectToAction("Error", "Home", new { area = "Admin", statusCode = 400 });
-            }
-
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
-            {
-                return BadRequest("Invalid User ID format.");
-            }
-
-            if (!await _notificationService.UpdateNotificationAsync(createNotification, notification, userId))
-            {
-                return NotFound();
-            }
-
-            return RedirectToAction(nameof(Detail), "Notification", new { id = id });
         }
 
         [HttpGet]
         public async Task<IActionResult> Detail(string? id)
         {
-            if (string.IsNullOrEmpty(id))
+            try
             {
-                return NotFound();
-            }
-            if (!Guid.TryParse(id, out Guid notificationID))
-            {
-                return BadRequest();
-            }
-
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
-            {
-                return BadRequest("Invalid User ID format.");
-            }
-
-            DriverDetailsNotificationViewModel? notificationViewModel = await _notificationService.GetAll()
-                                                                                                  .AsNoTracking()
-                                                                                                  .Include(n => n.Sender)
-                                                                                                  .Where(n => n.Id.Equals(notificationID))
-                                                                                                  .Select(n => new DriverDetailsNotificationViewModel
-                                                                                                  {
-                                                                                                      Title = n.Title,
-                                                                                                      Message = n.Message,
-                                                                                                      CreatedAt = n.CreatedAt,
-                                                                                                      IsRead = n.IsRead,
-                                                                                                      OrderId = n.OrderId,
-                                                                                                      TruckId = n.TruckId,
-                                                                                                      SenderName = n.Sender!.UserName,
-                                                                                                      isMarkable = n.ReceiverId.Equals(userId)
-                                                                                                  }).SingleOrDefaultAsync();
-
-
-            if (notificationViewModel == null)
-            {
-                return NotFound();
-            }
-
-            if (_notificationService.GetAll().Any(n => n.Id.Equals(notificationID) && n.ReceiverId.Equals(userId)))
-            {
-                await _notificationService.ReadAsync(notificationID);
-
-                if (!notificationViewModel.IsRead)
+                if (string.IsNullOrEmpty(id))
                 {
+                    return NotFound();
+                }
+
+                if (!Guid.TryParse(id, out Guid notificationID))
+                {
+                    _logger.LogWarning("Invalid Notification ID format.");
+                    ModelState.AddModelError(nameof(notificationID), "Invalid Notification ID format.");
+                    return BadRequest();
+                }
+
+                if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+                {
+                    _logger.LogWarning("Invalid User ID format.");
+                    ModelState.AddModelError(nameof(userId), "Invalid User ID format.");
+                    return BadRequest();
+                }
+
+                DriverDetailsNotificationViewModel? notificationViewModel = await _notificationService.GetAll()
+                                                                                                    .AsNoTracking()
+                                                                                                    .Include(n => n.Sender)
+                                                                                                    .Where(n => n.Id.Equals(notificationID))
+                                                                                                    .Select(n => new DriverDetailsNotificationViewModel
+                                                                                                    {
+                                                                                                        Title = n.Title,
+                                                                                                        Message = n.Message,
+                                                                                                        CreatedAt = n.CreatedAt,
+                                                                                                        IsRead = n.IsRead,
+                                                                                                        OrderId = n.OrderId,
+                                                                                                        TruckId = n.TruckId,
+                                                                                                        SenderName = n.Sender!.UserName,
+                                                                                                        isMarkable = n.ReceiverId.Equals(userId)
+                                                                                                    }).SingleOrDefaultAsync();
+
+                if (notificationViewModel == null)
+                {
+                    return NotFound();
+                }
+
+                if (!notificationViewModel.IsRead && notificationViewModel.isMarkable)
+                {
+                    await _notificationService.ReadAsync(notificationID);
                     notificationViewModel.IsRead = true;
                 }
-            }
 
-            return View(notificationViewModel);
+                return View(notificationViewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving notification details for ID: {NotificationId}", id);
+                ModelState.AddModelError(string.Empty, "An internal server error occurred.");
+                return BadRequest();
+            }
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAsUnread(string? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                if (string.IsNullOrEmpty(id))
+                {
+                    return NotFound();
+                }
 
-            if (!Guid.TryParse(id, out Guid notificationId))
+                if (!Guid.TryParse(id, out Guid notificationId))
+                {
+                    _logger.LogWarning("Invalid Notification ID format.");
+                    ModelState.AddModelError(nameof(notificationId), "Invalid Notification ID format.");
+                    return BadRequest();
+                }
+
+                if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+                {
+                    _logger.LogWarning("Invalid User ID format.");
+                    ModelState.AddModelError(nameof(userId), "Invalid User ID format.");
+                    return BadRequest();
+                }
+
+                if (!await _notificationService.GetAll().AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
+                {
+                    _logger.LogWarning("Notification not found or does not belong to the user.");
+                    ModelState.AddModelError(nameof(userId), "Notification not found or does not belong to the user.");
+                    return NotFound();
+                }
+
+                await _notificationService.UnreadAsync(notificationId);
+
+                return RedirectToAction(nameof(Index), "Notification");
+            }
+            catch (Exception ex)
             {
-                return BadRequest("Invalid Notification ID format.");
+                _logger.LogError(ex, "An error occurred while marking notification as unread for ID: {NotificationId}", id);
+                ModelState.AddModelError(string.Empty, string.Join("An error occurred while marking notification as unread for ID: {0}", id));
+                return StatusCode(500, "An internal server error occurred.");
             }
-
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
-            {
-                return BadRequest("Invalid User ID format.");
-            }
-
-            if (!await _notificationService.GetAll()
-                                           .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
-            {
-                return NotFound("Notification not found or does not belong to the user.");
-            }
-
-            await _notificationService.UnreadAsync(notificationId);
-
-            return RedirectToAction(nameof(Index), "Notification"); ;
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAsRead(string? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                if (string.IsNullOrEmpty(id))
+                {
+                    return NotFound();
+                }
 
-            if (!Guid.TryParse(id, out Guid notificationId))
+
+                if (!Guid.TryParse(id, out Guid notificationId))
+                {
+                    _logger.LogWarning("Invalid Notification ID format.");
+                    ModelState.AddModelError(nameof(notificationId), "Invalid Notification ID format.");
+                    return BadRequest();
+                }
+
+                if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+                {
+                    _logger.LogWarning("Invalid User ID format.");
+                    ModelState.AddModelError(nameof(userId), "Invalid User ID format.");
+                    return BadRequest();
+                }
+
+                if (!await _notificationService.GetAll().AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
+                {
+
+                    _logger.LogWarning("Notification not found or does not belong to the user.");
+                    ModelState.AddModelError(nameof(userId), "Notification not found or does not belong to the user.");
+                    return NotFound();
+                }
+
+                await _notificationService.ReadAsync(notificationId);
+
+                return RedirectToAction(nameof(Index), "Notification");
+            }
+            catch (Exception ex)
             {
-                return BadRequest("Invalid Notification ID format.");
+                _logger.LogError(ex, "An error occurred while marking notification as read for ID: {NotificationId}", id);
+                ModelState.AddModelError(string.Empty,string.Join("An error occurred while marking notification as read for ID: {0}", id));
+                return BadRequest();
             }
-
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
-            {
-                return BadRequest("Invalid User ID format.");
-            }
-
-            if (!await _notificationService.GetAll()
-                                           .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
-            {
-                return NotFound("Notification not found or does not belong to the user.");
-            }
-
-            await _notificationService.ReadAsync(notificationId);
-
-            return RedirectToAction(nameof(Index), "Notification");
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
+                if (string.IsNullOrEmpty(id))
+                {
+                    return NotFound();
+                }
+
+                if (!Guid.TryParse(id, out Guid notificationId))
+                {
+                    _logger.LogWarning("Invalid Notification ID format.");
+                    ModelState.AddModelError(nameof(notificationId), "Invalid Notification ID format.");
+                    return BadRequest();
+                }
+
+                if (!await _notificationService.GetAll().AnyAsync(n => n.Id.Equals(notificationId)))
+                {
+                    _logger.LogError("Notification not found.");
+                    ModelState.AddModelError(string.Empty, "Notification not found.");
+                    return NotFound();
+                }
+
+                await _notificationService.SoftDelete(notificationId);
+
+                return RedirectToAction(nameof(Index), "Notification");
             }
-            if (!Guid.TryParse(id, out Guid notificationId))
+            catch (Exception ex)
             {
-                return BadRequest("Invalid Notification ID format.");
+                _logger.LogError(ex, "An error occurred while deleting notification with ID: {NotificationId}", id);
+                ModelState.AddModelError(string.Empty, string.Join("An error occurred while deleting notification with ID: {0}", id));
+                return BadRequest();
             }
-            if (!await _notificationService.GetAll()
-                                           .AnyAsync(n => n.Id.Equals(notificationId)))
-            {
-                return NotFound("Notification not found or does not belong to the user.");
-            }
-            await _notificationService.SoftDelete(notificationId);
-            return RedirectToAction(nameof(Index), "Notification");
         }
 
         private async Task<Dictionary<Guid, string?>> GetUsers()
         {
             return await _userManager.Users.ToDictionaryAsync(
-                                                             user => user.Id,
-                                                             user => user.UserName
+                                                                user => user.Id,
+                                                                user => user.UserName
                                                              );
         }
 
@@ -339,14 +462,13 @@ namespace OrderFlow.Areas.Admin.Controllers
             return await _orderService.GetAll()
                                       .Include(order => order.User)
                                       .Where(order => !(new[] { OrderStatus.Completed,
-                                                                OrderStatus.Cancelled,
-                                                                OrderStatus.Failed
+                                                               OrderStatus.Cancelled,
+                                                               OrderStatus.Failed
                                                                }.Contains(order.Status)))
                                       .ToDictionaryAsync(
-                                                     order => order.OrderID,
-                                                     order => order.OrderID.ToString() + " - " + order.User.UserName
-                                                 );
-
+                                                          order => order.OrderID,
+                                                          order => order.OrderID.ToString() + " - " + order.User.UserName
+                                                         );
         }
 
         private async Task<Dictionary<Guid, string>> GetTrucks()
@@ -354,9 +476,9 @@ namespace OrderFlow.Areas.Admin.Controllers
             return await _truckService.GetAll()
                                       .Include(t => t.Driver)
                                       .ToDictionaryAsync(
-                                                     t => t.TruckID,
-                                                     t => t.TruckID.ToString() + " - " + t.Driver.UserName
-                                                 );
+                                                           t => t.TruckID,
+                                                           t => t.TruckID.ToString() + " - " + t.Driver.UserName
+                                                         );
         }
     }
 }
