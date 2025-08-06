@@ -24,7 +24,8 @@ namespace OrderFlow.Areas.Admin.Controllers
             if (users == null || !users.Any())
             {
                 _logger.LogWarning("No users found in the system.");
-                return NotFound("No users found.");
+                ModelState.AddModelError(string.Empty, "No users found.");
+                return NotFound();
             }
 
             IEnumerable<IndexUserRowsViewModel> usersRows = users.Select(user => new IndexUserRowsViewModel
@@ -37,7 +38,8 @@ namespace OrderFlow.Areas.Admin.Controllers
             if (usersRows == null || !usersRows.Any())
             {
                 _logger.LogWarning("No users found in the system.");
-                return NotFound("No users found.");
+                ModelState.AddModelError(string.Empty, "No users found.");
+                return NotFound();
             }
             return View(usersRows);
         }
@@ -47,7 +49,9 @@ namespace OrderFlow.Areas.Admin.Controllers
         {
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(role))
             {
-                return BadRequest("Invalid user ID or role.");
+                _logger.LogWarning("Invalid user ID or role.");
+                ModelState.AddModelError(string.Empty, "Invalid user ID or role.");
+                return BadRequest();
             }
 
             try
@@ -63,12 +67,15 @@ namespace OrderFlow.Areas.Admin.Controllers
                 else
                 {
                     _logger.LogError("Failed to change user role: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
-                    return BadRequest("Failed to change user role.");
+                    ModelState.AddModelError(string.Empty, "Failed to change user role.");
+                    return BadRequest();
                 }
 
             }
             catch
             {
+                _logger.LogError("Failed to change user role.");
+                ModelState.AddModelError(string.Empty, "Failed to change user role.");
                 return BadRequest("Failed to change user role.");
             }
         }
