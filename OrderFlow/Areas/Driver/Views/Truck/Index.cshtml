@@ -2,6 +2,7 @@
 @model IEnumerable<IndexTruckViewModel>;
 @{
     ViewData["Title"] = "All Trucks";
+    var currentStatus = ViewData["CurrentStatus"] as string ?? "All";
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -9,6 +10,21 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0 text-center flex-grow-1 text-primary">@ViewData["Title"]</h1>
+        <div class="d-flex justify-content-end mb-3">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-sort me-2"></i> Sort By: @currentStatus
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                    <li><h6 class="dropdown-header">Truck Status</h6></li>
+                    <li><a class="dropdown-item @(currentStatus == "All" ? "active" : "")" asp-area="Driver" asp-action="Index" asp-controller="Truck" asp-route-status="All">All</a></li>
+                    <li><a class="dropdown-item @(currentStatus == "Available" ? "active" : "")" asp-area="Driver" asp-action="Index" asp-controller="Truck" asp-route-status="Available">Available</a></li>
+                    <li><a class="dropdown-item @(currentStatus == "Unavailable" ? "active" : "")" asp-area="Driver" asp-action="Index" asp-controller="Truck" asp-route-status="Unavailable">Unavailable</a></li>
+                    <li><a class="dropdown-item @(currentStatus == "UnderMaintenance" ? "active" : "")" asp-area="Driver" asp-action="Index" asp-controller="Truck" asp-route-status="UnderMaintenance">Under Maintenance</a></li>
+                    <li><a class="dropdown-item @(currentStatus == "Delayed" ? "active" : "")" asp-area="Driver" asp-action="Index" asp-controller="Truck" asp-route-status="Delayed">Delayed</a></li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">

@@ -5,6 +5,7 @@ using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Truck;
+using static OrderFlow.GCommon.ValidationConstants;
 
 namespace OrderFlow.Areas.Admin.Controllers
 {
@@ -30,11 +31,11 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? status = null)
         {
             try
             {
-                var orders = await _truckService.GetAll()
+                var trucks = await _truckService.GetAll()
                                                  .AsNoTracking()
                                                  .Include(t => t.Driver)
                                                  .Select(truck => new IndexTruckViewModel
@@ -47,7 +48,60 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                  })
                                                  .ToListAsync();
 
-                return View(orders);
+                if (trucks == null || !trucks.Any())
+                {
+                    _logger.LogInformation("No trucks found .");
+                    ModelState.AddModelError("Trucks", "No trucks found .");
+                    return View(new List<IndexTruckViewModel>());
+                }
+
+                if (status != null)
+                {
+                    if (status.ToLower().Equals("all"))
+                    {
+                        ViewData["CurrentStatus"] = "All";
+                        status = null;
+                    }
+                }
+
+                if (status != null)
+                {
+                    if(!Enum.TryParse<TruckStatus>(status, true, out TruckStatus truckStatus))
+                    {
+                        _logger.LogWarning("Invalid truck status filter provided: {0}", status);
+                        ModelState.AddModelError(nameof(status), string.Join("Invalid truck status filter provided: {0}", status));
+                        return BadRequest();
+                    }
+
+                    switch (truckStatus)
+                    {
+                        case TruckStatus.Available:
+                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.Available.ToString())).ToList();
+                            ViewData["CurrentStatus"] = TruckStatus.Available.ToString();
+                            break;
+                        case TruckStatus.Unavailable:
+                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.Unavailable.ToString())).ToList();
+
+                            ViewData["CurrentStatus"] = TruckStatus.Unavailable.ToString();
+                            break;
+                        case TruckStatus.UnderMaintenance:
+                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.UnderMaintenance.ToString())).ToList();
+
+                            ViewData["CurrentStatus"] = TruckStatus.UnderMaintenance.ToString();
+                            break;
+                        case TruckStatus.Delayed:
+                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.Delayed.ToString())).ToList();
+                            ViewData["CurrentStatus"] = TruckStatus.Delayed.ToString();
+                            break;
+                        default:
+                            _logger.LogWarning("Invalid status filter provided: {0}", truckStatus);
+                            ModelState.AddModelError(nameof(truckStatus), string.Join("Invalid status filter provided: {0}", truckStatus));
+                            return BadRequest();
+                    }
+                }
+
+
+                return View(trucks);
             }
             catch (Exception ex)
             {

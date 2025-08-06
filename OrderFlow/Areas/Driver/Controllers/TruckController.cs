@@ -25,7 +25,7 @@ namespace OrderFlow.Areas.Driver.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? status = null)
         {
             if (!Guid.TryParse(this.GetUserId(), out Guid driverId))
             {
@@ -50,11 +50,57 @@ namespace OrderFlow.Areas.Driver.Controllers
                                                 })
                                                 .ToListAsync();
 
+
                 if (trucks == null || !trucks.Any())
                 {
                     _logger.LogInformation("No trucks found for driver with ID: {DriverId}", driverId);
                     ModelState.AddModelError("Trucks", "No trucks found for this driver.");
                     return View(new List<IndexTruckViewModel>());
+                }
+
+                if (status != null)
+                {
+                    if (status.ToLower().Equals("all"))
+                    {
+                        ViewData["CurrentStatus"] = "All";
+                        status = null;
+                    }
+                }
+
+                if (status != null)
+                {
+                    if (!Enum.TryParse<TruckStatus>(status, true, out TruckStatus truckStatus))
+                    {
+                        _logger.LogWarning("Invalid truck status filter provided: {0}", status);
+                        ModelState.AddModelError(nameof(status), string.Join("Invalid truck status filter provided: {0}", status));
+                        return BadRequest();
+                    }
+
+                    switch (truckStatus)
+                    {
+                        case TruckStatus.Available:
+                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.Available.ToString())).ToList();
+                            ViewData["CurrentStatus"] = TruckStatus.Available.ToString();
+                            break;
+                        case TruckStatus.Unavailable:
+                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.Unavailable.ToString())).ToList();
+
+                            ViewData["CurrentStatus"] = TruckStatus.Unavailable.ToString();
+                            break;
+                        case TruckStatus.UnderMaintenance:
+                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.UnderMaintenance.ToString())).ToList();
+
+                            ViewData["CurrentStatus"] = TruckStatus.UnderMaintenance.ToString();
+                            break;
+                        case TruckStatus.Delayed:
+                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.Delayed.ToString())).ToList();
+                            ViewData["CurrentStatus"] = TruckStatus.Delayed.ToString();
+                            break;
+                        default:
+                            _logger.LogWarning("Invalid status filter provided: {0}", truckStatus);
+                            ModelState.AddModelError(nameof(truckStatus), string.Join("Invalid status filter provided: {0}", truckStatus));
+                            return BadRequest();
+                    }
                 }
 
                 return View(trucks);
@@ -167,7 +213,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest();
             }
         }
-        
+
         [HttpPost]
         public async Task<IActionResult> ChangeStatusToCompleted(string? id)
         {
