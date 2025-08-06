@@ -21,148 +21,174 @@ namespace OrderFlow.Areas.Driver.Controllers
         {
             if (!Guid.TryParse(this.GetUserId(), out var userId))
             {
-                _logger.LogWarning("User ID is not valid.");
+                _logger.LogWarning("Invalid user ID format from session.");
                 return BadRequest("Invalid user ID.");
             }
 
-            var notifications = await _notificationService.GetAllNotificationsForDriverAsync(userId);
-
-            if (sortBy != null)
+            try
             {
-                switch (sortBy.ToLower())
+                var notifications = await _notificationService.GetAllNotificationsForDriverAsync(userId);
+
+                if (notifications == null)
                 {
-                    case "all":
-                        notifications = notifications?.OrderBy(n => n.IsRead).ToList();
-                        ViewData["CurrentSort"] = "All";
-                        break;
-                    case "unread":
-                        notifications = notifications?.Where(n => !n.IsRead).ToList();
-                        ViewData["CurrentSort"] = "Unread";
-                        break;
-                    case "read":
-                        notifications = notifications?.Where(n => n.IsRead).ToList();
-                        ViewData["CurrentSort"] = "Read";
-                        break;
-                    default:
-                        _logger.LogWarning("Invalid status filter provided: {Status}", sortBy);
-                        return BadRequest("Invalid status filter.");
+                    _logger.LogInformation("No notifications found for user with ID: {UserId}", userId);
+                    ModelState.AddModelError(string.Empty, "No notifications found.");
+                    return View(new List<DriverDetailsNotificationViewModel>());
                 }
-            }
 
-            if (notifications == null)
+                if (!string.IsNullOrEmpty(sortBy))
+                {
+                    switch (sortBy.ToLower())
+                    {
+                        case "all":
+                            notifications = notifications.OrderBy(n => n.IsRead).ToList();
+                            ViewData["CurrentSort"] = "All";
+                            break;
+                        case "unread":
+                            notifications = notifications.Where(n => !n.IsRead).ToList();
+                            ViewData["CurrentSort"] = "Unread";
+                            break;
+                        case "read":
+                            notifications = notifications.Where(n => n.IsRead).ToList();
+                            ViewData["CurrentSort"] = "Read";
+                            break;
+                        default:
+                            _logger.LogWarning("Invalid status filter provided: {Status}", sortBy);
+                            ModelState.AddModelError(string.Empty, "Invalid status filter.");
+                            return BadRequest("Invalid status filter.");
+                    }
+                }
+
+                return View(notifications);
+            }
+            catch (Exception ex)
             {
-                _logger.LogWarning("No notifications found for user with ID: {UserId}", userId);
-                return NotFound("No notifications found.");
+                _logger.LogError(ex, "An error occurred while retrieving notifications for user {UserId}.", userId);
+                ModelState.AddModelError(string.Empty, "An error occurred while retrieving notifications. Please try again later.");
+                return BadRequest();
             }
-
-            return View(notifications);
         }
 
         [HttpGet]
         public async Task<IActionResult> Detail(string? id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid notificationId) || !Guid.TryParse(this.GetUserId(), out Guid userId))
             {
-                return NotFound();
-            }
-            if (!Guid.TryParse(id, out Guid notificationID))
-            {
+                _logger.LogWarning("Invalid ID or User ID format. Notification ID: {NotificationId}, User ID: {UserId}", id, this.GetUserId());
+                ModelState.AddModelError(string.Empty, "Invalid request parameters.");
                 return BadRequest();
             }
 
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+            try
             {
-                return BadRequest("Invalid User ID format.");
+                var notificationViewModel = await _notificationService.GetAll()
+                    .AsNoTracking()
+                    .Include(n => n.Sender)
+                    .Where(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId))
+                    .Select(n => new DriverDetailsNotificationViewModel
+                    {
+                        Title = n.Title,
+                        Message = n.Message,
+                        CreatedAt = n.CreatedAt,
+                        IsRead = n.IsRead,
+                        OrderId = n.OrderId,
+                        TruckId = n.TruckId,
+                        SenderName = n.Sender!.UserName,
+                    })
+                    .SingleOrDefaultAsync();
+
+                if (notificationViewModel == null)
+                {
+                    _logger.LogWarning("Notification with ID {NotificationId} not found for user {UserId}.", notificationId, userId);
+                    ModelState.AddModelError(string.Empty, "Notification not found or does not belong to the user.");
+                    return NotFound();
+                }
+
+                
+                if (!notificationViewModel.IsRead)
+                {
+                    await _notificationService.ReadAsync(notificationId);
+                    notificationViewModel.IsRead = true;
+                }
+
+                return View(notificationViewModel);
             }
-
-            DriverDetailsNotificationViewModel? notificationViewModel = await _notificationService.GetAll()
-                                                                                                  .AsNoTracking()
-                                                                                                  .Include(n => n.Sender)
-                                                                                                  .Where(n => n.Id.Equals(notificationID) && n.ReceiverId.Equals(userId))
-                                                                                                  .Select(n => new DriverDetailsNotificationViewModel
-                                                                                                  {
-                                                                                                      Title = n.Title,
-                                                                                                      Message = n.Message,
-                                                                                                      CreatedAt = n.CreatedAt,
-                                                                                                      IsRead = n.IsRead,
-                                                                                                      OrderId = n.OrderId,
-                                                                                                      TruckId = n.TruckId,
-                                                                                                      SenderName = n.Sender!.UserName,
-                                                                                                  }).SingleOrDefaultAsync();
-
-
-            if (notificationViewModel == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                _logger.LogError(ex, "An error occurred while retrieving or reading notification {NotificationId} for user {UserId}.", notificationId, userId);
+                ModelState.AddModelError(string.Empty, "An error occurred while retrieving the notification. Please try again later.");
+                return BadRequest();
             }
-
-            await _notificationService.ReadAsync(notificationID);
-
-            if (!notificationViewModel.IsRead)
-            {
-                notificationViewModel.IsRead = true;
-            }
-
-            return View(notificationViewModel);
         }
-
+      
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAsUnread(string? id)
         {
-            if (id == null)
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid notificationId) || !Guid.TryParse(this.GetUserId(), out Guid userId))
             {
-                return NotFound();
+                _logger.LogWarning("Invalid ID or User ID format. Notification ID: {NotificationId}, User ID: {UserId}", id, this.GetUserId());
+                ModelState.AddModelError(string.Empty, "Invalid request parameters.");
+                return BadRequest();
             }
 
-            if (!Guid.TryParse(id, out Guid notificationId))
+            try
             {
-                return BadRequest("Invalid Notification ID format.");
-            }
+                bool notificationExists = await _notificationService.GetAll()
+                    .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId));
 
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+                if (!notificationExists)
+                {
+                    _logger.LogWarning("Notification with ID {NotificationId} not found for user {UserId}.", notificationId, userId);
+                    ModelState.AddModelError(string.Empty, "Notification not found or does not belong to the user.");
+                    return NotFound();
+                }
+
+                await _notificationService.UnreadAsync(notificationId);
+
+                return RedirectToAction(nameof(Index), "Notification");
+            }
+            catch (Exception ex)
             {
-                return BadRequest("Invalid User ID format.");
+                _logger.LogError(ex, "An error occurred while marking notification {NotificationId} as unread for user {UserId}.", notificationId, userId);
+                ModelState.AddModelError(string.Empty, "An error occurred while marking the notification as unread. Please try again later.");
+                return BadRequest();
             }
-
-            if (!await _notificationService.GetAll()
-                                           .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
-            {
-                return NotFound("Notification not found or does not belong to the user.");
-            }
-
-            await _notificationService.UnreadAsync(notificationId);
-
-            return RedirectToAction(nameof(Index), "Notification"); ;
         }
-
+        
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAsRead(string? id)
         {
-            if (id == null)
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid notificationId) || !Guid.TryParse(this.GetUserId(), out Guid userId))
             {
-                return NotFound();
+                _logger.LogWarning("Invalid ID or User ID format. Notification ID: {NotificationId}, User ID: {UserId}", id, this.GetUserId());
+                ModelState.AddModelError(string.Empty, "Invalid request parameters.");
+                return BadRequest();
             }
 
-            if (!Guid.TryParse(id, out Guid notificationId))
+            try
             {
-                return BadRequest("Invalid Notification ID format.");
-            }
+                bool notificationExists = await _notificationService.GetAll()
+                    .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId));
 
-            if (!Guid.TryParse(this.GetUserId(), out Guid userId))
+                if (!notificationExists)
+                {
+                    _logger.LogWarning("Notification with ID {NotificationId} not found for user {UserId}.", notificationId, userId);
+                    ModelState.AddModelError(string.Empty, "Notification not found or does not belong to the user.");
+                    return NotFound();
+                }
+
+                await _notificationService.ReadAsync(notificationId);
+
+                return RedirectToAction(nameof(Index), "Notification");
+            }
+            catch (Exception ex)
             {
-                return BadRequest("Invalid User ID format.");
+                _logger.LogError(ex, "An error occurred while marking notification {NotificationId} as read for user {UserId}.", notificationId, userId);
+                ModelState.AddModelError(string.Empty, "An error occurred while marking the notification as read. Please try again later.");
+                return BadRequest();
             }
-
-            if (!await _notificationService.GetAll()
-                                           .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
-            {
-                return NotFound("Notification not found or does not belong to the user.");
-            }
-
-            await _notificationService.ReadAsync(notificationId);
-
-            return RedirectToAction(nameof(Index), "Notification");
         }
-
     }
 }

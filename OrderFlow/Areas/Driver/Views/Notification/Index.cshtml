@@ -70,8 +70,7 @@
                         <div class="card-footer text-end bg-light border-top-0">
                             @if (notification.IsRead)
                             {
-                                <form asp-area="Driver" asp-controller="Notification" asp-action="MarkAsUnread" asp-route-id="@notification.NotificationID" method="post" class="d-inline ms-2">
-                                    @Html.AntiForgeryToken()
+                                <form asp-antiforgery="true" asp-area="Driver" asp-controller="Notification" asp-action="MarkAsUnread" asp-route-id="@notification.NotificationID" method="post" class="d-inline ms-2">
                                     <button type="submit" class="btn btn-warning">
                                         <i class="fas fa-eye-slash me-2"></i> Mark as Unread
                                     </button>
@@ -79,8 +78,7 @@
                             }
                             else
                             {
-                                <form asp-area="Driver" asp-controller="Notification" asp-action="MarkAsRead" asp-route-id="@notification.NotificationID" method="post" class="d-inline ms-2">
-                                    @Html.AntiForgeryToken()
+                                <form asp-antiforgery="true" asp-area="Driver" asp-controller="Notification" asp-action="MarkAsRead" asp-route-id="@notification.NotificationID" method="post" class="d-inline ms-2">
                                     <button type="submit" class="btn btn-info">
                                         <i class="fas fa-check-circle me-2"></i> Mark as Read
                                     </button>
