@@ -58,7 +58,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                             break;
                         default:
                             _logger.LogWarning("Invalid status filter provided: {0}", sortBy);
-                            ModelState.AddModelError(nameof(sortBy),string.Join("Invalid status filter provided: {0}", sortBy));
+                            ModelState.AddModelError(nameof(sortBy), string.Join("Invalid status filter provided: {0}", sortBy));
                             return BadRequest();
                     }
                 }
@@ -95,7 +95,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     if (!Guid.TryParse(orderId, out Guid orderGuid))
                     {
                         _logger.LogWarning("Invalid Order ID format: {0}", orderId);
-                        ModelState.AddModelError(nameof(orderId),string.Join("Invalid Order ID format: {0}", orderId));
+                        ModelState.AddModelError(nameof(orderId), string.Join("Invalid Order ID format: {0}", orderId));
                         return BadRequest();
                     }
 
@@ -407,7 +407,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while marking notification as read for ID: {NotificationId}", id);
-                ModelState.AddModelError(string.Empty,string.Join("An error occurred while marking notification as read for ID: {0}", id));
+                ModelState.AddModelError(string.Empty, string.Join("An error occurred while marking notification as read for ID: {0}", id));
                 return BadRequest();
             }
         }
