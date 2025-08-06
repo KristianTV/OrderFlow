@@ -8,16 +8,18 @@ namespace OrderFlow.Controllers
 {
     public class UserController : BaseController
     {
-        private readonly UserManager<ApplicationUser> userManager;
-
-        private readonly SignInManager<ApplicationUser> signInManager;
+        private readonly ILogger<UserController> _logger;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
         public UserController(
-            UserManager<ApplicationUser> _userManager,
-            SignInManager<ApplicationUser> _signInManager)
+            ILogger<UserController> logger,
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager)
         {
-            userManager = _userManager;
-            signInManager = _signInManager;
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -50,9 +52,9 @@ namespace OrderFlow.Controllers
                 EmailConfirmed = true
             };
 
-            var result = await userManager.CreateAsync(user, model.Password);
+            var result = await _userManager.CreateAsync(user, model.Password);
 
-            await userManager.AddToRoleAsync(user, "User");
+            await _userManager.AddToRoleAsync(user, "User");
 
             if (result.Succeeded)
             {
@@ -78,7 +80,7 @@ namespace OrderFlow.Controllers
 
             var model = new LoginViewModel();
 
-            model.ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            model.ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             return View(model);
         }
@@ -92,24 +94,24 @@ namespace OrderFlow.Controllers
                 return View(model);
             }
 
-            var user = await userManager.FindByNameAsync(model.UserName);
+            var user = await _userManager.FindByNameAsync(model.UserName);
 
             if (user != null)
             {
-                var result = await signInManager.PasswordSignInAsync(user, model.Password, false, false);
+                var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
 
                 if (result.Succeeded)
                 {
 
-                    if (await userManager.IsInRoleAsync(user, "Admin"))
+                    if (await _userManager.IsInRoleAsync(user, "Admin"))
                     {
                         return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
                     }
-                    else if (await userManager.IsInRoleAsync(user, "Speditor"))
+                    else if (await _userManager.IsInRoleAsync(user, "Speditor"))
                     {
                         return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
                     }
-                    else if (await userManager.IsInRoleAsync(user, "Driver"))
+                    else if (await _userManager.IsInRoleAsync(user, "Driver"))
                     {
                         return RedirectToAction("Index", "Dashboard", new { area = "Driver" });
                     }
@@ -125,7 +127,160 @@ namespace OrderFlow.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            await signInManager.SignOutAsync();
+            await _signInManager.SignOutAsync();
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            if (!IsUserAuthenticated())
+            {
+                return RedirectToAction("Login", "User");
+            }
+            var userId = GetUserId();
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "User");
+            }
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            ProfileViewModel model = new ProfileViewModel
+            {
+                UserName = user.UserName,
+                UserEmail = user.Email,
+                UserPhone = user.PhoneNumber,
+            };
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditProfile()
+        {
+
+            if (!IsUserAuthenticated())
+            {
+                return RedirectToAction("Login", "User");
+            }
+            var userId = GetUserId();
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "User");
+            }
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            EditProfileViewModel model = new EditProfileViewModel
+            {
+                UserName = user.UserName,
+                UserEmail = user.Email,
+                UserPhone = user.PhoneNumber,
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfile(EditProfileViewModel model)
+        {
+            if (!IsUserAuthenticated())
+            {
+                return RedirectToAction("Login", "User");
+            }
+            var userId = GetUserId();
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "User");
+            }
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            if (!ModelState.IsValid)
+            {
+                return View("Profile", model);
+            }
+            user.UserName = model.UserName;
+            user.Email = model.UserEmail;
+            user.PhoneNumber = model.UserPhone;
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Profile", "User");
+            }
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+            return View("Profile", model);
+        }
+
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel changePasswordViewModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(changePasswordViewModel);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                _logger.LogWarning($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound();
+            }
+
+            var changePasswordResult = await _userManager.ChangePasswordAsync(user, changePasswordViewModel.OldPassword, changePasswordViewModel.NewPassword);
+
+            if (!changePasswordResult.Succeeded)
+            {
+                foreach (var error in changePasswordResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View(changePasswordViewModel);
+            }
+
+            await _signInManager.RefreshSignInAsync(user);
+
+            return RedirectToAction(nameof(Profile), "User");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAccount()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                _logger.LogWarning($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound();
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+            var userId = await _userManager.GetUserIdAsync(user);
+
+            if (!result.Succeeded)
+            {
+                _logger.LogWarning($"Unexpected error occurred deleting user with ID '{userId}'.");
+                return BadRequest();
+            }
+
+            await _signInManager.SignOutAsync();
 
             return RedirectToAction("Index", "Home");
         }

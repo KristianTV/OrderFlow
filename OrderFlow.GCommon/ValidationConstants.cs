@@ -46,5 +46,20 @@
             public const int PaymentDescriptionMaxLength = 100;
             public const int PaymentDescriptionMinLength = 1;
         }
+
+        public static class ChangePassword
+        {
+            public const int NewPasswordMaxLength = 100;
+            public const int NewPasswordMinLength = 8;
+        }
+
+        public static class EditProfile
+        {
+            public const int UserNameMaxLength = 50;
+            public const int UserNameMinLength = 3;
+
+            public const int UserPhoneMaxLength = 20;
+            public const int UserPhoneMinLength = 10;
+        }
     }
 }

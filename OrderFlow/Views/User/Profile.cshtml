@@ -1,0 +1,154 @@
+﻿@using OrderFlow.ViewModels.User
+@model ProfileViewModel;
+@{
+    ViewData["Title"] = "User Profile";
+}
+
+<div class="profile-container">
+    <div class="profile-header">
+        <h1><i class="fas fa-user-circle"></i> @ViewData["Title"]</h1>
+    </div>
+
+    <div class="profile-card">
+        <div class="profile-info">
+            <div class="profile-field">
+                <label asp-for="UserName">
+                    <i class="fas fa-user"></i> User Name
+                </label>
+                <p>@Model.UserName</p>
+            </div>
+            <div class="profile-field">
+                <label asp-for="UserEmail">
+                    <i class="fas fa-envelope"></i> Email
+                </label>
+                <p>@Model.UserEmail</p>
+            </div>
+            <div class="profile-field">
+                <label asp-for="UserPhone">
+                    <i class="fas fa-phone"></i> Phone
+                </label>
+                <p>@Model.UserPhone</p>
+            </div>
+        </div>
+
+        <div class="profile-actions">
+            <a asp-area="" asp-controller="User" asp-action="ChangePassword" method="post" class="btn btn-primary">
+                <i class="fas fa-key"></i> Change Password
+            </a>
+
+            <a asp-area="" asp-controller="User" asp-action="EditProfile" method="post" class="btn btn-secondary">
+                <i class="fas fa-pen"></i> Edit
+            </a>
+
+            <form asp-antiforgery="true" asp-area="" asp-controller="User" asp-action="DeleteAccount" method="post">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash-alt"></i> Delete Account
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f0f2f5;
+        font-family: Arial, sans-serif;
+    }
+
+    .profile-container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+        .profile-header h1 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+    .profile-card {
+        background-color: #fff;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-info {
+        margin-bottom: 30px;
+    }
+
+    .profile-field {
+        margin-bottom: 20px;
+    }
+
+        .profile-field label {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+            .profile-field label i {
+                margin-right: 8px;
+            }
+
+        .profile-field p {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            color: #333;
+            margin: 0;
+        }
+
+    .profile-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        text-decoration: none;
+        text-align: center;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+</style>
