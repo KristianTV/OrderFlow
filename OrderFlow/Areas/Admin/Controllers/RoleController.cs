@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
@@ -6,6 +7,7 @@ using OrderFlow.ViewModels.Role;
 
 namespace OrderFlow.Areas.Admin.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class RoleController : BaseAdminController
     {
         private readonly ILogger<RoleController> _logger;

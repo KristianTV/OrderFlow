@@ -63,11 +63,6 @@ app.MapControllerRoute(
 );
 
 app.MapControllerRoute(
-        name: "Speditor",
-        pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}"
-);
-
-app.MapControllerRoute(
         name: "Driver",
         pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}"
 );

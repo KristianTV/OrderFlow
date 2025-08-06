@@ -42,7 +42,7 @@ namespace OrderFlow.Controllers
             }
             else if (await userManager.IsInRoleAsync(user, "Speditor"))
             {
-                return RedirectToAction("Index", "Dashboard", new { area = "Speditor" });
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             }
             else if (await userManager.IsInRoleAsync(user, "Driver"))
             {

@@ -4,7 +4,7 @@ using OrderFlow.Controllers;
 
 namespace OrderFlow.Areas.Admin.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Speditor")]
     [Area("Admin")]
     public class BaseAdminController : BaseController
     {
