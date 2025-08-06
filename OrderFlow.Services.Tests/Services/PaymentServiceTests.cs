@@ -39,7 +39,7 @@ namespace OrderFlow.Services.Tests.Services
             var result = _paymentService.GetAll();
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(2, result.Count());
+            Assert.That(result.Count(), Is.EqualTo(2));
         }
 
         [Test]
@@ -61,14 +61,15 @@ namespace OrderFlow.Services.Tests.Services
             };
             var orderId = Guid.NewGuid();
 
-            await _paymentService.CreatePaymentAsync(createPaymentViewModel, orderId);
+            bool success = await _paymentService.CreatePaymentAsync(createPaymentViewModel, orderId);
 
             var payment = await _context.Payments.SingleOrDefaultAsync(p => p.OrderID == orderId);
+            Assert.IsTrue(success);
             Assert.IsNotNull(payment);
-            Assert.AreEqual(50.00m, payment.Amount);
-            Assert.AreEqual("Test Payment", payment.PaymentDescription);
-            Assert.AreEqual(orderId, payment.OrderID);
-            Assert.That(payment.PaymentDate, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5))); // Account for slight time differences
+            Assert.That(payment.Amount, Is.EqualTo(50.00m));
+            Assert.That(payment.PaymentDescription, Is.EqualTo("Test Payment"));
+            Assert.That(payment.OrderID, Is.EqualTo(orderId));
+            Assert.That(payment.PaymentDate, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
         }
 
         [Test]
@@ -78,9 +79,10 @@ namespace OrderFlow.Services.Tests.Services
             _context.Payments.Add(new Payment { Id = paymentId, Amount = 100.00m, OrderID = Guid.NewGuid(), PaymentDate = DateTime.UtcNow });
             await _context.SaveChangesAsync();
 
-            await _paymentService.DeletePaymentAsync(paymentId);
+            bool success = await _paymentService.DeletePaymentAsync(paymentId);
 
             var payment = await _context.Payments.FindAsync(paymentId);
+            Assert.IsTrue(success);
             Assert.IsNull(payment);
         }
 
@@ -113,9 +115,10 @@ namespace OrderFlow.Services.Tests.Services
                 PaymentDescription = "New Description"
             };
 
-            await _paymentService.UpdatePaymentAsync(paymentId, updatedPaymentViewModel);
+            bool success =  await _paymentService.UpdatePaymentAsync(paymentId, updatedPaymentViewModel);
 
             var updatedPayment = await _context.Payments.FindAsync(paymentId);
+            Assert.IsTrue(success);
             Assert.IsNotNull(updatedPayment);
             Assert.AreEqual(200.00m, updatedPayment.Amount);
             Assert.AreEqual("New Description", updatedPayment.PaymentDescription);

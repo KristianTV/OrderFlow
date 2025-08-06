@@ -18,7 +18,7 @@ namespace OrderFlow.Services.Core
             return All<Payment>().AsQueryable();
         }
 
-        public async Task CreatePaymentAsync(CreatePaymentViewModel createPayment, Guid orderId)
+        public async Task<bool> CreatePaymentAsync(CreatePaymentViewModel createPayment, Guid orderId)
         {
             await AddAsync(new Payment
             {
@@ -29,10 +29,10 @@ namespace OrderFlow.Services.Core
                 PaymentDate = DateTime.UtcNow
             });
 
-            await SaveChangesAsync();
+            return await SaveChangesAsync() > 0;
         }
 
-        public async Task DeletePaymentAsync(Guid paymentId)
+        public async Task<bool> DeletePaymentAsync(Guid paymentId)
         {
             if (paymentId == Guid.Empty)
             {
@@ -45,12 +45,13 @@ namespace OrderFlow.Services.Core
             {
                 throw new KeyNotFoundException($"Payment with ID {paymentId} not found.");
             }
+
             Delete(payment);
 
-            await SaveChangesAsync();
+            return await SaveChangesAsync() > 0;
         }
 
-        public async Task UpdatePaymentAsync(Guid paymentId, CreatePaymentViewModel createPayment)
+        public async Task<bool> UpdatePaymentAsync(Guid paymentId, CreatePaymentViewModel createPayment)
         {
             if (paymentId == Guid.Empty)
             {
@@ -71,7 +72,7 @@ namespace OrderFlow.Services.Core
             payment.Amount = createPayment.Amount;
             payment.PaymentDescription = createPayment.PaymentDescription;
 
-            await SaveChangesAsync();
+            return await SaveChangesAsync() > 0;
 
         }
     }

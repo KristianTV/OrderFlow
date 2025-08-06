@@ -14,7 +14,7 @@
                 <h3 class="mb-0">@ViewData["Title"] for Order @id</h3> 
             </div>
             <div class="card-body">
-                <form asp-area="Admin" asp-action="Create" asp-controller="Payment" asp-route-orderId="@id" method="post">
+                <form asp-antiforgery="true" asp-area="Admin" asp-action="Create" asp-controller="Payment" asp-route-orderId="@id" method="post">
                   
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 

@@ -180,11 +180,10 @@
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Payment</button>
-                                                            <form asp-area="Admin" asp-action="Delete" asp-controller="Payment" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID" method="post">
+                                                            <form asp-antiforgery="true" asp-area="Admin" asp-action="Delete" asp-controller="Payment" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID" method="post">
                                                                 <button type="submit" class="btn btn-danger">
                                                                     <i class="fas fa-trash-alt me-2"></i> Yes, Delete Payment
                                                                 </button>
-                                                                @Html.AntiForgeryToken()
                                                             </form>
                                                         </div>
                                                     </div>
@@ -231,7 +230,7 @@
                 }
                 else
                 {
-                    <form method="post" asp-area="Admin" asp-controller="Order" asp-action="Reactivate" asp-route-id="@Model.OrderID" class="d-inline">
+                    <form asp-antiforgery ="true" method="post" asp-area="Admin" asp-controller="Order" asp-action="Reactivate" asp-route-id="@Model.OrderID" class="d-inline">
                         <button type="submit" class="btn btn-success btn-lg"> <i class="fas fa-check me-2"></i> Reactivate Order</button>
                     </form>
                 }

@@ -79,17 +79,15 @@
                             {
                                 @if (notification.IsRead)
                                 {
-                                    <form asp-area="Admin" asp-controller="Notification" asp-action="MarkAsUnread" asp-route-id="@notification.NotificationID" method="post" class="d-inline ms-2">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-warning">
+                                    <form asp-antiforgery="true" asp-area="Admin" asp-controller="Notification" asp-action="MarkAsUnread" asp-route-id="@notification.NotificationID" method="post" class="d-inline ms-2">
+                                       <button type="submit" class="btn btn-warning">
                                             <i class="fas fa-eye-slash me-2"></i> Mark as Unread
                                         </button>
                                     </form>
                                 }
                                 else
                                 {
-                                    <form asp-area="Admin" asp-controller="Notification" asp-action="MarkAsRead" asp-route-id="@notification.NotificationID" method="post" class="d-inline ms-2">
-                                        @Html.AntiForgeryToken()
+                                    <form asp-antiforgery ="true" asp-area="Admin" asp-controller="Notification" asp-action="MarkAsRead" asp-route-id="@notification.NotificationID" method="post" class="d-inline ms-2">
                                         <button type="submit" class="btn btn-info">
                                             <i class="fas fa-check-circle me-2"></i> Mark as Read
                                         </button>

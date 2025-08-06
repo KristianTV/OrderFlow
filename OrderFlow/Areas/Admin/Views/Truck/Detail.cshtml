@@ -107,10 +107,9 @@
                                                                     <button type="button" class="btn btn-secondary px-4 py-2 rounded-md" data-bs-dismiss="modal">
                                                                         Cancel
                                                                     </button>
-                                                                    <form method="post" asp-area="Admin" asp-controller="Truck" asp-action="RemoveOrder" class="d-inline">
+                                                                    <form method="post" asp-area="Admin" asp-controller="Truck" asp-action="RemoveOrder" asp-antiforgery="true" class="d-inline">
                                                                         <input type="hidden" name="truckId" value="@Model.TruckID" />
                                                                         <input type="hidden" name="orderId" value="@truckOrder.OrderId" />
-                                                                        @Html.AntiForgeryToken()
                                                                         <button type="submit" class="btn btn-danger px-4 py-2 rounded-md">
                                                                             <i class="fas fa-trash-alt me-2"></i> Yes, Remove Order
                                                                         </button>
@@ -161,7 +160,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Truck</button>
-                    <form method="post" asp-area="Admin" asp-controller="Truck" asp-action="Delete" asp-route-id="@Model.TruckID">
+                    <form method="post" asp-area="Admin" asp-controller="Truck" asp-action="Delete" asp-antiforgery="true" asp-route-id="@Model.TruckID">
                         <button type="submit" class="btn btn-danger">Yes, Delete Truck</button>
                     </form>
                 </div>

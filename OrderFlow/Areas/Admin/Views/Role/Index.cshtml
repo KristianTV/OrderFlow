@@ -53,7 +53,7 @@
                                         @foreach (var roleName in new string[] { "Admin", "Driver", "Speditor", "User" })
                                         {
                                             <li>
-                                                <form asp-area="Admin" asp-action="ChangeRow" asp-controller="Role" asp-route-id="@userRow.UserId" asp-route-role="@roleName" method="post">
+                                                <form asp-area="Admin" asp-antiforgery="true" asp-action="ChangeRow" asp-controller="Role" asp-route-id="@userRow.UserId" asp-route-role="@roleName" method="post">
                                                     <button type="submit" class="dropdown-item @(userRow.Roles.Contains(roleName) ? "active" : "")">
                                                         <i class="@GetRoleIconClass(roleName) me-2"></i>
                                                         @(userRow.Roles.Contains(roleName) ? "" : "Assign ") @roleName

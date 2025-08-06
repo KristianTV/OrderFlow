@@ -94,6 +94,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AdminCreateOrderViewModel createOrderViewModel)
         {
             if (!ModelState.IsValid)
@@ -296,6 +297,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(string? id)
         {
             if (string.IsNullOrEmpty(id))
@@ -349,6 +351,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reactivate(string? id)
         {
             if (string.IsNullOrEmpty(id))
@@ -385,6 +388,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeStatus(string? id, string? status)
         {
             if (string.IsNullOrEmpty(id))

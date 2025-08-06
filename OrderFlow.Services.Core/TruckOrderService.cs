@@ -112,7 +112,7 @@ namespace OrderFlow.Services.Core
             return await SaveChangesAsync();
         }
 
-        public async Task RemoveOrderFromTruckAsync(Guid truckID, Guid orderID)
+        public async Task<bool> RemoveOrderFromTruckAsync(Guid truckID, Guid orderID)
         {
             if (truckID == Guid.Empty || orderID == Guid.Empty)
             {
@@ -158,7 +158,10 @@ namespace OrderFlow.Services.Core
                         await SaveChangesAsync();
                     }
                 }
+
+                return true;
             }
+            return false;
         }
 
         public async Task CompleteTruckOrderAsync(Guid orderID)

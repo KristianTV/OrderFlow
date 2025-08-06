@@ -16,7 +16,11 @@ namespace OrderFlow.Areas.Admin.Controllers
         private readonly ITruckOrderService _truckOrderService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public TruckController(ILogger<TruckController> logger, ITruckService truckService, UserManager<ApplicationUser> userManager, IOrderService orderService, ITruckOrderService truckOrderService)
+        public TruckController(ILogger<TruckController> logger, 
+                                ITruckService truckService, 
+                                UserManager<ApplicationUser> userManager, 
+                                IOrderService orderService, 
+                                ITruckOrderService truckOrderService)
         {
             _logger = logger;
             _truckService = truckService;
@@ -28,344 +32,467 @@ namespace OrderFlow.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var orders = await _truckService.GetAll()
-                                            .AsNoTracking()
-                                            .Include(t => t.Driver)
-                                            .Select(truck => new IndexTruckViewModel
-                                            {
-                                                TruckID = truck.TruckID,
-                                                DriverName = truck.Driver!.UserName!,
-                                                LicensePlate = truck.LicensePlate,
-                                                Capacity = truck.Capacity,
-                                                Status = truck.Status.ToString(),
-                                            })
-                                            .ToListAsync();
+            try
+            {
+                var orders = await _truckService.GetAll()
+                                                 .AsNoTracking()
+                                                 .Include(t => t.Driver)
+                                                 .Select(truck => new IndexTruckViewModel
+                                                 {
+                                                     TruckID = truck.TruckID,
+                                                     DriverName = truck.Driver!.UserName!,
+                                                     LicensePlate = truck.LicensePlate,
+                                                     Capacity = truck.Capacity,
+                                                     Status = truck.Status.ToString(),
+                                                 })
+                                                 .ToListAsync();
 
-            return View(orders);
+                return View(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving the list of trucks.");
+                TempData["Error"] = "An unexpected error occurred. Please try again later.";
+                return View(new List<IndexTruckViewModel>());
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var users = await _userManager.GetUsersInRoleAsync("Driver");
-
-            if (users == null || !users.Any())
+            try
             {
-                ModelState.AddModelError(string.Empty, "No drivers available. Please add a driver first.");
-                return View(new CreateTruckViewModel());
+                var users = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
+
+                if (users == null || !users.Any())
+                {
+                    _logger.LogWarning("No drivers found to create a new truck.");
+                    TempData["Error"] = "No drivers available. Please add a driver first.";
+                    return View(new CreateTruckViewModel());
+                }
+
+                CreateTruckViewModel createTruckViewModel = new CreateTruckViewModel
+                {
+                    Drivers = users
+                };
+
+                return View(createTruckViewModel);
             }
-
-            CreateTruckViewModel createTruckViewModel = new CreateTruckViewModel
+            catch (Exception ex)
             {
-                Drivers = GetUsersInRole(UserRoles.Driver.ToString())
-            };
-
-            return View(createTruckViewModel);
+                _logger.LogError(ex, "An error occurred while preparing the truck creation form.");
+                TempData["Error"] = "An unexpected error occurred. Please try again later.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateTruckViewModel createTruckViewModel)
         {
             if (!ModelState.IsValid)
             {
-                createTruckViewModel.Drivers = GetUsersInRole(UserRoles.Driver.ToString());
+                createTruckViewModel.Drivers = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
                 return View(createTruckViewModel);
             }
 
-            if (!await _truckService.CreateTruckAsync(createTruckViewModel))
+            try
             {
-                createTruckViewModel.Drivers = GetUsersInRole(UserRoles.Driver.ToString());
+                if (await _truckService.CreateTruckAsync(createTruckViewModel))
+                {
+                    TempData["Success"] = "Truck created successfully.";
+                    return RedirectToAction(nameof(Index), "Truck");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Failed to create truck. Please check the provided details.");
+                    createTruckViewModel.Drivers = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
+                    return View(createTruckViewModel);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while creating a new truck.");
+                ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again later.");
+                createTruckViewModel.Drivers = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
                 return View(createTruckViewModel);
             }
-
-            return RedirectToAction(nameof(Index), "Truck");
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(string? id)
         {
-            if (id == null)
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid truckId))
             {
-                return NotFound();
+                _logger.LogWarning("Edit GET: Invalid or missing Truck ID '{TruckId}'", id);
+                TempData["Error"] = "Invalid or missing truck ID.";
+                return RedirectToAction(nameof(Index));
             }
 
-            if (!Guid.TryParse(id, out Guid truckId))
+            try
             {
-                return BadRequest("Invalid Truck ID format.");
+                CreateTruckViewModel? createTruckViewModel = await _truckService.GetAll()
+                                                                                .AsNoTracking()
+                                                                                .Where(o => o.TruckID.Equals(truckId))
+                                                                                .Select(o => new CreateTruckViewModel
+                                                                                {
+                                                                                    DriverID = o.DriverID,
+                                                                                    LicensePlate = o.LicensePlate,
+                                                                                    Capacity = o.Capacity,
+                                                                                })
+                                                                                .SingleOrDefaultAsync();
+
+                if (createTruckViewModel == null)
+                {
+                    _logger.LogWarning("Edit GET: Truck with ID '{TruckId}' not found.", truckId);
+                    TempData["Error"] = "Truck not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                createTruckViewModel.Drivers = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
+                return View(createTruckViewModel);
             }
-
-            CreateTruckViewModel? createTruckViewModel = await _truckService.GetAll()
-                                                                            .AsNoTracking()
-                                                                            .Where(o => o.TruckID.Equals(truckId))
-                                                                            .Select(o => new CreateTruckViewModel
-                                                                            {
-                                                                                DriverID = o.DriverID,
-                                                                                LicensePlate = o.LicensePlate,
-                                                                                Capacity = o.Capacity,
-                                                                            }).SingleOrDefaultAsync();
-
-            if (createTruckViewModel == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                _logger.LogError(ex, "An error occurred while retrieving truck details for ID '{TruckId}'.", truckId);
+                TempData["Error"] = "An unexpected error occurred. Please try again.";
+                return RedirectToAction(nameof(Index));
             }
-
-            createTruckViewModel.Drivers = GetUsersInRole(UserRoles.Driver.ToString());
-
-            return View(createTruckViewModel);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CreateTruckViewModel createTruckViewModel, string? id)
         {
-            if (!ModelState.IsValid)
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid truckId))
             {
-                createTruckViewModel.Drivers = GetUsersInRole(UserRoles.Driver.ToString());
+                _logger.LogWarning("Edit POST: Invalid or missing Truck ID '{TruckId}'", id);
+                ModelState.AddModelError(string.Empty, "Invalid or missing truck ID.");
+                createTruckViewModel.Drivers = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
                 return View(createTruckViewModel);
             }
 
-            if (id == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                createTruckViewModel.Drivers = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
+                return View(createTruckViewModel);
             }
 
-            if (!Guid.TryParse(id, out Guid truckId))
+            try
             {
-                return BadRequest("Invalid Truck ID format.");
+                if (await _truckService.UpdateTruckAsync(createTruckViewModel, truckId))
+                {
+                    TempData["Success"] = "Truck updated successfully.";
+                    return RedirectToAction(nameof(Detail), "Truck", new { id = id });
+                }
+                else
+                {
+                    _logger.LogWarning("Edit POST: UpdateTruckAsync failed for Truck ID '{TruckId}'.", truckId);
+                    ModelState.AddModelError(string.Empty, "Failed to update truck. It may no longer exist.");
+                    createTruckViewModel.Drivers = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
+                    return View(createTruckViewModel);
+                }
             }
-
-            if (!await _truckService.UpdateTruckAsync(createTruckViewModel, truckId))
+            catch (Exception ex)
             {
-                return NotFound();
+                _logger.LogError(ex, "An error occurred while updating truck with ID '{TruckId}'.", truckId);
+                ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+                createTruckViewModel.Drivers = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
+                return View(createTruckViewModel);
             }
-
-            return RedirectToAction(nameof(Detail), "Truck", new { id = id });
         }
 
         [HttpGet]
         public async Task<IActionResult> Detail(string? id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid truckID))
             {
-                return NotFound();
-            }
-            if (!Guid.TryParse(id, out Guid truckID))
-            {
-                return BadRequest("Invalid Order ID format.");
+                _logger.LogWarning("Detail GET: Invalid or missing Truck ID '{TruckId}'", id);
+                TempData["Error"] = "Invalid or missing truck ID.";
+                return RedirectToAction(nameof(Index));
             }
 
-            DetailsTruckViewModel? truckDetail = await _truckService.GetAll()
+            try
+            {
+                DetailsTruckViewModel? truckDetail = await _truckService.GetAll()
+                                                                        .AsNoTracking()
+                                                                        .Include(o => o.Driver)
+                                                                        .Where(o => o.TruckID.Equals(truckID))
+                                                                        .Select(o => new DetailsTruckViewModel
+                                                                        {
+                                                                            TruckID = o.TruckID,
+                                                                            DriverName = o.Driver!.UserName!,
+                                                                            LicensePlate = o.LicensePlate,
+                                                                            Capacity = o.Capacity,
+                                                                            Status = o.Status.ToString(),
+                                                                        })
+                                                                        .SingleOrDefaultAsync();
+
+                if (truckDetail == null)
+                {
+                    _logger.LogWarning("Detail GET: Truck with ID '{TruckId}' not found.", truckID);
+                    TempData["Error"] = "Truck not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                truckDetail.TruckOrders = await _truckOrderService.GetAll()
                                                                     .AsNoTracking()
-                                                                    .Include(o => o.Driver)
-                                                                    .Include(to => to.TruckOrders)
-                                                                    .ThenInclude(to => to.Order)
-                                                                    .Where(o => o.TruckID.Equals(truckID))
-                                                                    .Select(o => new DetailsTruckViewModel
+                                                                    .Where(to => to.TruckID.Equals(truckID))
+                                                                    .Select(to => new TruckOrderVewModel
                                                                     {
-                                                                        TruckID = o.TruckID,
-                                                                        DriverName = o.Driver!.UserName!,
-                                                                        LicensePlate = o.LicensePlate,
-                                                                        Capacity = o.Capacity,
-                                                                        Status = o.Status.ToString(),
-                                                                    }).SingleOrDefaultAsync();
+                                                                        OrderId = to.OrderID,
+                                                                        DeliverAddress = to.DeliverAddress,
+                                                                        AssignedDate = to.AssignedDate,
+                                                                        DeliveryDate = to.DeliveryDate,
+                                                                        Status = to.Status.ToString()
+                                                                    })
+                                                                    .OrderByDescending(to => to.AssignedDate)
+                                                                    .ToListAsync();
 
-            if (truckDetail == null)
-            {
-                return NotFound();
+                return View(truckDetail);
             }
-
-            truckDetail.TruckOrders = await _truckOrderService.GetAll()
-                                                              .AsNoTracking()
-                                                              .Where(to => to.TruckID.Equals(truckID))
-                                                              .Select(to => new TruckOrderVewModel
-                                                              {
-                                                                  OrderId = to.OrderID,
-                                                                  DeliverAddress = to.DeliverAddress,
-                                                                  AssignedDate = to.AssignedDate,
-                                                                  DeliveryDate = to.DeliveryDate,
-                                                                  Status = to.Status.ToString()
-                                                              })
-                                                              .OrderByDescending(to => to.AssignedDate)
-                                                              .ToListAsync();
-
-
-            return View(truckDetail);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving truck details for ID '{TruckId}'.", truckID);
+                TempData["Error"] = "An unexpected error occurred. Please try again.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> AssignOrders(string? id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid truckID))
             {
-                return NotFound();
+                _logger.LogWarning("AssignOrders GET: Invalid or missing Truck ID '{TruckId}'", id);
+                TempData["Error"] = "Invalid or missing truck ID.";
+                return RedirectToAction(nameof(Index));
             }
 
-            if (!Guid.TryParse(id, out Guid truckID))
+            try
             {
-                return BadRequest("Invalid Order ID format.");
+                AssignOrdersToTruckViewModel? truck = await _truckService.GetAll()
+                                                                        .AsNoTracking()
+                                                                        .Include(t => t.Driver)
+                                                                        .Where(t => t.TruckID.Equals(truckID))
+                                                                        .Select(t => new AssignOrdersToTruckViewModel
+                                                                        {
+                                                                            LicensePlate = t.LicensePlate,
+                                                                            Capacity = t.Capacity,
+                                                                            DriverName = t.Driver!.UserName!
+                                                                        })
+                                                                        .SingleOrDefaultAsync();
+
+                if (truck == null)
+                {
+                    _logger.LogWarning("AssignOrders GET: Truck with ID '{TruckId}' not found.", truckID);
+                    TempData["Error"] = "Truck not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                truck.Orders = await _orderService.GetAll()
+                                                  .AsNoTracking()
+                                                  .Where(o => new[] { OrderStatus.Pending, OrderStatus.Delayed, OrderStatus.OnHold }.Contains(o.Status) && o.LoadCapacity <= truck.Capacity)
+                                                  .Select(o => new OrderViewModel
+                                                  {
+                                                      OrderID = o.OrderID,
+                                                      DeliveryAddress = o.DeliveryAddress,
+                                                      PickupAddress = o.PickupAddress,
+                                                      OrderStatus = o.Status.ToString(),
+                                                      LoadCapacity = o.LoadCapacity,
+                                                  }).ToListAsync();
+
+                int loadedCapacity = await _truckOrderService.GetAll()
+                                                            .AsNoTracking()
+                                                            .Where(to => to.TruckID.Equals(truckID) && to.Status.Equals(TruckOrderStatus.Assigned))
+                                                            .Select(to => to.Order.LoadCapacity)
+                                                            .SumAsync();
+
+                truck.LoadedCapacity = loadedCapacity;
+
+                if (truck.Orders == null || !truck.Orders.Any())
+                {
+                    _logger.LogInformation("No available orders found for truck with ID '{TruckId}'.", truckID);
+                }
+
+                return View(truck);
             }
-
-            AssignOrdersToTruckViewModel? truck = await _truckService.GetAll()
-                                                                    .AsNoTracking()
-                                                                    .Include(t => t.Driver)
-                                                                    .Where(t => t.TruckID.Equals(truckID))
-                                                                    .Select(t => new AssignOrdersToTruckViewModel
-                                                                    {
-                                                                        LicensePlate = t.LicensePlate,
-                                                                        Capacity = t.Capacity,
-                                                                        DriverName = t.Driver!.UserName!
-                                                                    }).SingleOrDefaultAsync();
-
-            List<OrderViewModel> orders = await _orderService.GetAll()
-                                                       .AsNoTracking()
-                                                       .Where(o => new[] { OrderStatus.Pending,
-                                                                            OrderStatus.Delayed,
-                                                                            OrderStatus.OnHold
-                                                                            }.Contains(o.Status) &&
-                                                                    o.LoadCapacity <= truck.Capacity
-                                                                     )
-                                                       .Select(o => new OrderViewModel
-                                                       {
-                                                           OrderID = o.OrderID,
-                                                           DeliveryAddress = o.DeliveryAddress,
-                                                           PickupAddress = o.PickupAddress,
-                                                           OrderStatus = o.Status.ToString(),
-                                                           LoadCapacity = o.LoadCapacity,
-                                                       }).ToListAsync();
-
-            int loadedCapacity = await _truckOrderService.GetAll()
-                                                         .AsNoTracking()
-                                                         .Where(to => to.TruckID.Equals(truckID) &&
-                                                                      to.Status.Equals(TruckOrderStatus.Assigned))
-                                                         .Select(to => to.Order.LoadCapacity)
-                                                         .SumAsync();
-
-            if (orders == null)
+            catch (Exception ex)
             {
-                return BadRequest("No Order were found.");
+                _logger.LogError(ex, "An error occurred while preparing to assign orders for Truck ID '{TruckId}'.", truckID);
+                TempData["Error"] = "An unexpected error occurred. Please try again.";
+                return RedirectToAction(nameof(Index));
             }
-
-            truck.Orders = orders;
-            truck.LoadedCapacity = loadedCapacity;
-
-            return View(truck);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignOrders(AssignOrdersToTruckViewModel assignOrders, string? id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid truckID))
             {
-                return NotFound();
+                _logger.LogWarning("AssignOrders POST: Invalid or missing Truck ID '{TruckId}'.", id);
+                TempData["Error"] = "Invalid or missing truck ID.";
+                return RedirectToAction(nameof(Index));
             }
 
-            if (!Guid.TryParse(id, out Guid truckID))
+            if (assignOrders.Orders == null || !assignOrders.Orders.Any(o => o.IsSelected))
             {
-                return BadRequest("Invalid Order ID format.");
+                TempData["Error"] = "No orders were selected for assignment.";
+                return RedirectToAction(nameof(AssignOrders), new { id = id });
             }
 
-            if (assignOrders == null || assignOrders.Orders == null || !assignOrders.Orders.Any())
+            try
             {
-                ModelState.AddModelError(string.Empty, "No orders selected for assignment.");
-                return RedirectToAction(nameof(AssignOrders), "Truck", new { id = id });
+                bool success = await _truckOrderService.AssignOrdersToTruckAsync(assignOrders.Orders.Where(o => o.IsSelected), truckID) > 0;
+
+                if (success)
+                {
+                    TempData["Success"] = "Orders successfully assigned to the truck.";
+                    _logger.LogInformation("Orders assigned to Truck ID: {TruckId}", truckID);
+                }
+                else
+                {
+                    TempData["Error"] = "Failed to assign orders to the truck. Please try again.";
+                    _logger.LogError("Failed to assign orders to Truck ID: {TruckId}", truckID);
+                }
+
+                return RedirectToAction(nameof(Detail), "Truck", new { id = truckID });
             }
-
-            await _truckOrderService.AssignOrdersToTruckAsync(assignOrders.Orders.Where(o => o.IsSelected == true), truckID);
-
-            return RedirectToAction(nameof(Detail), "Truck", new { id = id });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while assigning orders to Truck ID: {TruckId}.", truckID);
+                TempData["Error"] = "An unexpected error occurred while assigning orders. Please try again.";
+                return RedirectToAction(nameof(Detail), "Truck", new { id = id });
+            }
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string? id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid truckID))
             {
-                return NotFound();
-            }
-            if (!Guid.TryParse(id, out Guid truckID))
-            {
-                return BadRequest("Invalid Truck ID format.");
+                _logger.LogWarning("Delete POST: Invalid or missing Truck ID '{TruckId}'.", id);
+                TempData["Error"] = "Invalid or missing truck ID.";
+                return RedirectToAction(nameof(Index));
             }
 
-            await _truckService.SoftDeleteTruckAsync(truckID);
+            try
+            {
+                bool success = await _truckService.SoftDeleteTruckAsync(truckID);
+                if (success)
+                {
+                    TempData["Success"] = "Truck successfully deleted.";
+                    _logger.LogInformation("Truck ID: {TruckId} soft deleted.", truckID);
+                }
+                else
+                {
+                    TempData["Error"] = "Failed to delete the truck. It may no longer exist.";
+                    _logger.LogWarning("SoftDeleteTruckAsync failed for Truck ID: {TruckId}", truckID);
+                }
 
-            return RedirectToAction(nameof(Index), "Truck");
+                return RedirectToAction(nameof(Index), "Truck");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while deleting truck with ID '{TruckId}'.", truckID);
+                TempData["Error"] = "An unexpected error occurred while deleting the truck. Please try again.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveOrder(string? truckId, string? orderId)
         {
-            if (string.IsNullOrEmpty(truckId) || string.IsNullOrEmpty(orderId))
+            if (string.IsNullOrEmpty(truckId) || !Guid.TryParse(truckId, out Guid truckID))
             {
-                return NotFound();
+                _logger.LogWarning("RemoveOrder POST: Invalid or missing Truck ID '{TruckId}'", truckId);
+                TempData["Error"] = "Invalid or missing truck ID.";
+                return RedirectToAction(nameof(Index));
             }
 
-            if (!Guid.TryParse(truckId, out Guid truckID))
+            if (string.IsNullOrEmpty(orderId) || !Guid.TryParse(orderId, out Guid orderID))
             {
-                return BadRequest("Invalid Truck ID format.");
+                _logger.LogWarning("RemoveOrder POST: Invalid or missing Order ID '{OrderId}'", orderId);
+                TempData["Error"] = "Invalid or missing order ID.";
+                return RedirectToAction(nameof(Detail), new { id = truckID });
             }
 
-            if (!Guid.TryParse(orderId, out Guid orderID))
+            try
             {
-                return BadRequest("Invalid Order ID format.");
+                bool success = await _truckOrderService.RemoveOrderFromTruckAsync(truckID, orderID);
+
+                if (success)
+                {
+                    TempData["Success"] = "Order successfully removed from the truck.";
+                    _logger.LogInformation("Order ID '{OrderId}' removed from Truck ID '{TruckId}'", orderID, truckID);
+                }
+                else
+                {
+                    TempData["Error"] = "Failed to remove the order. It may not be assigned to this truck.";
+                    _logger.LogWarning("RemoveOrderFromTruckAsync failed for Truck ID '{TruckId}' and Order ID '{OrderId}'", truckID, orderID);
+                }
+
+                return RedirectToAction(nameof(Detail), "Truck", new { id = truckID });
             }
-
-            await _truckOrderService.RemoveOrderFromTruckAsync(truckID, orderID);
-
-            return RedirectToAction(nameof(Detail), "Truck", new { id = truckID });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> AssignedOrders(string? id)
-        {
-            if (string.IsNullOrEmpty(id))
+            catch (Exception ex)
             {
-                return NotFound();
+                _logger.LogError(ex, "An error occurred while removing order ID '{OrderId}' from Truck ID '{TruckId}'.", orderID, truckID);
+                TempData["Error"] = "An unexpected error occurred. Please try again.";
+                return RedirectToAction(nameof(Detail), "Truck", new { id = truckID });
             }
-
-            if (!Guid.TryParse(id, out Guid truckID))
-            {
-                return BadRequest("Invalid Order ID format.");
-            }
-
-            var orders = await _truckOrderService.GetAll()
-                                                 .AsNoTracking()
-                                                 .Where(to => to.Status.Equals(TruckOrderStatus.Assigned))
-                                                 .Select(to => new TruckOrderVewModel
-                                                 {
-                                                     OrderId = to.OrderID,
-                                                     DeliverAddress = to.DeliverAddress,
-                                                     AssignedDate = to.AssignedDate,
-                                                     Status = to.Status.ToString(),
-                                                 })
-                                                 .ToListAsync();
-
-            return View(orders);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeStatusToCompleted(string? id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid orderID))
             {
-                return NotFound();
-            }
-            if (!Guid.TryParse(id, out Guid orderID))
-            {
-                return BadRequest("Invalid Truck ID format.");
+                _logger.LogWarning("ChangeStatusToCompleted POST: Invalid or missing Order ID '{OrderId}'", id);
+                TempData["Error"] = "Invalid or missing order ID.";
+                return RedirectToAction(nameof(Index), "Order");
             }
 
-            await _orderService.ChangeStatusToCompletedAsync(orderID);
-            return RedirectToAction(nameof(Index), "Truck");
+            try
+            {
+                bool success = await _orderService.ChangeStatusToCompletedAsync(orderID);
+
+                if (success)
+                {
+                    TempData["Success"] = "Order status successfully changed to Completed.";
+                    _logger.LogInformation("Order ID '{OrderId}' status changed to completed.", orderID);
+                }
+                else
+                {
+                    TempData["Error"] = "Failed to change order status. The order may not exist or its status is not valid for this action.";
+                    _logger.LogWarning("ChangeStatusToCompletedAsync failed for Order ID '{OrderId}'", orderID);
+                }
+
+                return RedirectToAction(nameof(Index), "Truck");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while changing the status of order ID '{OrderId}' to completed.", orderID);
+                TempData["Error"] = "An unexpected error occurred while updating order status. Please try again.";
+                return RedirectToAction(nameof(Index), "Truck");
+            }
         }
 
-        private Dictionary<Guid, string?>? GetUsersInRole(string roleName)
+        private async Task<Dictionary<Guid, string?>> GetUsersInRoleAsync(string roleName)
         {
-            return _userManager.GetUsersInRoleAsync(roleName)
-                               .Result
-                               .ToDictionary(
-                                       user => user.Id,
-                                       user => user.UserName
-                                       );
+            try
+            {
+                var users = await _userManager.GetUsersInRoleAsync(roleName);
+                return users.ToDictionary(user => user.Id, user => user.UserName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve users in role '{RoleName}'.", roleName);
+                return new Dictionary<Guid, string?>();
+            }
         }
     }
 }

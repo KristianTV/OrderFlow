@@ -7,8 +7,8 @@ namespace OrderFlow.Services.Core.Contracts
     public interface IPaymentService : IRepository
     {
         IQueryable<Payment> GetAll();
-        Task CreatePaymentAsync(CreatePaymentViewModel createPayment, Guid orderId);
-        Task DeletePaymentAsync(Guid paymentId);
-        Task UpdatePaymentAsync(Guid paymentId, CreatePaymentViewModel createPayment);
+        Task<bool> CreatePaymentAsync(CreatePaymentViewModel createPayment, Guid orderId);
+        Task<bool> DeletePaymentAsync(Guid paymentId);
+        Task<bool> UpdatePaymentAsync(Guid paymentId, CreatePaymentViewModel createPayment);
     }
 }

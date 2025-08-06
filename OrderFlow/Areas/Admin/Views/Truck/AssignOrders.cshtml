@@ -30,7 +30,7 @@
                 </div>
             </div>
 
-            <form asp-area="Admin" asp-controller="Truck" asp-action="AssignOrders" method="post">
+            <form asp-area="Admin" asp-controller="Truck" asp-action="AssignOrders" asp-antiforgery="true" method="post">
                 <input type="hidden" name="id" value="@id" />
 
                 @if (!Model.Orders.Any())
