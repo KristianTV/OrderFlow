@@ -32,7 +32,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 if (notifications == null || !notifications.Any())
                 {
                     _logger.LogInformation("No notifications found for user with ID: {UserId}", userId);
-                    return View(new List<DriverDetailsNotificationViewModel>());
+                    return View(new List<DriverIndexNotificationViewModel>());
                 }
 
                 ViewData["hideSystemNotifications"] = hideSystemNotifications;
@@ -106,7 +106,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                     return NotFound();
                 }
 
-                
+
                 if (!notificationViewModel.IsRead)
                 {
                     await _notificationService.ReadAsync(notificationId);
@@ -121,7 +121,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest();
             }
         }
-      
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAsUnread(string? id)
@@ -156,7 +156,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                 return BadRequest();
             }
         }
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAsRead(string? id)

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Protocol.Plugins;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
@@ -27,7 +26,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? sortBy = null,bool hideSystemNotifications = false)
+        public async Task<IActionResult> Index(string? sortBy = null, bool hideSystemNotifications = false)
         {
             try
             {
@@ -42,7 +41,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 if (notifications == null || !notifications.Any())
                 {
                     _logger.LogInformation("No notifications found for user with ID: {UserId}", userId);
-                    return View(new List<DriverDetailsNotificationViewModel>());
+                    return View(new List<DriverIndexNotificationViewModel>());
                 }
 
                 ViewData["hideSystemNotifications"] = hideSystemNotifications;
