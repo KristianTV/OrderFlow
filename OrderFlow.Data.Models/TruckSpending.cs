@@ -2,12 +2,15 @@
 
 namespace OrderFlow.Data.Models
 {
-    public class Payment
+    public class TruckSpending
     {
-        public Guid PaymentID { get; set; } = Guid.NewGuid();
+        public Guid TruckSpendingID { get; set; } = Guid.NewGuid();
 
-        public Guid OrderID { get; set; }
-        public Order Order { get; set; } = null!;
+        public Guid? TruckID { get; set; }
+        public Truck? Truck { get; set; }
+
+        public Guid? TruckCourseID { get; set; }
+        public TruckCourse? TruckCourse { get; set; }
 
         public decimal Amount { get; set; }
 

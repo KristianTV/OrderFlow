@@ -8,7 +8,7 @@ namespace OrderFlow.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<Payment> builder)
         {
-            builder.HasKey(p => p.Id);
+            builder.HasKey(p => p.PaymentID);
 
             builder.Property(p => p.PaymentDate)
                    .IsRequired();
@@ -20,6 +20,9 @@ namespace OrderFlow.Data.Configuration
             builder.Property(p => p.Amount)
                    .IsRequired()
                    .HasPrecision(18, 2);
+
+            builder.Property(p => p.PaymentMethod)
+                   .IsRequired();
 
             builder.HasOne(p => p.Order)
                    .WithMany(o => o.Payments)
