@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Configuration;
 using OrderFlow.Data.Models;
+using OrderFlow.Data.Models.Enums;
 
 namespace OrderFlow.Data
 {
@@ -25,9 +26,14 @@ namespace OrderFlow.Data
 
         public virtual DbSet<Notification> Notifications { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
-        public virtual DbSet<TruckOrder> TrucksOrders { get; set; } = null!;
         public virtual DbSet<Truck> Trucks { get; set; } = null!;
+        public virtual DbSet<CourseOrder> CoursesOrders { get; set; } = null!;
+        public virtual DbSet<TruckCourse> TrucksCourses { get; set; } = null!;
+        public virtual DbSet<TruckSpending> TrucksSpendings { get; set; } = null!;
         public virtual DbSet<Payment> Payments { get; set; } = null!;
+        public virtual DbSet<PersonalProfile> PersonalProfiles { get; set; } = null!;
+        public virtual DbSet<CompanyProfile> CompanyProfiles { get; set; } = null!;
+        public virtual DbSet<Message> Messages { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -87,7 +93,8 @@ namespace OrderFlow.Data
                 PhoneNumberConfirmed = true,
                 TwoFactorEnabled = false,
                 LockoutEnabled = true,
-                AccessFailedCount = 0
+                AccessFailedCount = 0,
+                AccountType = AccountType.Personal
             };
             builder.Entity<ApplicationUser>().HasData(adminUser);
 
@@ -105,7 +112,8 @@ namespace OrderFlow.Data
                 PhoneNumberConfirmed = true,
                 TwoFactorEnabled = false,
                 LockoutEnabled = true,
-                AccessFailedCount = 0
+                AccessFailedCount = 0,
+                AccountType = AccountType.Personal
             };
             builder.Entity<ApplicationUser>().HasData(speditorUser);
 
@@ -123,7 +131,8 @@ namespace OrderFlow.Data
                 PhoneNumberConfirmed = true,
                 TwoFactorEnabled = false,
                 LockoutEnabled = true,
-                AccessFailedCount = 0
+                AccessFailedCount = 0,
+                AccountType = AccountType.Personal
             };
             builder.Entity<ApplicationUser>().HasData(driverUser);
 
@@ -141,7 +150,8 @@ namespace OrderFlow.Data
                 PhoneNumberConfirmed = true,
                 TwoFactorEnabled = false,
                 LockoutEnabled = true,
-                AccessFailedCount = 0
+                AccessFailedCount = 0,
+                AccountType = AccountType.Personal
             };
             builder.Entity<ApplicationUser>().HasData(regularUser);
         }
