@@ -26,14 +26,25 @@ namespace OrderFlow.Data.Configuration
                    .WithMany()
                    .HasForeignKey(t => t.DriverID);
 
-            builder.HasMany(t => t.TruckOrders)
-                   .WithOne(to => to.Truck)
-                   .HasForeignKey(to => to.TruckID);
-
-            builder.Property(t => t.isDeleted)
+            builder.Property(t => t.IsDeleted)
                    .HasDefaultValue(false);
 
-            builder.HasQueryFilter(t => !t.isDeleted);
+            builder.HasMany(t => t.Notifications)
+                   .WithOne(n => n.Truck)
+                   .HasForeignKey(n => n.TruckID)
+                   .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasMany(t => t.TruckCourses)
+                   .WithOne(c => c.Truck)
+                   .HasForeignKey(c => c.TruckID)
+                   .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasMany(t => t.TruckSpendings)
+                   .WithOne(ts => ts.Truck)
+                   .HasForeignKey(ts => ts.TruckID)
+                   .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasQueryFilter(t => !t.IsDeleted);
         }
     }
 }

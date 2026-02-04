@@ -12,18 +12,19 @@ namespace OrderFlow.Data.Models
         public DateTime OrderDate { get; set; }
         public DateTime? DeliveryDate { get; set; }
 
-        public string DeliveryAddress { get; set; } = string.Empty;
         public string PickupAddress { get; set; } = string.Empty;
 
-        public int LoadCapacity { get; set; } = 0;
+        public string DeliveryAddress { get; set; } = string.Empty;
+
+        public double LoadCapacity { get; set; } = 0;
 
         public string? DeliveryInstructions { get; set; }
 
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
-        public bool isCanceled { get; set; } = false;
+        public bool IsCanceled { get; set; } = false;
 
-        public ICollection<TruckOrder>? OrderTrucks { get; set; } = new List<TruckOrder>();
+        public ICollection<CourseOrder> CourseOrders { get; set; } = new List<CourseOrder>();
 
         public ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();
 

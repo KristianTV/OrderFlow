@@ -34,7 +34,7 @@ namespace OrderFlow.Data.Configuration
                    .IsRequired()
                    .HasDefaultValue(0);
 
-            builder.Property(o => o.isCanceled)
+            builder.Property(o => o.IsCanceled)
                    .HasDefaultValue(false);
 
             builder.HasMany(o => o.Payments)
@@ -45,9 +45,14 @@ namespace OrderFlow.Data.Configuration
                    .WithMany()
                    .HasForeignKey(o => o.UserID);
 
-            builder.HasMany(o => o.OrderTrucks)
-                   .WithOne(to => to.Order)
-                   .HasForeignKey(to => to.OrderID);
+            builder.HasMany(o => o.Notifications)
+                   .WithOne(p => p.Order)
+                   .HasForeignKey(p => p.OrderID);
+
+            builder.HasMany(o => o.CourseOrders)
+                 .WithOne(p => p.Order)
+                 .HasForeignKey(p => p.OrderID);
+
         }
     }
 }
