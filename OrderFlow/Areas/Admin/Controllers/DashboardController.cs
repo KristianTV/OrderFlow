@@ -11,14 +11,14 @@ namespace OrderFlow.Areas.Admin.Controllers
 
         private readonly ILogger<DashboardController> _logger;
         private readonly IOrderService _orderService;
-        private readonly ITruckOrderService _truckOrderService;
+        private readonly ICourseOrderService _truckOrderService;
         private readonly ITruckService _truckService;
         private readonly INotificationService _notificationService;
 
 
         public DashboardController(ILogger<DashboardController> logger,
                                     IOrderService orderService,
-                                    ITruckOrderService truckOrderService,
+                                    ICourseOrderService truckOrderService,
                                     ITruckService truckService,
                                     INotificationService notificationService)
         {
@@ -64,11 +64,12 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                             .CountAsync();
             int totalActiveTruckOrders = await _truckOrderService.GetAll()
                                                                   .AsNoTracking()
-                                                                  .Where(t => t.Status.Equals(TruckOrderStatus.Assigned))
+                                                                  .Include(t => t.TruckCourse)
+                                                                  .Where(t => t.TruckCourse.Status.Equals(CourseStatus.Assigned))
                                                                   .CountAsync();
             int totalCompletedTruckOrders = await _truckOrderService.GetAll()
                                                                   .AsNoTracking()
-                                                                  .Where(t => t.Status.Equals(TruckOrderStatus.Delivered))
+                                                                  .Where(t => t.TruckCourse.Status.Equals(CourseStatus.Delivered))
                                                                   .CountAsync();
 
             AdminIndexDashboardViewModel? dashboardViewModel = new AdminIndexDashboardViewModel

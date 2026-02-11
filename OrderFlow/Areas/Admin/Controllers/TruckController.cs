@@ -5,7 +5,6 @@ using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Truck;
-using static OrderFlow.GCommon.ValidationConstants;
 
 namespace OrderFlow.Areas.Admin.Controllers
 {
@@ -14,14 +13,14 @@ namespace OrderFlow.Areas.Admin.Controllers
         private readonly ILogger<TruckController> _logger;
         private readonly ITruckService _truckService;
         private readonly IOrderService _orderService;
-        private readonly ITruckOrderService _truckOrderService;
+        private readonly ICourseOrderService _truckOrderService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public TruckController(ILogger<TruckController> logger, 
-                                ITruckService truckService, 
-                                UserManager<ApplicationUser> userManager, 
-                                IOrderService orderService, 
-                                ITruckOrderService truckOrderService)
+        public TruckController(ILogger<TruckController> logger,
+                                ITruckService truckService,
+                                UserManager<ApplicationUser> userManager,
+                                IOrderService orderService,
+                                ICourseOrderService truckOrderService)
         {
             _logger = logger;
             _truckService = truckService;
@@ -66,7 +65,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
                 if (status != null)
                 {
-                    if(!Enum.TryParse<TruckStatus>(status, true, out TruckStatus truckStatus))
+                    if (!Enum.TryParse<TruckStatus>(status, true, out TruckStatus truckStatus))
                     {
                         _logger.LogWarning("Invalid truck status filter provided: {0}", status);
                         ModelState.AddModelError(nameof(status), string.Join("Invalid truck status filter provided: {0}", status));
@@ -291,14 +290,15 @@ namespace OrderFlow.Areas.Admin.Controllers
 
                 truckDetail.TruckOrders = await _truckOrderService.GetAll()
                                                                     .AsNoTracking()
-                                                                    .Where(to => to.TruckID.Equals(truckID))
+                                                                    .Include(co => co.TruckCourse)
+                                                                    .Where(to => to.TruckCourse.TruckID.Equals(truckID))
                                                                     .Select(to => new TruckOrderVewModel
                                                                     {
                                                                         OrderId = to.OrderID,
-                                                                        DeliverAddress = to.DeliverAddress,
-                                                                        AssignedDate = to.AssignedDate,
-                                                                        DeliveryDate = to.DeliveryDate,
-                                                                        Status = to.Status.ToString()
+                                                                        DeliverAddress = to.TruckCourse.DeliverAddress,
+                                                                        AssignedDate = to.TruckCourse.AssignedDate,
+                                                                        DeliveryDate = to.TruckCourse.DeliveryDate,
+                                                                        Status = to.TruckCourse.Status.ToString()
                                                                     })
                                                                     .OrderByDescending(to => to.AssignedDate)
                                                                     .ToListAsync();
@@ -356,11 +356,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                       LoadCapacity = o.LoadCapacity,
                                                   }).ToListAsync();
 
-                int loadedCapacity = await _truckOrderService.GetAll()
-                                                            .AsNoTracking()
-                                                            .Where(to => to.TruckID.Equals(truckID) && to.Status.Equals(TruckOrderStatus.Assigned))
-                                                            .Select(to => to.Order.LoadCapacity)
-                                                            .SumAsync();
+                double loadedCapacity = truck.Orders.Sum(o => o.LoadCapacity);
 
                 truck.LoadedCapacity = loadedCapacity;
 
@@ -398,8 +394,8 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             try
             {
-                bool success = await _truckOrderService.AssignOrdersToTruckAsync(assignOrders.Orders.Where(o => o.IsSelected), truckID) > 0;
-
+                //bool success = await _truckOrderService.AssignOrdersToTruckAsync(assignOrders.Orders.Where(o => o.IsSelected), truckID) > 0;
+                bool success = false; // Placeholder for actual implementation
                 if (success)
                 {
                     TempData["Success"] = "Orders successfully assigned to the truck.";
@@ -476,8 +472,8 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             try
             {
-                bool success = await _truckOrderService.RemoveOrderFromTruckAsync(truckID, orderID);
-
+                //bool success = await _truckOrderService.RemoveOrderFromTruckAsync(truckID, orderID);
+                bool success = false; // Placeholder for actual implementation
                 if (success)
                 {
                     TempData["Success"] = "Order successfully removed from the truck.";

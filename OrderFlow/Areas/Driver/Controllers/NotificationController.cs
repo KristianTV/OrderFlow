@@ -87,15 +87,15 @@ namespace OrderFlow.Areas.Driver.Controllers
                 var notificationViewModel = await _notificationService.GetAll()
                     .AsNoTracking()
                     .Include(n => n.Sender)
-                    .Where(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId))
+                    .Where(n => n.NotificationID.Equals(notificationId) && n.ReceiverID.Equals(userId))
                     .Select(n => new DriverDetailsNotificationViewModel
                     {
                         Title = n.Title,
                         Message = n.Message,
                         CreatedAt = n.CreatedAt,
                         IsRead = n.IsRead,
-                        OrderId = n.OrderId,
-                        TruckId = n.TruckId,
+                        OrderId = n.OrderID,
+                        TruckId = n.TruckID,
                         SenderName = n.Sender!.UserName,
                     })
                     .SingleOrDefaultAsync();
@@ -136,7 +136,7 @@ namespace OrderFlow.Areas.Driver.Controllers
             try
             {
                 bool notificationExists = await _notificationService.GetAll()
-                    .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId));
+                    .AnyAsync(n => n.NotificationID.Equals(notificationId) && n.ReceiverID.Equals(userId));
 
                 if (!notificationExists)
                 {
@@ -171,7 +171,7 @@ namespace OrderFlow.Areas.Driver.Controllers
             try
             {
                 bool notificationExists = await _notificationService.GetAll()
-                    .AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId));
+                    .AnyAsync(n => n.NotificationID.Equals(notificationId) && n.ReceiverID.Equals(userId));
 
                 if (!notificationExists)
                 {

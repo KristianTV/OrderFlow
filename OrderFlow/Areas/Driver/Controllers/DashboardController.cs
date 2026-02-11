@@ -9,12 +9,12 @@ namespace OrderFlow.Areas.Driver.Controllers
     public class DashboardController : BaseDriverController
     {
         private readonly ILogger<DashboardController> _logger;
-        private readonly ITruckOrderService _truckOrderService;
+        private readonly ICourseOrderService _truckOrderService;
         private readonly INotificationService _notificationService;
 
 
         public DashboardController(ILogger<DashboardController> logger,
-                                    ITruckOrderService truckOrderService,
+                                    ICourseOrderService truckOrderService,
                                     INotificationService notificationService)
         {
             _logger = logger;
@@ -32,26 +32,28 @@ namespace OrderFlow.Areas.Driver.Controllers
 
             int totalNotifications = await _notificationService.GetAll()
                                                             .AsNoTracking()
-                                                            .Where(n => n.ReceiverId.Equals(userId))
+                                                            .Where(n => n.ReceiverID.Equals(userId))
                                                             .CountAsync();
 
             int totalActiveNotifications = await _notificationService.GetAll()
                                                             .AsNoTracking()
-                                                            .Where(n => !n.IsRead && n.ReceiverId.Equals(userId))
+                                                            .Where(n => !n.IsRead && n.ReceiverID.Equals(userId))
                                                             .CountAsync();
 
             int totalActiveTruckOrders = await _truckOrderService.GetAll()
                                                                  .AsNoTracking()
-                                                                 .Include(to => to.Truck)
-                                                                 .Where(t => t.Status.Equals(TruckOrderStatus.Assigned) &&
-                                                                 t.Truck.DriverID.Equals(userId))
+                                                                 .Include(co => co.TruckCourse)
+                                                                 .ThenInclude(tc => tc.Truck)
+                                                                 .Where(t => t.TruckCourse.Status.Equals(CourseStatus.Assigned) &&
+                                                                             t.TruckCourse.Truck.DriverID.Equals(userId))
                                                                  .CountAsync();
 
             int totalCompletedTruckOrders = await _truckOrderService.GetAll()
                                                                     .AsNoTracking()
-                                                                    .Include(to => to.Truck)
-                                                                    .Where(t => t.Status.Equals(TruckOrderStatus.Delivered) &&
-                                                                     t.Truck.DriverID.Equals(userId))
+                                                                    .Include(co => co.TruckCourse)
+                                                                    .ThenInclude(tc => tc.Truck)
+                                                                    .Where(t => t.TruckCourse.Equals(CourseStatus.Delivered) &&
+                                                                                t.TruckCourse.Truck.DriverID.Equals(userId))
                                                                     .CountAsync();
 
             DriverIndexDashboardViewModel? dashboardViewModel = new DriverIndexDashboardViewModel

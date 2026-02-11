@@ -71,7 +71,7 @@ namespace OrderFlow.Controllers
                                                                                DeliveryAddress = order.DeliveryAddress,
                                                                                PickupAddress = order.PickupAddress,
                                                                                Status = order.Status.ToString(),
-                                                                               isCanceled = order.isCanceled
+                                                                               isCanceled = order.IsCanceled
                                                                            }).ToListAsync();
 
                 return View(indexOrders);
@@ -225,8 +225,9 @@ namespace OrderFlow.Controllers
                                                .AsNoTracking()
                                                .Include(o => o.User)
                                                .Include(o => o.Payments)
-                                               .Include(o => o.OrderTrucks)
-                                               .ThenInclude(to => to.Truck)
+                                               .Include(o => o.CourseOrders)
+                                               .ThenInclude(co => co.TruckCourse)
+                                               .ThenInclude(tc => tc.Truck)
                                                .Where(o => o.OrderID.Equals(orderId) && o.UserID.Equals(userId))
                                                .Select(o => new DetailsOrderViewModel
                                                {
@@ -239,11 +240,11 @@ namespace OrderFlow.Controllers
                                                    LoadCapacity = o.LoadCapacity,
                                                    DeliveryInstructions = o.DeliveryInstructions,
                                                    Status = o.Status.ToString(),
-                                                   isCanceled = o.isCanceled,
-                                                   TrucksLicensePlates = o.OrderTrucks.Select(to => to.Truck.LicensePlate).ToList(),
+                                                   isCanceled = o.IsCanceled,
+                                                   TrucksLicensePlates = o.CourseOrders.Select(to => to.TruckCourse.Truck.LicensePlate).ToList(),
                                                    Payments = o.Payments.Select(payment => new PaymentViewModel
                                                    {
-                                                       Id = payment.Id,
+                                                       Id = payment.PaymentID,
                                                        PaymentDate = payment.PaymentDate,
                                                        Amount = payment.Amount,
                                                        PaymentDescription = payment.PaymentDescription

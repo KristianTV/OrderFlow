@@ -185,13 +185,13 @@ namespace OrderFlow.Areas.Admin.Controllers
                 }
 
                 AdminCreateNotificationViewModel? createNotification = await _notificationService.GetAll()
-                                                                                                .Where(n => n.Id.Equals(notificationId) && n.SenderId.Equals(userId))
+                                                                                                .Where(n => n.NotificationID.Equals(notificationId) && n.SenderID.Equals(userId))
                                                                                                 .Select(o => new AdminCreateNotificationViewModel
                                                                                                 {
                                                                                                     Title = o.Title,
                                                                                                     Message = o.Message,
-                                                                                                    ReceiverId = o.ReceiverId,
-                                                                                                    OrderId = o.OrderId,
+                                                                                                    ReceiverId = o.ReceiverID,
+                                                                                                    OrderId = o.OrderID,
                                                                                                 }).SingleOrDefaultAsync();
 
                 if (createNotification == null)
@@ -290,17 +290,17 @@ namespace OrderFlow.Areas.Admin.Controllers
                 DriverDetailsNotificationViewModel? notificationViewModel = await _notificationService.GetAll()
                                                                                                     .AsNoTracking()
                                                                                                     .Include(n => n.Sender)
-                                                                                                    .Where(n => n.Id.Equals(notificationID))
+                                                                                                    .Where(n => n.NotificationID.Equals(notificationID))
                                                                                                     .Select(n => new DriverDetailsNotificationViewModel
                                                                                                     {
                                                                                                         Title = n.Title,
                                                                                                         Message = n.Message,
                                                                                                         CreatedAt = n.CreatedAt,
                                                                                                         IsRead = n.IsRead,
-                                                                                                        OrderId = n.OrderId,
-                                                                                                        TruckId = n.TruckId,
+                                                                                                        OrderId = n.OrderID,
+                                                                                                        TruckId = n.TruckID,
                                                                                                         SenderName = n.Sender!.UserName,
-                                                                                                        isMarkable = n.ReceiverId.Equals(userId)
+                                                                                                        isMarkable = n.ReceiverID.Equals(userId)
                                                                                                     }).SingleOrDefaultAsync();
 
                 if (notificationViewModel == null)
@@ -348,7 +348,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return BadRequest();
                 }
 
-                if (!await _notificationService.GetAll().AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
+                if (!await _notificationService.GetAll().AnyAsync(n => n.NotificationID.Equals(notificationId) && n.ReceiverID.Equals(userId)))
                 {
                     _logger.LogWarning("Notification not found or does not belong to the user.");
                     ModelState.AddModelError(nameof(userId), "Notification not found or does not belong to the user.");
@@ -393,7 +393,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return BadRequest();
                 }
 
-                if (!await _notificationService.GetAll().AnyAsync(n => n.Id.Equals(notificationId) && n.ReceiverId.Equals(userId)))
+                if (!await _notificationService.GetAll().AnyAsync(n => n.NotificationID.Equals(notificationId) && n.ReceiverID.Equals(userId)))
                 {
 
                     _logger.LogWarning("Notification not found or does not belong to the user.");
@@ -431,7 +431,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return BadRequest();
                 }
 
-                if (!await _notificationService.GetAll().AnyAsync(n => n.Id.Equals(notificationId)))
+                if (!await _notificationService.GetAll().AnyAsync(n => n.NotificationID.Equals(notificationId)))
                 {
                     _logger.LogError("Notification not found.");
                     ModelState.AddModelError(string.Empty, "Notification not found.");

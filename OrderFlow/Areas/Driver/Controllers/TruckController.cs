@@ -11,12 +11,12 @@ namespace OrderFlow.Areas.Driver.Controllers
         private readonly ILogger<TruckController> _logger;
         private readonly ITruckService _truckService;
         private readonly IOrderService _orderService;
-        private readonly ITruckOrderService _truckOrderService;
+        private readonly ICourseOrderService _truckOrderService;
 
         public TruckController(ILogger<TruckController> logger,
                                 ITruckService truckService,
                                 IOrderService orderService,
-                                ITruckOrderService truckOrderService)
+                                ICourseOrderService truckOrderService)
         {
             _logger = logger;
             _truckService = truckService;
@@ -146,14 +146,15 @@ namespace OrderFlow.Areas.Driver.Controllers
 
                 truckDetail.TruckOrders = await _truckOrderService.GetAll()
                                                                   .AsNoTracking()
-                                                                  .Where(to => to.TruckID.Equals(truckID))
+                                                                  .Include(co => co.TruckCourse)
+                                                                  .Where(to => to.TruckCourse.TruckID.Equals(truckID))
                                                                   .Select(to => new TruckOrderVewModel
                                                                   {
                                                                       OrderId = to.OrderID,
-                                                                      DeliverAddress = to.DeliverAddress,
-                                                                      AssignedDate = to.AssignedDate,
-                                                                      DeliveryDate = to.DeliveryDate,
-                                                                      Status = to.Status.ToString()
+                                                                      DeliverAddress = to.TruckCourse.DeliverAddress,
+                                                                      AssignedDate = to.TruckCourse.AssignedDate,
+                                                                      DeliveryDate = to.TruckCourse.DeliveryDate,
+                                                                      Status = to.TruckCourse.Status.ToString()
                                                                   })
                                                                   .OrderByDescending(to => to.AssignedDate)
                                                                   .ToListAsync();
@@ -189,14 +190,15 @@ namespace OrderFlow.Areas.Driver.Controllers
 
                 var orders = await _truckOrderService.GetAll()
                                                      .AsNoTracking()
-                                                     .Where(to => to.TruckID.Equals(truckID) && to.Status.Equals(TruckOrderStatus.Assigned))
+                                                     .Include(to => to.TruckCourse)
+                                                     .Where(to => to.TruckCourse.TruckID.Equals(truckID) && to.TruckCourse.Status.Equals(CourseStatus.Assigned))
                                                      .Select(to => new TruckOrderVewModel
                                                      {
                                                          OrderId = to.OrderID,
-                                                         DeliverAddress = to.DeliverAddress,
-                                                         AssignedDate = to.AssignedDate,
-                                                         Status = to.Status.ToString(),
-                                                         DeliveryDate = to.DeliveryDate,
+                                                         DeliverAddress = to.TruckCourse.DeliverAddress,
+                                                         AssignedDate = to.TruckCourse.AssignedDate,
+                                                         Status = to.TruckCourse.Status.ToString(),
+                                                         DeliveryDate = to.TruckCourse.DeliveryDate,
                                                      })
                                                      .ToListAsync();
 
@@ -227,7 +229,9 @@ namespace OrderFlow.Areas.Driver.Controllers
             try
             {
                 var orderAndTruckExist = await _truckOrderService.GetAll()
-                    .AnyAsync(to => to.OrderID.Equals(orderID) && to.Truck.DriverID.Equals(driverId));
+                    .Include(to => to.TruckCourse)
+                    .AnyAsync(to => to.OrderID.Equals(orderID) &&
+                                    to.TruckCourse.Truck.DriverID.Equals(driverId));
 
                 if (!orderAndTruckExist)
                 {

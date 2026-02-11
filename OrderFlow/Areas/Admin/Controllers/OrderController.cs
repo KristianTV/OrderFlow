@@ -68,7 +68,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     DeliveryAddress = order.DeliveryAddress,
                     PickupAddress = order.PickupAddress,
                     Status = order.Status.ToString(),
-                    isCanceled = order.isCanceled
+                    isCanceled = order.IsCanceled
                 }).ToListAsync();
 
                 return View(indexOrders);
@@ -103,7 +103,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             try
             {
-                if (!await _orderService.CreateOrderAsync(createOrderViewModel))
+                if (!await _orderService.CreateOrderAsync(createOrderViewModel, createOrderViewModel.UsersId))
                 {
                     ModelState.AddModelError(string.Empty, "Failed to create the order. Please check the provided details and try again.");
                     createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
@@ -204,7 +204,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return NotFound($"Order with ID {orderId} was not found.");
                 }
 
-                if (!await _orderService.UpdateOrderAsync(createOrderViewModel, orderId))
+                if (!await _orderService.UpdateOrderAsync(createOrderViewModel, orderId, createOrderViewModel.UsersId))
                 {
                     ModelState.AddModelError(string.Empty, "Failed to update the order. The order may have been modified by another user.");
                     createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
@@ -244,8 +244,9 @@ namespace OrderFlow.Areas.Admin.Controllers
                                              .AsNoTracking()
                                              .Include(o => o.User)
                                              .Include(o => o.Payments)
-                                             .Include(o => o.OrderTrucks)
-                                             .ThenInclude(TO => TO.Truck)
+                                             .Include(o => o.CourseOrders)
+                                             .ThenInclude(co => co.TruckCourse)
+                                             .ThenInclude(tc => tc.Truck)
                                              .Where(o => o.OrderID.Equals(orderId))
                                              .Select(o => new DetailsOrderViewModel
                                              {
@@ -258,11 +259,11 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                  DeliveryInstructions = o.DeliveryInstructions,
                                                  Status = o.Status.ToString(),
                                                  LoadCapacity = o.LoadCapacity,
-                                                 isCanceled = o.isCanceled,
-                                                 TrucksLicensePlates = o.OrderTrucks.Select(to => to.Truck!.LicensePlate).ToList(),
+                                                 isCanceled = o.IsCanceled,
+                                                 TrucksLicensePlates = o.CourseOrders.Select(co => co.TruckCourse.Truck!.LicensePlate).ToList(),
                                                  Payments = o.Payments.Select(payment => new PaymentViewModel
                                                  {
-                                                     Id = payment.Id,
+                                                     Id = payment.PaymentID,
                                                      PaymentDate = payment.PaymentDate,
                                                      Amount = payment.Amount,
                                                      PaymentDescription = payment.PaymentDescription
@@ -318,7 +319,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return NotFound();
                 }
 
-                if (order.isCanceled)
+                if (order.IsCanceled)
                 {
                     return RedirectToAction(nameof(Detail), "Order", new { id = id });
                 }

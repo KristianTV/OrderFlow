@@ -23,7 +23,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 TempData["Error"] = "Invalid or missing Order ID for payment creation.";
                 _logger.LogWarning("Create Payment GET: Invalid or missing Order ID '{OrderId}'", orderId);
-                return RedirectToAction("Index", "Order"); 
+                return RedirectToAction("Index", "Order");
             }
 
             ViewData["OrderId"] = orderId;
@@ -90,7 +90,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 TempData["Error"] = "Invalid or missing Payment ID for editing.";
                 _logger.LogWarning("Edit Payment GET: Invalid or missing Payment ID '{PaymentId}'", Id);
-                return RedirectToAction("Index", "Order"); 
+                return RedirectToAction("Index", "Order");
             }
 
             if (string.IsNullOrEmpty(orderId) || !Guid.TryParse(orderId, out _))
@@ -105,7 +105,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 editPayment = await _paymentService.GetAll()
                                                    .AsNoTracking()
-                                                   .Where(p => p.Id.Equals(paymentId))
+                                                   .Where(p => p.PaymentID.Equals(paymentId))
                                                    .Select(p => new CreatePaymentViewModel
                                                    {
                                                        Amount = p.Amount,
@@ -126,7 +126,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return RedirectToAction("Detail", "Order", new { id = orderId });
             }
 
-            ViewData["OrderId"] = orderId; 
+            ViewData["OrderId"] = orderId;
             return View(editPayment);
         }
 
@@ -199,7 +199,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 orderId = await _paymentService.GetAll()
                                                .AsNoTracking()
-                                               .Where(p => p.Id.Equals(paymentId))
+                                               .Where(p => p.PaymentID.Equals(paymentId))
                                                .Select(p => p.OrderID)
                                                .FirstOrDefaultAsync();
 
