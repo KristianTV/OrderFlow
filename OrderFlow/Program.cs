@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
+using OrderFlow.Hubs;
 using OrderFlow.Services.Core;
 using OrderFlow.Services.Core.Contracts;
 
@@ -18,12 +19,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options => opt
     .AddDefaultTokenProviders();
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITruckService, TruckService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
-builder.Services.AddScoped<ITruckOrderService, TruckOrderService>();
+builder.Services.AddScoped<ICourseOrderService, CourseOrderService>();
+builder.Services.AddScoped<ITruckCourseService, TruckCourseService>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -56,6 +59,10 @@ app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapHub<NotificationHub>("/notificationHub");
+});
 
 app.MapControllerRoute(
         name: "Admin",
