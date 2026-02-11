@@ -2,6 +2,7 @@
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Repository;
+using OrderFlow.Services.Core.Commands;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Notification;
 
@@ -38,9 +39,9 @@ namespace OrderFlow.Services.Core
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false,
                 IsDeleted = false,
-                ReceiverId = createNotification.ReceiverId,
-                SenderId = senderId,
-                OrderId = createNotification.OrderId
+                ReceiverID = createNotification.ReceiverId,
+                SenderID = senderId,
+                OrderID = createNotification.OrderId
             });
 
             await this.SaveChangesAsync();
@@ -53,14 +54,14 @@ namespace OrderFlow.Services.Core
                                           .ThenByDescending(n => n.CreatedAt)
                                           .Select(notification => new DriverIndexNotificationViewModel
                                           {
-                                              NotificationID = notification.Id,
+                                              NotificationID = notification.NotificationID,
                                               Title = notification.Title,
                                               CreatedAt = notification.CreatedAt,
                                               IsRead = notification.IsRead,
-                                              OrderId = notification.OrderId,
-                                              TruckId = notification.TruckId,
+                                              OrderId = notification.OrderID,
+                                              TruckId = notification.TruckID,
                                               SenderName = notification.Sender!.UserName,
-                                              isMarkable = notification.ReceiverId.Equals(userId)
+                                              isMarkable = notification.ReceiverID.Equals(userId)
 
                                           })
                                           .ToListAsync();
@@ -72,16 +73,16 @@ namespace OrderFlow.Services.Core
         {
             var notification = await this.GetAll()
                                          .Include(n => n.Sender)
-                                         .Where(n => n.ReceiverId.Equals(userId))
+                                         .Where(n => n.ReceiverID.Equals(userId))
                                          .OrderBy(n => n.IsRead)
                                          .ThenByDescending(n => n.CreatedAt)
                                          .Select(notification => new IndexNotificationViewModel
                                          {
-                                             NotificationID = notification.Id,
+                                             NotificationID = notification.NotificationID,
                                              Title = notification.Title,
                                              CreatedAt = notification.CreatedAt,
                                              IsRead = notification.IsRead,
-                                             OrderId = notification.OrderId,
+                                             OrderId = notification.OrderID,
                                              SenderName = notification.Sender!.UserName
                                          })
                                          .ToListAsync();
@@ -91,7 +92,7 @@ namespace OrderFlow.Services.Core
 
         public async Task ReadAsync(Guid i)
         {
-            Notification? notification = await this.DbSet<Notification>().Where(x => x.Id.Equals(i)).SingleOrDefaultAsync();
+            Notification? notification = await this.DbSet<Notification>().Where(x => x.NotificationID.Equals(i)).SingleOrDefaultAsync();
 
             if (notification != null)
             {
@@ -111,7 +112,7 @@ namespace OrderFlow.Services.Core
 
         public async Task SoftDelete(Guid i)
         {
-            Notification? notification = await this.DbSet<Notification>().Where(x => x.Id.Equals(i)).SingleOrDefaultAsync();
+            Notification? notification = await this.DbSet<Notification>().Where(x => x.NotificationID.Equals(i)).SingleOrDefaultAsync();
 
             if (notification != null)
             {
@@ -132,7 +133,7 @@ namespace OrderFlow.Services.Core
         public async Task UnreadAsync(Guid id)
         {
             Notification? notification = await this.GetAll()
-                                                   .Where(x => x.Id.Equals(id)).SingleOrDefaultAsync();
+                                                   .Where(x => x.NotificationID.Equals(id)).SingleOrDefaultAsync();
 
             if (notification != null)
             {
@@ -158,7 +159,7 @@ namespace OrderFlow.Services.Core
             }
 
             Notification? existingNotification = await this.GetAll()
-                                                           .Where(n => n.Id.Equals(notification) && n.SenderId.Equals(userId))
+                                                           .Where(n => n.NotificationID.Equals(notification) && n.SenderID.Equals(userId))
                                                            .SingleOrDefaultAsync();
 
             if (existingNotification == null)
@@ -168,8 +169,8 @@ namespace OrderFlow.Services.Core
 
             existingNotification.Title = createNotification.Title;
             existingNotification.Message = createNotification.Message;
-            existingNotification.ReceiverId = createNotification.ReceiverId;
-            existingNotification.OrderId = createNotification.OrderId;
+            existingNotification.ReceiverID = createNotification.ReceiverId;
+            existingNotification.OrderID = createNotification.OrderId;
             existingNotification.CreatedAt = DateTime.UtcNow;
             existingNotification.IsRead = false;
 
@@ -192,10 +193,10 @@ namespace OrderFlow.Services.Core
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false,
                 IsDeleted = false,
-                ReceiverId = createNotification.ReceiverId,
-                SenderId = senderId,
-                OrderId = createNotification.OrderId,
-                TruckId = createNotification.TruckId,
+                ReceiverID = createNotification.ReceiverId,
+                SenderID = senderId,
+                OrderID = createNotification.OrderId,
+                TruckID = createNotification.TruckId,
             });
 
             await this.SaveChangesAsync();
@@ -209,7 +210,7 @@ namespace OrderFlow.Services.Core
             }
 
             Notification? existingNotification = await this.GetAll()
-                                                           .Where(n => n.Id.Equals(notification) && n.SenderId.Equals(userId))
+                                                           .Where(n => n.NotificationID.Equals(notification) && n.SenderID.Equals(userId))
                                                            .SingleOrDefaultAsync();
 
             if (existingNotification == null)
@@ -219,9 +220,9 @@ namespace OrderFlow.Services.Core
 
             existingNotification.Title = createNotification.Title;
             existingNotification.Message = createNotification.Message;
-            existingNotification.ReceiverId = createNotification.ReceiverId;
-            existingNotification.OrderId = createNotification.OrderId;
-            existingNotification.TruckId = createNotification.TruckId;
+            existingNotification.ReceiverID = createNotification.ReceiverId;
+            existingNotification.OrderID = createNotification.OrderId;
+            existingNotification.TruckID = createNotification.TruckId;
             existingNotification.CreatedAt = DateTime.UtcNow;
             existingNotification.IsRead = false;
 
@@ -234,22 +235,48 @@ namespace OrderFlow.Services.Core
         {
             var notification = await this.GetAll()
                                          .Include(n => n.Sender)
-                                         .Where(n => n.ReceiverId.Equals(userId))
+                                         .Where(n => n.ReceiverID.Equals(userId))
                                          .OrderBy(n => n.IsRead)
                                          .ThenByDescending(n => n.CreatedAt)
                                          .Select(notification => new DriverIndexNotificationViewModel
                                          {
-                                             NotificationID = notification.Id,
+                                             NotificationID = notification.NotificationID,
                                              Title = notification.Title,
                                              CreatedAt = notification.CreatedAt,
                                              IsRead = notification.IsRead,
-                                             OrderId = notification.OrderId,
-                                             TruckId = notification.TruckId,
+                                             OrderId = notification.OrderID,
+                                             TruckId = notification.TruckID,
                                              SenderName = notification.Sender!.UserName
                                          })
                                          .ToListAsync();
 
             return notification;
+        }
+
+        public async Task<bool> SendSystemNotificationAsync(NotificationCommand notification, bool save = true)
+        {
+            if (notification == null)
+            {
+                throw new ArgumentNullException(nameof(notification), "Notification command cannot be null.");
+            }
+
+            await this.AddAsync(new Notification
+            {
+                Title = notification.Title,
+                Message = notification.Message,
+                ReceiverID = notification.ReceiverID,
+                OrderID = notification.OrderID,
+                CourseID = notification.CourseID,
+                TruckID = notification.TruckID,
+                CanRespond = notification.CanRespond,
+                CreatedAt = DateTime.UtcNow,
+            });
+
+            if (save)
+            {
+                return await this.SaveChangesAsync() > 0;
+            }
+            return true;
         }
     }
 }

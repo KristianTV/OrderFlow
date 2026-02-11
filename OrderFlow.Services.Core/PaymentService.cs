@@ -39,7 +39,7 @@ namespace OrderFlow.Services.Core
                 throw new ArgumentException("Payment ID cannot be empty.", nameof(paymentId));
             }
 
-            var payment = All<Payment>().SingleOrDefault(p => p.Id == paymentId);
+            var payment = All<Payment>().SingleOrDefault(p => p.PaymentID == paymentId);
 
             if (payment == null)
             {
@@ -62,7 +62,7 @@ namespace OrderFlow.Services.Core
                 throw new ArgumentNullException(nameof(createPayment), "CreatePaymentViewModel cannot be null.");
             }
 
-            var payment = await All<Payment>().SingleOrDefaultAsync(p => p.Id == paymentId);
+            var payment = await All<Payment>().SingleOrDefaultAsync(p => p.PaymentID == paymentId);
 
             if (payment == null)
             {

@@ -41,12 +41,12 @@ namespace OrderFlow.Services.Core
 
             if (truck != null)
             {
-                if (truck.isDeleted)
+                if (truck.IsDeleted)
                 {
                     return true;
                 }
 
-                truck.isDeleted = true;
+                truck.IsDeleted = true;
 
                 return await this.SaveChangesAsync() > 0;
             }
@@ -105,47 +105,6 @@ namespace OrderFlow.Services.Core
             Truck? truck = await this.GetAll()
                                      .Where(t => t.TruckID.Equals(truckID))
                                      .SingleOrDefaultAsync();
-
-            if (truck != null)
-            {
-                return truck.Status.ToString();
-            }
-
-            return string.Empty;
-        }
-
-        public void ChangeTruckStatus(Guid truckID, string status)
-        {
-            if (truckID == null || string.IsNullOrEmpty(status) || truckID == Guid.Empty)
-                throw new ArgumentNullException(nameof(truckID), "Truck ID cannot be null or empty.");
-
-            if (!Enum.TryParse<TruckStatus>(status, true, out var result))
-            {
-                throw new ArgumentException("Invalid truck status.", nameof(status));
-            }
-
-            Truck? truck = this.GetAll()
-                               .Where(t => t.TruckID.Equals(truckID))
-                               .SingleOrDefault();
-
-            if (truck != null)
-            {
-                if (truck.Status.Equals(result))
-                    return;
-
-                truck.Status = result;
-
-            }
-        }
-
-        public string GetTruckStatus(Guid truckID)
-        {
-            if (truckID == null || truckID == Guid.Empty)
-                throw new ArgumentNullException(nameof(truckID), "Truck ID cannot be null or empty.");
-
-            Truck? truck = this.GetAll()
-                                .Where(t => t.TruckID.Equals(truckID))
-                                .SingleOrDefault();
 
             if (truck != null)
             {
