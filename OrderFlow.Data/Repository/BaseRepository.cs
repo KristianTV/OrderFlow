@@ -20,7 +20,7 @@ namespace OrderFlow.Data.Repository
             DbSet<T>().Remove(entity);
         }
 
-        public async Task<bool> ExistsAsync<T>(int id) where T : class
+        public async Task<bool> ExistsAsync<T>(Guid id) where T : class
         {
             return await _context.Set<T>().FindAsync(id) == null;
         }

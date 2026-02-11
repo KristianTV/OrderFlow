@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Course;
@@ -103,10 +104,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         {
             CreateCourseViewModel createCourseViewModel = new CreateCourseViewModel
             {
-                AvailableTruckIDs = await _truckService.GetAll()
-                                                       .Where(t => t.Status.Equals(TruckStatus.Available))
-                                                       .ToDictionaryAsync(truck => truck.TruckID,
-                                                                          truck => truck.LicensePlate)
+                AvailableTruckIDs = await GetAvailableTrucksAsync()
             };
 
             return View(createCourseViewModel);
@@ -146,102 +144,97 @@ namespace OrderFlow.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(string? id)
         {
-            //if (string.IsNullOrEmpty(id))
-            //{
-            //    _logger.LogError(id, "Order ID must be provided.");
-            //    return NotFound();
-            //}
+            if (string.IsNullOrEmpty(id))
+            {
+                _logger.LogError(id, "Course ID must be provided.");
+                return NotFound();
+            }
 
-            //if (!Guid.TryParse(id, out Guid orderId))
-            //{
-            //    _logger.LogError(id, "Invalid Order ID format.");
-            //    return BadRequest();
-            //}
+            if (!Guid.TryParse(id, out Guid CourseId))
+            {
+                _logger.LogError(id, "Invalid Course ID format.");
+                return BadRequest();
+            }
 
-            //AdminCreateOrderViewModel? createOrderViewModel = null;
-            //try
-            //{
-            //    createOrderViewModel = await _orderService.GetAll()
-            //                                                   .AsNoTracking()
-            //                                                   .Where(o => o.OrderID.Equals(orderId))
-            //                                                   .Select(o => new AdminCreateOrderViewModel
-            //                                                   {
-            //                                                       UsersId = o.UserID,
-            //                                                       DeliveryAddress = o.DeliveryAddress,
-            //                                                       PickupAddress = o.PickupAddress,
-            //                                                       LoadCapacity = o.LoadCapacity,
-            //                                                       DeliveryInstructions = o.DeliveryInstructions
-            //                                                   }).SingleOrDefaultAsync();
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex, "An error occurred while retrieving order with ID {OrderId} for editing.", orderId);
-            //    return BadRequest();
-            //}
+            CreateCourseViewModel? createCourseViewModel = null;
+            try
+            {
+                createCourseViewModel = await _truckCourseService.GetAll()
+                                                                 .AsNoTracking()
+                                                                 .Where(tc => tc.TruckCourseID.Equals(CourseId))
+                                                                 .Select(tc => new CreateCourseViewModel
+                                                                 {
+                                                                     SelectedTruckID = tc.TruckID,
+                                                                     PickupAddress = tc.PickupAddress,
+                                                                     DeliverAddress = tc.DeliverAddress,
+                                                                     Income = tc.Income
+                                                                 })
+                                                                 .SingleOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving course with ID {CourseId} for editing.", CourseId);
+                return BadRequest();
+            }
 
-            //if (createOrderViewModel == null)
-            //{
-            //    _logger.LogError(nameof(createOrderViewModel), $"Order with ID {orderId} was not found.");
-            //    return NotFound();
-            //}
+            if (createCourseViewModel == null)
+            {
+                _logger.LogError(nameof(createCourseViewModel), $"Course with ID {CourseId} was not found.");
+                return NotFound();
+            }
 
-            //createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
+            createCourseViewModel.AvailableTruckIDs = await GetAvailableTrucksAsync();
 
-            return View();
+            return View(createCourseViewModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(AdminCreateOrderViewModel createOrderViewModel, string? id)
+        public async Task<IActionResult> Edit(CreateCourseViewModel createCourseViewModel, string? id)
         {
-            //if (string.IsNullOrEmpty(id))
-            //{
-            //    _logger.LogError(id, "Order ID must be provided.");
-            //    ModelState.AddModelError(nameof(id), "Order ID must be provided.");
-            //    return NotFound();
-            //}
+            if (string.IsNullOrEmpty(id))
+            {
+                _logger.LogError(id, "Course ID must be provided.");
+                ModelState.AddModelError(nameof(id), "Course ID must be provided.");
+                return NotFound();
+            }
 
-            //if (!Guid.TryParse(id, out Guid orderId))
-            //{
-            //    _logger.LogError(id, "Invalid Order ID format.");
-            //    ModelState.AddModelError(nameof(orderId), "Invalid Order ID format.");
-            //    return BadRequest();
-            //}
+            if (!Guid.TryParse(id, out Guid courseId))
+            {
+                _logger.LogError(id, "Invalid Course ID format.");
+                ModelState.AddModelError(nameof(courseId), "Invalid Course ID format.");
+                return BadRequest();
+            }
 
-            //if (!ModelState.IsValid)
-            //{
-            //    createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
-            //    return View(createOrderViewModel);
-            //}
+            if (!ModelState.IsValid)
+            {
+                createCourseViewModel.AvailableTruckIDs = await GetAvailableTrucksAsync();
+                return View(createCourseViewModel);
+            }
 
-            //try
-            //{
-            //    var order = await _orderService.GetAll()
-            //                                    .AsNoTracking()
-            //                                    .Where(o => o.OrderID.Equals(orderId))
-            //                                    .SingleOrDefaultAsync();
+            try
+            {
+                if (await _truckCourseService.ExistsAsync<TruckCourse>(courseId))
+                {
+                    return NotFound($"Course with ID {courseId} was not found.");
+                }
 
-            //    if (order == null)
-            //    {
-            //        return NotFound($"Order with ID {orderId} was not found.");
-            //    }
+                if (!await _truckCourseService.UpdateCourseAsync(createCourseViewModel, courseId))
+                {
+                    ModelState.AddModelError(string.Empty, "Failed to update the course. The course may have been modified by another user.");
+                    createCourseViewModel.AvailableTruckIDs = await GetAvailableTrucksAsync();
+                    return View(createCourseViewModel);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating course with ID {courseId}.", courseId);
+                ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+                createCourseViewModel.AvailableTruckIDs = await GetAvailableTrucksAsync();
+                return View(createCourseViewModel);
+            }
 
-            //    if (!await _orderService.UpdateOrderAsync(createOrderViewModel, orderId, createOrderViewModel.UsersId))
-            //    {
-            //        ModelState.AddModelError(string.Empty, "Failed to update the order. The order may have been modified by another user.");
-            //        createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
-            //        return View(createOrderViewModel);
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex, "An error occurred while updating order with ID {OrderId}.", orderId);
-            //    ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
-            //    createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
-            //    return View(createOrderViewModel);
-            //}
-
-            return RedirectToAction(nameof(Detail), "Create", new { id = id });
+            return RedirectToAction(nameof(Detail), "Course", new { id = id });
         }
 
         [HttpGet]

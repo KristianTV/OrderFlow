@@ -14,5 +14,7 @@ namespace OrderFlow.Services.Core.Contracts
         Task<bool> RemoveOrderFromCourseAsync(Guid courseID, Guid orderID);
         Task CompleteCourseAsync(Guid courseID);
         Task<bool> CreateCourseAsync(CreateCourseViewModel createCourseViewModel, bool save = true);
+
+        Task<bool> UpdateCourseAsync(CreateCourseViewModel createCourseViewModel, Guid courseId, bool save = true);
     }
 }

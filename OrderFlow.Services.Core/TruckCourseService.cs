@@ -238,5 +238,30 @@ namespace OrderFlow.Services.Core
 
             return true;
         }
+
+        public async Task<bool> UpdateCourseAsync(CreateCourseViewModel createCourseViewModel, Guid courseId, bool save = true)
+        {
+            if (createCourseViewModel == null || courseId == Guid.Empty)
+                return false;
+
+            TruckCourse? course = await this.GetAll()
+                                            .Where(tc => tc.TruckCourseID.Equals(courseId))
+                                            .SingleOrDefaultAsync();
+
+            if (course == null)
+                return false;
+
+            course.TruckID = createCourseViewModel.SelectedTruckID;
+            course.PickupAddress = createCourseViewModel.PickupAddress;
+            course.DeliverAddress = createCourseViewModel.DeliverAddress;
+            course.Income = createCourseViewModel.Income ?? 0;
+
+            if (save)
+            {
+                return await this.SaveChangesAsync() > 0;
+            }
+
+            return true;
+        }
     }
 }
