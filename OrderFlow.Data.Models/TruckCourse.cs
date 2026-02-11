@@ -16,7 +16,7 @@ namespace OrderFlow.Data.Models
         public DateTime AssignedDate { get; set; }
         public DateTime? DeliveryDate { get; set; }
 
-        public CourseStatus Status { get; set; } = CourseStatus.Assigned;
+        public CourseStatus Status { get; set; } = CourseStatus.Pending;
 
         public decimal Income { get; set; } = 0;
 

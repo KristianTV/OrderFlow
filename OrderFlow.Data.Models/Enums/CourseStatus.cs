@@ -2,9 +2,11 @@
 {
     public enum CourseStatus
     {
-        Assigned = 0,
-        Loaded = 1,
-        Delivered = 2,
-        Cancelled = 3
+        Pending = 0,
+        Assigned = 1,
+        Loaded = 2,
+        Delivered = 3,
+        Cancelled = 4,
+        Delayed = 5,
     }
 }
