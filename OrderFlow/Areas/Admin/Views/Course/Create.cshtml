@@ -1,0 +1,95 @@
+﻿@using OrderFlow.ViewModels.Course
+@model CreateCourseViewModel
+
+@{
+    ViewData["Title"] = "Create New Course";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg mt-5">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">@ViewData["Title"]</h3>
+            </div>
+
+            <div class="card-body">
+                <form asp-antiforgery="true"
+                      asp-area="Admin"
+                      asp-controller="Course"
+                      asp-action="Create"
+                      method="post">
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger"
+                         role="alert"></div>
+
+                    <!-- Truck -->
+                    <div class="mb-3">
+                        <label asp-for="SelectedTruckID" class="form-label"></label>
+                        <select asp-for="SelectedTruckID" class="form-select">
+                            <option value="">-- Select Truck --</option>
+                            @foreach (var truck in Model.AvailableTruckIDs)
+                            {
+                                <option value="@truck.Key">@truck.Value</option>
+                            }
+                        </select>
+                        <span asp-validation-for="SelectedTruckID"
+                              class="text-danger mt-1 d-block"></span>
+                    </div>
+
+                    <!-- Pickup Address -->
+                    <div class="mb-3">
+                        <label asp-for="PickupAddress" class="form-label"></label>
+                        <input asp-for="PickupAddress"
+                               class="form-control"
+                               placeholder="e.g., Warehouse A, Sofia" />
+                        <span asp-validation-for="PickupAddress"
+                              class="text-danger mt-1 d-block"></span>
+                    </div>
+
+                    <!-- Delivery Address -->
+                    <div class="mb-3">
+                        <label asp-for="DeliverAddress" class="form-label"></label>
+                        <input asp-for="DeliverAddress"
+                               class="form-control"
+                               placeholder="e.g., Store B, Plovdiv" />
+                        <span asp-validation-for="DeliverAddress"
+                              class="text-danger mt-1 d-block"></span>
+                    </div>
+
+                    <!-- Income -->
+                    <div class="mb-4">
+                        <label asp-for="Income" class="form-label"></label>
+                        <input asp-for="Income"
+                               type="number"
+                               step="0.01"
+                               class="form-control"
+                               placeholder="e.g., 1200.00" />
+                        <span asp-validation-for="Income"
+                              class="text-danger mt-1 d-block"></span>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a asp-area="Admin"
+                           asp-controller="Course"
+                           asp-action="Index"
+                           class="btn btn-secondary">
+                            Cancel
+                        </a>
+
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-2"></i> Create Course
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

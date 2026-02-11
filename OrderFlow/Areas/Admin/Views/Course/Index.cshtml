@@ -1,0 +1,158 @@
+﻿@using OrderFlow.ViewModels.Course
+@using OrderFlow.Data.Models.Enums
+@model IEnumerable<IndexCourseViewModel>
+
+@{
+    ViewData["Title"] = "All Courses";
+
+    var currentHideCompleted = Context.Request.Query["hideCompleted"].FirstOrDefault() == "true";
+    var currentStatusFilter = Context.Request.Query["statusFilter"].FirstOrDefault();
+    var currentSearchId = Context.Request.Query["searchId"].FirstOrDefault();
+    var currentSortOrder = Context.Request.Query["sortOrder"].FirstOrDefault();
+}
+
+<div class="container mt-5">
+
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0 text-center flex-grow-1 text-primary">@ViewData["Title"]</h1>
+            <a class="btn btn-success btn-lg shadow-sm" asp-area="Admin" asp-controller="Course" asp-action="Create">
+                <i class="fas fa-plus-circle me-2"></i> Create New Course
+            </a>
+        </div>
+
+        <form asp-antiforgery="true" asp-area="Admin" asp-controller="Course" asp-action="Index" method="get" class="mb-4 p-3 border rounded shadow-sm bg-light">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="searchId" class="form-label visually-hidden">Search by Course ID</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchId" name="searchId" placeholder="Search by Order ID" value="@currentSearchId" />
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="statusFilter" class="form-label">Filter by Status:</label>
+                    <select id="statusFilter" name="statusFilter" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Statuses</option>
+                        <option value="Pending" selected="@(currentStatusFilter == "Pending")">Pending</option>
+                        <option value="Assigned" selected="@(currentStatusFilter == "Assigned")">Assigned</option>
+                        <option value="Loaded" selected="@(currentStatusFilter == "Loaded")">Loaded</option>
+                        <option value="Delivered" selected="@(currentStatusFilter == "Delivered")">Delivered</option>
+                        <option value="Cancelled" selected="@(currentStatusFilter == "Cancelled")">Cancelled</option>
+                        <option value="Delayed" selected="@(currentStatusFilter == "Delayed")">Delayed</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-check form-switch mb-1">
+                        <input class="form-check-input" type="checkbox" id="hideCompleted" name="hideCompleted" value="true" @(currentHideCompleted ? "checked" : "") onchange="this.form.submit()">
+                        <label class="form-check-label" for="hideCompleted">Hide Completed Orders</label>
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Sort by Date:</label>
+                    <div class="btn-group w-100" role="group" aria-label="Sort by Date">
+                        <button type="submit" name="sortOrder" value="date_asc" class="btn btn-outline-info btn-sm @(currentSortOrder == "date_asc" ? "active" : "")">
+                            <i class="fas fa-sort-amount-down me-1"></i> Ascending
+                        </button>
+                        <button type="submit" name="sortOrder" value="date_desc" class="btn btn-outline-info btn-sm @(currentSortOrder == "date_desc" ? "active" : "")">
+                            <i class="fas fa-sort-amount-up me-1"></i> Descending
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive shadow-sm">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-primary text-center">
+                        <tr>
+                            <th>Course ID</th>
+                            <th>Truck</th>
+                            <th>Pickup Address</th>
+                            <th>Delivery Address</th>
+                            <th>Assigned Date</th>
+                            <th>Delivery Date</th>
+                            <th>Status</th>
+                            <th>Income</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var course in Model)
+                        {
+                            <tr>
+                                <td class="text-center">
+                                    @course.TruckCourseID.ToString().Substring(0, 8)
+                                </td>
+
+                                <td class="text-center">
+                                    @(course.TruckID.HasValue
+                                                                ? course.TruckID.ToString().Substring(0, 8)
+                                                                : "—")
+                                </td>
+
+                                <td>@course.PickupAddress</td>
+
+                                <td>@course.DeliverAddress</td>
+
+                                <td class="text-center">
+                                    @course.AssignedDate.ToString("yyyy-MM-dd HH:mm")
+                                </td>
+
+                                <td class="text-center">
+                                    @(course.DeliveryDate.HasValue
+                                                                ? course.DeliveryDate.Value.ToString("yyyy-MM-dd HH:mm")
+                                                                : "Not delivered")
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="badge @GetStatusBadgeClass(course.Status)">
+                                        @course.Status
+                                    </span>
+                                </td>
+
+                                <td class="text-end fw-bold">
+                                    @course.Income.ToString("C")
+                                </td>
+                                <td class="text-end fw-bold">
+                                    <a asp-controller="Course"
+                                       asp-action="Detail"
+                                       asp-route-id="@course.TruckCourseID"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fa-solid fa-angle-right"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info text-center shadow-sm">
+                <i class="fas fa-info-circle me-2"></i>
+                No courses found.
+            </div>
+        }
+    </div>
+
+@functions {
+    private string GetStatusBadgeClass(CourseStatus status) => status switch
+    {
+        CourseStatus.Pending => "bg-primary",
+        CourseStatus.Assigned => "bg-warning",
+        CourseStatus.Loaded => "bg-secondary",
+        CourseStatus.Delivered => "bg-success",
+        CourseStatus.Cancelled => "bg-danger",
+        CourseStatus.Delayed => "bg-info",
+        _ => "bg-light text-dark"
+    };
+}
