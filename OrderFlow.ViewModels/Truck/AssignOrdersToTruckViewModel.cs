@@ -3,9 +3,9 @@
     public class AssignOrdersToTruckViewModel
     {
         public string LicensePlate { get; set; } = string.Empty;
-        public int Capacity { get; set; }
+        public double Capacity { get; set; }
         public string DriverName { get; set; } = string.Empty;
         public List<OrderViewModel> Orders { get; set; } = new List<OrderViewModel>();
-        public int LoadedCapacity { get; set; } = 0;
+        public double LoadedCapacity { get; set; } = 0;
     }
 }

@@ -13,7 +13,7 @@
 
         public string PickupAddress { get; set; } = string.Empty;
 
-        public int LoadCapacity { get; set; } = 0;
+        public double LoadCapacity { get; set; } = 0;
 
         public string? DeliveryInstructions { get; set; }
 

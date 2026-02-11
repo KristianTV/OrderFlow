@@ -14,7 +14,7 @@ namespace OrderFlow.ViewModels.Truck
         [Display(Name = "Delivery Address")]
         public string DeliveryAddress { get; set; } = string.Empty;
         public string PickupAddress { get; set; } = string.Empty;
-        public int LoadCapacity { get; set; } = 0;
+        public double LoadCapacity { get; set; } = 0;
         public string OrderStatus { get; set; } = string.Empty;
         public bool IsSelected { get; set; } = false;
     }

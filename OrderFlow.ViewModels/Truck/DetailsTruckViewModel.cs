@@ -8,7 +8,7 @@
 
         public string LicensePlate { get; set; } = string.Empty;
 
-        public int Capacity { get; set; } = 0;
+        public double Capacity { get; set; } = 0;
 
         public string Status { get; set; } = "Available";
 

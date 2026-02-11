@@ -19,7 +19,7 @@ namespace OrderFlow.ViewModels.Truck
                     ValidationConstants.Truck.CapacityMaxLength,
                     ErrorMessage = ErrorMessages.PositiveNumber)]
         [Display(Name = "Capacity")]
-        public int Capacity { get; set; } = 0;
+        public double Capacity { get; set; } = 0;
 
         public IDictionary<Guid, string>? Drivers { get; set; } = new Dictionary<Guid, string>();
     }

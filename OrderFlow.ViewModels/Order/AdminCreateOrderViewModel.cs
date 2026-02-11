@@ -9,6 +9,6 @@ namespace OrderFlow.ViewModels.Order
         [Display(Name = "User")]
         public Guid UsersId { get; set; }
 
-        public IDictionary<Guid, string?>? Users { get; set; } = new Dictionary<Guid, string>();
+        public IDictionary<Guid, string?>? Users { get; set; } = new Dictionary<Guid, string?>();
     }
 }

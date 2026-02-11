@@ -31,6 +31,6 @@ namespace OrderFlow.ViewModels.Order
                    ValidationConstants.Order.LoadCapacityMaxLength,
                    ErrorMessage = ErrorMessages.PositiveNumber)]
         [Display(Name = "Load Capacity")]
-        public int LoadCapacity { get; set; } = 0;
+        public double LoadCapacity { get; set; } = 0;
     }
 }
