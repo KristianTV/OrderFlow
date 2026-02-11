@@ -1,5 +1,6 @@
 ﻿using OrderFlow.Data.Models;
 using OrderFlow.Data.Repository.Contracts;
+using OrderFlow.Services.Core.Commands;
 using OrderFlow.ViewModels.Notification;
 
 namespace OrderFlow.Services.Core.Contracts
@@ -17,5 +18,6 @@ namespace OrderFlow.Services.Core.Contracts
         Task<bool> UpdateNotificationAsync(CreateNotificationViewModel createNotification, Guid notification, Guid userId);
         Task<bool> UpdateNotificationAsync(AdminCreateNotificationViewModel createNotification, Guid notification, Guid userId);
         Task<IEnumerable<DriverIndexNotificationViewModel>?> GetAllNotificationsAsync(Guid userId);
+        Task<bool> SendSystemNotificationAsync(NotificationCommand notification, bool save = true);
     }
 }
