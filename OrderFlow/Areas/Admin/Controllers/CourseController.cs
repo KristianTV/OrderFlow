@@ -300,5 +300,40 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             return View(course);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(string? id)
+        {
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid courseID))
+            {
+                _logger.LogWarning("Delete POST: Invalid or missing Course ID '{CourseID}'.", id);
+                TempData["Error"] = "Invalid or missing Course ID.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                bool success = await _truckCourseService.DeleteCourseAsync(courseID);
+                if (success)
+                {
+                    TempData["Success"] = "Course successfully deleted.";
+                    _logger.LogInformation("Course ID: {CourseId} soft deleted.", courseID);
+                }
+                else
+                {
+                    TempData["Error"] = "Failed to delete the course. It may no longer exist.";
+                    _logger.LogWarning("SoftDeleteTruckAsync failed for Course ID: {CourseId}", courseID);
+                }
+
+                return RedirectToAction(nameof(Index), "Course");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while deleting course with ID '{CourseId}'.", courseID);
+                TempData["Error"] = "An unexpected error occurred while deleting the course. Please try again.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
     }
 }

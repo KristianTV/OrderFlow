@@ -263,5 +263,25 @@ namespace OrderFlow.Services.Core
 
             return true;
         }
+
+        public async Task<bool> DeleteCourseAsync(Guid courseID)
+        {
+            if (courseID == Guid.Empty)
+            {
+                throw new ArgumentException("Course ID cannot be empty.", nameof(courseID));
+            }
+
+            var course = this.GetAll()
+                             .SingleOrDefault(tc => tc.TruckCourseID == courseID);
+
+            if (course == null)
+            {
+                throw new KeyNotFoundException($"Course with ID {courseID} not found.");
+            }
+
+            this.Delete(course);
+
+            return await this.SaveChangesAsync() > 0;
+        }
     }
 }
