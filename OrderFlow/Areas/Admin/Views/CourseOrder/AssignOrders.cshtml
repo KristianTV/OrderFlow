@@ -1,0 +1,181 @@
+﻿@model OrderFlow.ViewModels.CourseOrder.AssignOrdersToCourseViewModel
+@{
+    ViewData["Title"] = "Assign Orders To Truck";
+    var id = Context.Request.RouteValues["id"]?.ToString() ?? "";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h4>
+                <i class="fa-solid fa-truck"></i> Assign Orders To Truck
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="alert alert-info">
+                        <strong>Truck Capacity:</strong>
+                        <span id="maxCapacity">@Model.Capacity</span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="alert alert-warning">
+                        <strong>Loaded Capacity:</strong>
+                        <span id="loadedCapacity">0</span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="alert alert-success">
+                        <strong>Remaining:</strong>
+                        <span id="remainingCapacity">@Model.Capacity</span>
+                    </div>
+                </div>
+            </div>
+
+            <form asp-antiforgery="true" asp-area="Admin" asp-controller="CourseOrder" asp-action="AssignOrders" asp-route-id="@id" method="post">
+                @if(Model.Orders == null || Model.Orders.Any())
+                {
+                    <table class="table table-hover align-middle mb-0 rounded-table">
+                        <thead class="bg-primary text-dark">
+                            <tr>
+                                <th class="text-center">
+                                    <i class="fa-solid fa-check-circle me-1"></i>
+                                    Select
+                                </th>
+                                <th>
+                                    <i class="fa-solid fa-location-dot me-1"></i>
+                                    Pickup
+                                </th>
+                                <th>
+                                    <i class="fa-solid fa-map-pin me-1"></i>
+                                    Delivery
+                                </th>
+                                <th class="text-center">
+                                    <i class="fa-solid fa-weight-hanging me-1"></i>
+                                    Load
+                                </th>
+                                <th class="text-center">
+                                    <i class="fa-solid fa-info-circle me-1"></i>
+                                    Status
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="align-middle">
+                            @for (int i = 0; i < Model.Orders?.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="form-check d-flex justify-content-center">
+                                            <input class="form-check-input order-checkbox fs-5"
+                                                   type="checkbox"
+                                                   asp-for="Orders[i].IsSelected"
+                                                   data-load="@Model.Orders[i].LoadCapacity" />
+
+                                            <input type="hidden" asp-for="Orders[i].OrderID" />
+                                            <input type="hidden" asp-for="Orders[i].LoadCapacity" />
+                                        </div>
+                                    </td>
+
+                                    <td>@Model.Orders[i].PickupAddress</td>
+                                    <td>@Model.Orders[i].DeliveryAddress</td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            @Model.Orders[i].LoadCapacity
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @GetStatusBadgeClass(Model.Orders[i].OrderStatus)">
+                                            @Model.Orders[i].OrderStatus
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-check"></i> Assign Selected Orders
+                        </button>
+                        </div>
+                }
+                    else
+                    {
+
+                    <div class="alert alert-info text-center shadow-sm" role="alert">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i> No Orders Can Be Loaded
+                        </h5>
+                        <p class="mb-0">
+                            This course currently has no orders that can be loaded.
+                            Either there are no available orders, or all pending orders exceed the truck's load capacity.
+                            Please click <strong>"Back"</strong> to return.
+                        </p>
+                    </div>
+                    }
+            <a asp-area="Admin" asp-controller="Course"  asp-action="Detail" asp-route-id="@id" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Course Details
+            </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const maxCapacity = parseFloat(document.getElementById("maxCapacity").innerText);
+    const loadedElement = document.getElementById("loadedCapacity");
+    const remainingElement = document.getElementById("remainingCapacity");
+    const checkboxes = document.querySelectorAll(".order-checkbox");
+
+    function updateCapacity() {
+        let total = 0;
+
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                total += parseFloat(cb.dataset.load);
+            }
+        });
+
+        if (total > maxCapacity) {
+            alert("Capacity exceeded! You cannot load more orders.");
+
+            event.target.checked = false;
+            return;
+        }
+
+        loadedElement.innerText = total;
+        remainingElement.innerText = (maxCapacity - total);
+    }
+
+    checkboxes.forEach(cb => {
+        cb.addEventListener("change", updateCapacity);
+
+        cb.addEventListener("change", function () {
+            const row = this.closest("tr");
+            if (this.checked) {
+                row.classList.add("table-success");
+            } else {
+                row.classList.remove("table-success");
+            }
+        });
+    });
+</script>
+
+@functions {
+    private string GetStatusBadgeClass(string status) => status switch
+    {
+        "Pending" => "bg-warning",
+        "InProgress" => "bg-primary",
+        "Completed" => "bg-success",
+        "Cancelled" => "bg-danger",
+        "OnHold" => "bg-secondary",
+        "Failed" => "bg-danger",
+        "Delayed" => "bg-danger",
+        _ => "bg-light text-dark"
+    };
+}

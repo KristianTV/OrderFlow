@@ -6,7 +6,7 @@
 }
 
 <div class="container mt-5">
-    <div class="card shadow-sm">
+    <div class="card shadow mt-4 mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0">
                 <i class="fa-solid fa-route me-2"></i>
@@ -29,7 +29,7 @@
                     @if(Model.TruckID.HasValue)
                     {
                         <a asp-area="Admin" asp-controller="Truck" asp-action="Detail" asp-route-id="@Model.TruckID" class="text-decoration-none">
-                            <i class="fas fa-truck me-1"></i> @Model.TruckPlates.ToString()
+                            <i class="fas fa-truck me-1"></i> @Model.TruckPlates?.ToString()
                         </a>
                     }
                     else
@@ -69,60 +69,103 @@
         </div>
     </div>
 
-    <div class="card mt-4 shadow-sm">
-        <div class="card-header bg-secondary text-white">
-            <h5 class="mb-0">
-                <i class="fa-solid fa-boxes-stacked me-2"></i>
-                Assigned Orders
-            </h5>
-        </div>
-
-        <div class="card-body p-0">
-            @if (!Model.AssinedOrders.Any())
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-boxes me-2"></i> Assigned Orders</h4>
+           @if (Model.Status.ToString() == "Assigned")
             {
-                <div class="p-3 text-muted">
-                    No orders assigned to this course.
+                <a class="btn btn-light btn-sm" asp-area="Admin" asp-action="AssignOrders" asp-controller="CourseOrder" asp-route-id="@Model.TruckCourseID">
+                    <i class="fas fa-plus-circle me-1"></i> Assign Orders
+                </a>                
+            }
+            else
+            {
+                <p class="text-muted mb-0 small">Choose truck! </p>
+            }
+        </div>
+        <div class="card-body">
+            @if (Model.AssinedOrders != null && Model.AssinedOrders.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 rounded-table">
+                        <thead class="bg-primary text-dark">
+                            <tr>
+                                <th scope="col">Order ID</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var assinedOrders in Model.AssinedOrders)
+                            {
+                                <tr>
+                                    <td>@assinedOrders.OrderID</td>
+                                    <td><span class="badge @GetOrderStatusBadgeClass(assinedOrders.Status.ToString()) fs-6">@assinedOrders.Status.ToString()</span></td>
+                                    <td>
+                                        @if (Model.Status.ToString() == "Assigned")
+                                        {
+                                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmRemovalModal_@assinedOrders.OrderID">
+                                                <i class="fas fa-minus-circle me-1"></i> Remove
+                                            </button>
+
+                                            <div class="modal fade" id="confirmRemovalModal_@assinedOrders.OrderID" tabindex="-1" aria-labelledby="confirmRemovalModalLabel_@assinedOrders.OrderID" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content border-danger shadow-lg rounded-lg">
+                                                        <div class="modal-header bg-danger text-white p-3 rounded-t-lg">
+                                                            <h5 class="modal-title fs-5" id="confirmRemovalModalLabel_@assinedOrders.OrderID">
+                                                                <i class="fas fa-exclamation-triangle me-2"></i> Confirm Order Removal
+                                                            </h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body p-4 text-center">
+                                                            <div class="mb-3">
+                                                                <i class="fas fa-trash-alt text-danger fa-3x"></i>
+                                                            </div>
+                                                            <p class="lead text-gray-700">
+                                                                Are you sure you want to remove order <strong>@assinedOrders.OrderID</strong> from this course?
+                                                            </p>
+                                                            <p class="text-muted text-sm">
+                                                                This action will unassign the order but will not delete it from the system.
+                                                            </p>
+                                                        </div>
+                                                        <div class="modal-footer d-flex justify-content-center p-3">
+                                                            <button type="button" class="btn btn-secondary px-4 py-2 rounded-md" data-bs-dismiss="modal">
+                                                                Cancel
+                                                            </button>
+                                                            <form method="post" asp-area="Admin" asp-controller="CourseOrder" asp-action="RemoveOrder" asp asp-antiforgery="true" class="d-inline">
+                                                                <input type="hidden" name="courseId" value="@Model.TruckCourseID" />
+                                                                <input type="hidden" name="orderId" value="@assinedOrders.OrderID" />
+                                                                <button type="submit" class="btn btn-danger px-4 py-2 rounded-md">
+                                                                    <i class="fas fa-trash-alt me-2"></i> Yes, Remove Order
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <p class="text-muted mb-0 small">N/A</p>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             }
             else
             {
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Order Date</th>
-                            <th>Delivery Address</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var order in Model.AssinedOrders)
-                        {
-                            <tr>
-                                <td>@order.OrderID</td>
-                                <td>@order.OrderDate</td>
-                                <td>@order.DeliveryAddress</td>
-                                <td>
-                                    <span class="badge @GetOrderStatusBadgeClass(@order.Status)">
-                                        @order.Status
-                                    </span>
-                                </td>
-                                <td class="text-end">
-                                    <a asp-controller="Order"
-                                       asp-action="Detail"
-                                       asp-route-id="@order.OrderID"
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <div class="alert alert-info text-center shadow-sm" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i> No Orders Assigned</h5>
+                    <p class="mb-0">This course currently has no assigned orders. Click "Assign Orders" to add some!</p>
+                </div>
             }
+        
         </div>
-    </div>
+    </div>  
+    
 
     <div class="mt-4">
         <a asp-controller="Course" asp-action="Index" class="btn btn-secondary">

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
+using OrderFlow.Data.Models.Enums;
 using OrderFlow.Data.Repository;
 using OrderFlow.Services.Core.Contracts;
 
@@ -8,9 +9,10 @@ namespace OrderFlow.Services.Core
 {
     public class CourseOrderService : BaseRepository, ICourseOrderService
     {
-        public CourseOrderService(OrderFlowDbContext _context) : base(_context)
+        private readonly IOrderService _orderService;
+        public CourseOrderService(OrderFlowDbContext _context, IOrderService orderService) : base(_context)
         {
-
+            _orderService = orderService;
         }
 
         public async Task<bool> AddOrderToCourseAsync(Guid orderID, Guid courseID, bool save = true)
@@ -25,6 +27,8 @@ namespace OrderFlow.Services.Core
             };
 
             await this.AddAsync(courseOrder);
+
+            await _orderService.ChangeOrderStatusAsync(orderID, OrderStatus.InProgress.ToString(), false);
 
             if (save)
             {
@@ -66,6 +70,7 @@ namespace OrderFlow.Services.Core
             }
 
             this.Delete<CourseOrder>(courseOrder);
+            await _orderService.ChangeOrderStatusAsync(orderID, OrderStatus.Pending.ToString(), false);
 
             if (save)
             {
