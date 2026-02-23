@@ -1,7 +1,7 @@
 ﻿using OrderFlow.Data.Models;
 using OrderFlow.Data.Repository.Contracts;
 using OrderFlow.ViewModels.Course;
-using OrderFlow.ViewModels.Truck;
+using OrderFlow.ViewModels.CourseOrder;
 
 namespace OrderFlow.Services.Core.Contracts
 {
@@ -14,7 +14,6 @@ namespace OrderFlow.Services.Core.Contracts
         Task<bool> RemoveOrderFromCourseAsync(Guid courseID, Guid orderID);
         Task CompleteCourseAsync(Guid courseID);
         Task<bool> CreateCourseAsync(CreateCourseViewModel createCourseViewModel, bool save = true);
-
         Task<bool> UpdateCourseAsync(CreateCourseViewModel createCourseViewModel, Guid courseId, bool save = true);
         Task<bool> DeleteCourseAsync(Guid courseID);
     }

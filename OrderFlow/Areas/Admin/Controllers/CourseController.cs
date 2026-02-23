@@ -140,7 +140,6 @@ namespace OrderFlow.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index), "Course");
         }
 
-
         [HttpGet]
         public async Task<IActionResult> Edit(string? id)
         {

@@ -6,7 +6,7 @@ using OrderFlow.Data.Repository;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.Services.Core.Extensions;
 using OrderFlow.ViewModels.Course;
-using OrderFlow.ViewModels.Truck;
+using OrderFlow.ViewModels.CourseOrder;
 
 namespace OrderFlow.Services.Core
 {
@@ -255,6 +255,7 @@ namespace OrderFlow.Services.Core
             course.PickupAddress = createCourseViewModel.PickupAddress;
             course.DeliverAddress = createCourseViewModel.DeliverAddress;
             course.Income = createCourseViewModel.Income ?? 0;
+            course.Status = (createCourseViewModel.SelectedTruckID != null) ? CourseStatus.Assigned : CourseStatus.Pending;
 
             if (save)
             {
