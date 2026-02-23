@@ -12,7 +12,7 @@
                 <h3 class="mb-0">@ViewData["Title"] for Truck @id</h3>
             </div>
             <div class="card-body">
-                <form asp-area="Admin" asp-controller="Truck" asp-action="Edit" asp-route-id="@id" asp-antiforgery="true" method="post">
+                <form id="editTruckForm" asp-area="Admin" asp-controller="Truck" asp-action="Edit" asp-route-id="@id" asp-antiforgery="true" method="post">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                     <div class="mb-3">
@@ -50,7 +50,7 @@
                         <a asp-area="Admin" asp-action="Detail" asp-controller="Truck" asp-route-id="@id" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-2"></i> Back to Truck Details
                         </a>
-                        <button type="submit" class="btn btn-primary btn-lg">
+                        <button type="submit" id="saveBtn" class="btn btn-primary btn-lg" disabled>
                             <i class="fas fa-save me-2"></i> Save Changes
                         </button>
                     </div>
@@ -62,4 +62,32 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("editTruckForm");
+            const saveBtn = document.getElementById("saveBtn");
+
+            const initialState = new FormData(form);
+
+            function isFormChanged() {
+                const currentState = new FormData(form);
+
+                for (let pair of initialState.entries()) {
+                    if (currentState.get(pair[0]) !== pair[1]) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            form.addEventListener("input", function() {
+                saveBtn.disabled = !isFormChanged();
+            });
+
+            form.addEventListener("change", function() {
+                saveBtn.disabled = !isFormChanged();
+            });
+        });
+    </script>
 }
