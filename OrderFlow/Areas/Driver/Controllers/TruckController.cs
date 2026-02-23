@@ -133,8 +133,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                                                          DriverName = o.Driver!.UserName!,
                                                          LicensePlate = o.LicensePlate,
                                                          Capacity = o.Capacity,
-                                                         Status = o.Status.ToString(),
-                                                         TruckOrders = new List<TruckOrderVewModel>()
+                                                         Status = o.Status.ToString()
                                                      })
                                                      .SingleOrDefaultAsync();
 
@@ -144,110 +143,11 @@ namespace OrderFlow.Areas.Driver.Controllers
                     return NotFound("Truck not found or does not belong to the driver.");
                 }
 
-                truckDetail.TruckOrders = await _truckOrderService.GetAll()
-                                                                  .AsNoTracking()
-                                                                  .Include(co => co.TruckCourse)
-                                                                  .Where(to => to.TruckCourse.TruckID.Equals(truckID))
-                                                                  .Select(to => new TruckOrderVewModel
-                                                                  {
-                                                                      OrderId = to.OrderID,
-                                                                      DeliverAddress = to.TruckCourse.DeliverAddress,
-                                                                      AssignedDate = to.TruckCourse.AssignedDate,
-                                                                      DeliveryDate = to.TruckCourse.DeliveryDate,
-                                                                      Status = to.TruckCourse.Status.ToString()
-                                                                  })
-                                                                  .OrderByDescending(to => to.AssignedDate)
-                                                                  .ToListAsync();
-
                 return View(truckDetail);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while retrieving details for truck {TruckID} for driver {DriverId}.", truckID, driverId);
-                return BadRequest();
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> AssignedOrders(string? id)
-        {
-            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid truckID) || !Guid.TryParse(this.GetUserId(), out Guid driverId))
-            {
-                _logger.LogWarning("Invalid Truck ID or Driver ID format. Truck ID: {TruckID}, Driver ID: {DriverId}", id, this.GetUserId());
-                return BadRequest();
-            }
-
-            try
-            {
-                var truckExists = await _truckService.GetAll()
-                                                     .AnyAsync(t => t.TruckID.Equals(truckID) && t.DriverID.Equals(driverId));
-
-                if (!truckExists)
-                {
-                    _logger.LogWarning("Attempt to access assigned orders for a truck ({TruckID}) that does not belong to driver {DriverId}.", truckID, driverId);
-                    return NotFound("Truck not found or does not belong to the user.");
-                }
-
-                var orders = await _truckOrderService.GetAll()
-                                                     .AsNoTracking()
-                                                     .Include(to => to.TruckCourse)
-                                                     .Where(to => to.TruckCourse.TruckID.Equals(truckID) && to.TruckCourse.Status.Equals(CourseStatus.Assigned))
-                                                     .Select(to => new TruckOrderVewModel
-                                                     {
-                                                         OrderId = to.OrderID,
-                                                         DeliverAddress = to.TruckCourse.DeliverAddress,
-                                                         AssignedDate = to.TruckCourse.AssignedDate,
-                                                         Status = to.TruckCourse.Status.ToString(),
-                                                         DeliveryDate = to.TruckCourse.DeliveryDate,
-                                                     })
-                                                     .ToListAsync();
-
-                if (orders == null)
-                {
-                    orders = new List<TruckOrderVewModel>();
-                }
-
-                return View(orders);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while retrieving assigned orders for truck {TruckID} for driver {DriverId}.", truckID, driverId);
-                return BadRequest();
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> ChangeStatusToCompleted(string? id)
-        {
-            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid orderID) || !Guid.TryParse(this.GetUserId(), out Guid driverId))
-            {
-                _logger.LogWarning("Invalid Order ID or Driver ID format. Order ID: {OrderID}, Driver ID: {DriverId}", id, this.GetUserId());
-                ModelState.AddModelError("OrderId", "Invalid Order ID format.");
-                return BadRequest("Invalid request parameters.");
-            }
-
-            try
-            {
-                var orderAndTruckExist = await _truckOrderService.GetAll()
-                    .Include(to => to.TruckCourse)
-                    .AnyAsync(to => to.OrderID.Equals(orderID) &&
-                                    to.TruckCourse.Truck.DriverID.Equals(driverId));
-
-                if (!orderAndTruckExist)
-                {
-                    _logger.LogWarning("Attempt to complete an order ({OrderID}) not assigned to driver {DriverId}.", orderID, driverId);
-                    ModelState.AddModelError("OrderId", "Order not found or not assigned to your truck.");
-                    return NotFound("Order not found or not assigned to your truck.");
-                }
-
-                await _orderService.CompleteOrderAsync(orderID, _truckOrderService, _truckService);
-
-                return RedirectToAction(nameof(Index), "Truck");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while completing order {OrderID} for driver {DriverId}.", orderID, driverId);
-                ModelState.AddModelError("OrderId", "An error occurred while completing the order.");
                 return BadRequest();
             }
         }

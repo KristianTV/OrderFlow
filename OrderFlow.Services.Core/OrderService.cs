@@ -165,7 +165,7 @@ namespace OrderFlow.Services.Core
 
         public async Task<bool> ReactivateOrderAsync(Guid orderId, bool save = true)
         {
-            if (orderId == null || orderId == Guid.Empty)
+            if (orderId == Guid.Empty)
                 return false;
 
             Order? order = await this.GetTrackingOrderByIdAsync(orderId);
@@ -246,6 +246,7 @@ namespace OrderFlow.Services.Core
             return false;
         }
 
+        //Todo complete orders 
         public async Task CompleteOrderAsync(Guid orderID, ICourseOrderService _courseOrderService, ITruckService _truckService, bool save = true)
         {
             if (orderID == Guid.Empty)

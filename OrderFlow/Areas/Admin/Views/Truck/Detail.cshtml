@@ -5,7 +5,7 @@
 }
 
 <div class="container mt-5">
-    <h2 class="mb-4 text-center">@ViewData["Title"] - <span class="text-primary">@Model.LicensePlate</span></h2>
+    <h2 class="mb-4 text-center">@ViewData["Title"]</h2>
 
     <div class="row justify-content-center">
         <div class="col-lg-10 col-md-12">
@@ -44,103 +44,6 @@
                     </div>
                 </div>
             </div>
-
-            <div class="card shadow-lg mb-4">
-                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0"><i class="fas fa-boxes me-2"></i> Assigned Orders</h4>
-                    <a class="btn btn-light btn-sm" asp-area="Admin" asp-action="AssignOrders" asp-controller="Truck" asp-route-id="@Model.TruckID">
-                        <i class="fas fa-plus-circle me-1"></i> Assign Orders
-                    </a>
-                </div>
-                <div class="card-body">
-                    @if (Model.TruckOrders != null && Model.TruckOrders.Any())
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-hover table-bordered align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th scope="col">Order ID</th>
-                                        <th scope="col">Drop-off Location</th>
-                                        <th scope="col">Assigned Date</th>
-                                        <th scope="col">Delivery Date</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var truckOrder in Model.TruckOrders)
-                                    {
-                                        <tr>
-                                            <td>@truckOrder.OrderId</td>
-                                            <td>@truckOrder.DeliverAddress</td>
-                                            <td>@truckOrder.AssignedDate</td>
-                                            <td>@truckOrder.DeliveryDate</td>
-                                            <td><span class="badge @GetStatusBadgeClass(truckOrder.Status.ToString()) fs-6">@truckOrder.Status</span></td>
-                                            <td>
-                                                @if (truckOrder.Status.ToString() == "Assigned")
-                                                {
-                                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmRemovalModal_@truckOrder.OrderId">
-                                                        <i class="fas fa-minus-circle me-1"></i> Remove
-                                                    </button>
-
-                                                    <div class="modal fade" id="confirmRemovalModal_@truckOrder.OrderId" tabindex="-1" aria-labelledby="confirmRemovalModalLabel_@truckOrder.OrderId" aria-hidden="true">
-                                                        <div class="modal-dialog modal-dialog-centered">
-                                                            <div class="modal-content border-danger shadow-lg rounded-lg">
-                                                                <div class="modal-header bg-danger text-white p-3 rounded-t-lg">
-                                                                    <h5 class="modal-title fs-5" id="confirmRemovalModalLabel_@truckOrder.OrderId">
-                                                                        <i class="fas fa-exclamation-triangle me-2"></i> Confirm Order Removal
-                                                                    </h5>
-                                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                </div>
-                                                                <div class="modal-body p-4 text-center">
-                                                                    <div class="mb-3">
-                                                                        <i class="fas fa-trash-alt text-danger fa-3x"></i>
-                                                                    </div>
-                                                                    <p class="lead text-gray-700">
-                                                                        Are you sure you want to remove order <strong>@truckOrder.OrderId</strong> from this truck?
-                                                                    </p>
-                                                                    <p class="text-muted text-sm">
-                                                                        This action will unassign the order but will not delete it from the system.
-                                                                    </p>
-                                                                </div>
-                                                                <div class="modal-footer d-flex justify-content-center p-3">
-                                                                    <button type="button" class="btn btn-secondary px-4 py-2 rounded-md" data-bs-dismiss="modal">
-                                                                        Cancel
-                                                                    </button>
-                                                                    <form method="post" asp-area="Admin" asp-controller="Truck" asp-action="RemoveOrder" asp-antiforgery="true" class="d-inline">
-                                                                        <input type="hidden" name="truckId" value="@Model.TruckID" />
-                                                                        <input type="hidden" name="orderId" value="@truckOrder.OrderId" />
-                                                                        <button type="submit" class="btn btn-danger px-4 py-2 rounded-md">
-                                                                            <i class="fas fa-trash-alt me-2"></i> Yes, Remove Order
-                                                                        </button>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                }
-                                                else
-                                                {
-                                                    <p class="text-muted mb-0 small">N/A</p>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="alert alert-info text-center shadow-sm" role="alert">
-                            <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i> No Orders Assigned</h5>
-                            <p class="mb-0">This truck currently has no assigned orders. Click "Assign Orders" to add some!</p>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="d-flex justify-content-center mt-4">
         <a class="btn btn-secondary btn-lg" asp-area="Admin" asp-action="Index" asp-controller="Truck">

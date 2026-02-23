@@ -288,21 +288,6 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                truckDetail.TruckOrders = await _truckOrderService.GetAll()
-                                                                    .AsNoTracking()
-                                                                    .Include(co => co.TruckCourse)
-                                                                    .Where(to => to.TruckCourse.TruckID.Equals(truckID))
-                                                                    .Select(to => new TruckOrderVewModel
-                                                                    {
-                                                                        OrderId = to.OrderID,
-                                                                        DeliverAddress = to.TruckCourse.DeliverAddress,
-                                                                        AssignedDate = to.TruckCourse.AssignedDate,
-                                                                        DeliveryDate = to.TruckCourse.DeliveryDate,
-                                                                        Status = to.TruckCourse.Status.ToString()
-                                                                    })
-                                                                    .OrderByDescending(to => to.AssignedDate)
-                                                                    .ToListAsync();
-
                 return View(truckDetail);
             }
             catch (Exception ex)
@@ -310,110 +295,6 @@ namespace OrderFlow.Areas.Admin.Controllers
                 _logger.LogError(ex, "An error occurred while retrieving truck details for ID '{TruckId}'.", truckID);
                 TempData["Error"] = "An unexpected error occurred. Please try again.";
                 return RedirectToAction(nameof(Index));
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> AssignOrders(string? id)
-        {
-            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid truckID))
-            {
-                _logger.LogWarning("AssignOrders GET: Invalid or missing Truck ID '{TruckId}'", id);
-                TempData["Error"] = "Invalid or missing truck ID.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            try
-            {
-                AssignOrdersToTruckViewModel? truck = await _truckService.GetAll()
-                                                                        .AsNoTracking()
-                                                                        .Include(t => t.Driver)
-                                                                        .Where(t => t.TruckID.Equals(truckID))
-                                                                        .Select(t => new AssignOrdersToTruckViewModel
-                                                                        {
-                                                                            LicensePlate = t.LicensePlate,
-                                                                            Capacity = t.Capacity,
-                                                                            DriverName = t.Driver!.UserName!
-                                                                        })
-                                                                        .SingleOrDefaultAsync();
-
-                if (truck == null)
-                {
-                    _logger.LogWarning("AssignOrders GET: Truck with ID '{TruckId}' not found.", truckID);
-                    TempData["Error"] = "Truck not found.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                truck.Orders = await _orderService.GetAll()
-                                                  .AsNoTracking()
-                                                  .Where(o => new[] { OrderStatus.Pending, OrderStatus.Delayed, OrderStatus.OnHold }.Contains(o.Status) && o.LoadCapacity <= truck.Capacity)
-                                                  .Select(o => new OrderViewModel
-                                                  {
-                                                      OrderID = o.OrderID,
-                                                      DeliveryAddress = o.DeliveryAddress,
-                                                      PickupAddress = o.PickupAddress,
-                                                      OrderStatus = o.Status.ToString(),
-                                                      LoadCapacity = o.LoadCapacity,
-                                                  }).ToListAsync();
-
-                double loadedCapacity = truck.Orders.Sum(o => o.LoadCapacity);
-
-                truck.LoadedCapacity = loadedCapacity;
-
-                if (truck.Orders == null || !truck.Orders.Any())
-                {
-                    _logger.LogInformation("No available orders found for truck with ID '{TruckId}'.", truckID);
-                }
-
-                return View(truck);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while preparing to assign orders for Truck ID '{TruckId}'.", truckID);
-                TempData["Error"] = "An unexpected error occurred. Please try again.";
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignOrders(AssignOrdersToTruckViewModel assignOrders, string? id)
-        {
-            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid truckID))
-            {
-                _logger.LogWarning("AssignOrders POST: Invalid or missing Truck ID '{TruckId}'.", id);
-                TempData["Error"] = "Invalid or missing truck ID.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            if (assignOrders.Orders == null || !assignOrders.Orders.Any(o => o.IsSelected))
-            {
-                TempData["Error"] = "No orders were selected for assignment.";
-                return RedirectToAction(nameof(AssignOrders), new { id = id });
-            }
-
-            try
-            {
-                //bool success = await _truckOrderService.AssignOrdersToTruckAsync(assignOrders.Orders.Where(o => o.IsSelected), truckID) > 0;
-                bool success = false; // Placeholder for actual implementation
-                if (success)
-                {
-                    TempData["Success"] = "Orders successfully assigned to the truck.";
-                    _logger.LogInformation("Orders assigned to Truck ID: {TruckId}", truckID);
-                }
-                else
-                {
-                    TempData["Error"] = "Failed to assign orders to the truck. Please try again.";
-                    _logger.LogError("Failed to assign orders to Truck ID: {TruckId}", truckID);
-                }
-
-                return RedirectToAction(nameof(Detail), "Truck", new { id = truckID });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while assigning orders to Truck ID: {TruckId}.", truckID);
-                TempData["Error"] = "An unexpected error occurred while assigning orders. Please try again.";
-                return RedirectToAction(nameof(Detail), "Truck", new { id = id });
             }
         }
 
@@ -452,6 +333,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             }
         }
 
+        //Todo remove
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveOrder(string? truckId, string? orderId)
@@ -495,6 +377,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             }
         }
 
+        //Todo remove
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeStatusToCompleted(string? id)

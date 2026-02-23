@@ -11,7 +11,5 @@
         public double Capacity { get; set; } = 0;
 
         public string Status { get; set; } = "Available";
-
-        public ICollection<TruckOrderVewModel> TruckOrders { get; set; } = new HashSet<TruckOrderVewModel>();
     }
 }
