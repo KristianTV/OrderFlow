@@ -165,5 +165,12 @@ namespace OrderFlow.Areas.Driver.Controllers
 
             return View(course);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Complete(string? id)
+        {
+            return Ok(id);
+        }
     }
 }
