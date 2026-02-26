@@ -12,19 +12,22 @@
                 <i class="fa-solid fa-route me-2"></i>
                 Course Details
             </h4>
-            <div class="d-flex gap-2">
-                <form asp-area="Driver"
-                      asp-controller="Course"
-                      asp-action="Complete"
-                      asp-route-id="@Model.TruckCourseID"
-                      method="post"
-                      style="display:inline;">
+            @if (!Model.Status.Equals(CourseStatus.Delivered))
+            {
+                <div class="d-flex gap-2">
+                    <form asp-area="Driver"
+                          asp-controller="Course"
+                          asp-action="Complete"
+                          asp-route-id="@Model.TruckCourseID"
+                          method="post"
+                          style="display:inline;">
 
-                    <button type="submit" class="btn btn-success btn-sm">
-                        <i class="fas fa-check me-1"></i> Complete
-                    </button>
-                </form>
-            </div>
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="fas fa-check me-1"></i> Complete
+                        </button>
+                    </form>
+                </div>
+            }
         </div>
 
         <div class="card-body">

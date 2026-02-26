@@ -177,38 +177,43 @@ namespace OrderFlow.Services.Core
             //    return false;
         }
 
-        public async Task CompleteCourseAsync(Guid courseID)
+        public async Task<bool> CompleteCourseAsync(Guid courseID, bool save = true)
         {
-            throw new NotImplementedException();
-            //    CourseOrder? order = await GetAll()
-            //                                  .Include(to => to.Truck)
-            //                                  .ThenInclude(t => t.Driver)
-            //                                  .Where(x => x.OrderID.Equals(orderID) &&
-            //                                              x.Status.Equals(CourseStatus.Assigned))
-            //                                  .SingleOrDefaultAsync();
+            TruckCourse? course = await this.GetAll()
+                                            .Include(tc => tc.Truck)
+                                            .Include(tc => tc.CourseOrders)
+                                            .ThenInclude(co => co.Order)
+                                            .Where(tc => tc.TruckCourseID.Equals(courseID))
+                                            .SingleOrDefaultAsync();
 
-            //    if (order != null)
-            //    {
-            //        if (order.Status == CourseStatus.Delivered)
-            //            return;
+            if (course == null)
+                return false;
 
-            //        order.Status = CourseStatus.Delivered;
-            //        order.DeliveryDate = DateTime.UtcNow;
+            if (course.Status == CourseStatus.Delivered)
+                return false;
 
-            //        if (order.Truck.DriverID == Guid.Empty)
-            //            return;
+            course.Status = CourseStatus.Delivered;
+            course.DeliveryDate = DateTime.UtcNow;
 
-            //        await _notificationService.AddAsync(new Notification
-            //        {
-            //            Title = $"Order {orderID} has been delivered",
-            //            OrderID = order.OrderID,
-            //            Message = $"Order {orderID} has been delivered",
-            //            CreatedAt = DateTime.UtcNow,
-            //            ReceiverID = order.Truck.DriverID,
-            //        });
+            if (course.Truck == null || course.Truck?.DriverID == Guid.Empty)
+                return false;
 
-            //        await SaveChangesAsync();
-            //    }
+            foreach (var courseOrder in course.CourseOrders)
+            {
+                if (courseOrder.Order.DeliveryAddress.Equals(course.DeliverAddress))
+                    courseOrder.Order.Status = OrderStatus.Completed;
+                else
+                    courseOrder.Order.Status = OrderStatus.Pending;
+            }
+
+            await _notificationService.SendSystemNotificationAsync(course.ToNotification($"Course {courseID} has been completed!", $"Course {courseID} has been completed!"));
+
+            if (save)
+            {
+                return await SaveChangesAsync() > 0;
+            }
+
+            return true;
         }
 
         public async Task<bool> CreateCourseAsync(CreateCourseViewModel createCourseViewModel, bool save = true)

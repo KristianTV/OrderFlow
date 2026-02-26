@@ -12,7 +12,7 @@ namespace OrderFlow.Services.Core.Contracts
         IQueryable<TruckCourse> GetQueryableByIdAsync(Guid courseID);
         Task<int> AssignOrdersToCourseAsync(IEnumerable<OrderViewModel> ordersToAssign, Guid courseID);
         Task<bool> RemoveOrderFromCourseAsync(Guid courseID, Guid orderID);
-        Task CompleteCourseAsync(Guid courseID);
+        Task<bool> CompleteCourseAsync(Guid courseID, bool save = true);
         Task<bool> CreateCourseAsync(CreateCourseViewModel createCourseViewModel, bool save = true);
         Task<bool> UpdateCourseAsync(CreateCourseViewModel createCourseViewModel, Guid courseId, bool save = true);
         Task<bool> DeleteCourseAsync(Guid courseID);

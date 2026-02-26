@@ -170,7 +170,21 @@ namespace OrderFlow.Areas.Driver.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Complete(string? id)
         {
-            return Ok(id);
+            if (string.IsNullOrEmpty(id))
+            {
+                _logger.LogError(id, "Course ID must be provided.");
+                return BadRequest();
+            }
+
+            if (!Guid.TryParse(id, out Guid courseId))
+            {
+                _logger.LogError(id, "Invalid Course ID format.");
+                return NotFound();
+            }
+
+            await _truckCourseService.CompleteCourseAsync(courseId);
+
+            return RedirectToAction(nameof(Detail), "Course", new { id = courseId });
         }
     }
 }
