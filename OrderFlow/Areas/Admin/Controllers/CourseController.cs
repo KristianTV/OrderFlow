@@ -10,24 +10,18 @@ namespace OrderFlow.Areas.Admin.Controllers
 {
     public class CourseController : BaseAdminController
     {
-        private readonly ILogger<DashboardController> _logger;
+        private readonly ILogger<CourseController> _logger;
         private readonly ITruckCourseService _truckCourseService;
-        private readonly ICourseOrderService _courseOrderService;
         private readonly ITruckService _truckService;
-        private readonly INotificationService _notificationService;
 
 
-        public CourseController(ILogger<DashboardController> logger,
+        public CourseController(ILogger<CourseController> logger,
                                     ITruckCourseService truckCourseService,
-                                    ICourseOrderService courseOrderService,
-                                    ITruckService truckService,
-                                    INotificationService notificationService)
+                                    ITruckService truckService)
         {
             _logger = logger;
             _truckCourseService = truckCourseService;
-            _courseOrderService = courseOrderService;
             _truckService = truckService;
-            _notificationService = notificationService;
         }
         private async Task<Dictionary<Guid, string>> GetAvailableTrucksAsync()
         {
