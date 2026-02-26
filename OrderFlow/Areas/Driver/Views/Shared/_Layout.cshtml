@@ -80,11 +80,18 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link @(currentController == "Course" ? "active" : "")"
+                                   asp-area="Driver" asp-controller="Course" asp-action="Index">
+                                    <i class="fa-solid fa-truck-ramp-box"></i> Courses
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link @(currentController == "Notification" ? "active" : "")"
                                    asp-area="Driver" asp-controller="Notification" asp-action="Index">
                                     <i class="fas fa-bell me-1"></i> Notifications
                                 </a>
                             </li>
+
                             <li class="nav-item">
                                 <a class="nav-link @(currentController == "Dashboard" ? "active" : "")"
                                    asp-area="Driver" asp-controller="Dashboard" asp-action="Index">
