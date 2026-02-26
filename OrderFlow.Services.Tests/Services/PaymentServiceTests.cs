@@ -32,8 +32,8 @@ namespace OrderFlow.Tests.Services
         [Test]
         public void GetAll_ReturnsAllPayments()
         {
-            _context.Payments.Add(new Payment { Id = Guid.NewGuid(), Amount = 10.00m, OrderID = Guid.NewGuid(), PaymentDate = DateTime.UtcNow });
-            _context.Payments.Add(new Payment { Id = Guid.NewGuid(), Amount = 20.00m, OrderID = Guid.NewGuid(), PaymentDate = DateTime.UtcNow });
+            _context.Payments.Add(new Payment { PaymentID = Guid.NewGuid(), Amount = 10.00m, OrderID = Guid.NewGuid(), PaymentDate = DateTime.UtcNow });
+            _context.Payments.Add(new Payment { PaymentID = Guid.NewGuid(), Amount = 20.00m, OrderID = Guid.NewGuid(), PaymentDate = DateTime.UtcNow });
             _context.SaveChanges();
 
             var result = _paymentService.GetAll();
@@ -76,7 +76,7 @@ namespace OrderFlow.Tests.Services
         public async Task DeletePaymentAsync_DeletesExistingPayment()
         {
             var paymentId = Guid.NewGuid();
-            _context.Payments.Add(new Payment { Id = paymentId, Amount = 100.00m, OrderID = Guid.NewGuid(), PaymentDate = DateTime.UtcNow });
+            _context.Payments.Add(new Payment { PaymentID = paymentId, Amount = 100.00m, OrderID = Guid.NewGuid(), PaymentDate = DateTime.UtcNow });
             await _context.SaveChangesAsync();
 
             bool success = await _paymentService.DeletePaymentAsync(paymentId);
@@ -106,7 +106,7 @@ namespace OrderFlow.Tests.Services
         public async Task UpdatePaymentAsync_UpdatesExistingPayment()
         {
             var paymentId = Guid.NewGuid();
-            _context.Payments.Add(new Payment { Id = paymentId, Amount = 150.00m, PaymentDescription = "Old Description", OrderID = Guid.NewGuid(), PaymentDate = DateTime.UtcNow });
+            _context.Payments.Add(new Payment { PaymentID = paymentId, Amount = 150.00m, PaymentDescription = "Old Description", OrderID = Guid.NewGuid(), PaymentDate = DateTime.UtcNow });
             await _context.SaveChangesAsync();
 
             var updatedPaymentViewModel = new CreatePaymentViewModel
@@ -115,7 +115,7 @@ namespace OrderFlow.Tests.Services
                 PaymentDescription = "New Description"
             };
 
-            bool success =  await _paymentService.UpdatePaymentAsync(paymentId, updatedPaymentViewModel);
+            bool success = await _paymentService.UpdatePaymentAsync(paymentId, updatedPaymentViewModel);
 
             var updatedPayment = await _context.Payments.FindAsync(paymentId);
             Assert.IsTrue(success);

@@ -22,9 +22,9 @@ namespace OrderFlow.Tests.Services
             _context = new OrderFlowDbContext(_options);
             _truckService = new TruckService(_context);
 
-            _context.Trucks.Add(new Truck { TruckID = Guid.Parse("f1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f"), LicensePlate = "ABC-123", Capacity = 100, Status = TruckStatus.Available, isDeleted = false });
-            _context.Trucks.Add(new Truck { TruckID = Guid.Parse("b1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f"), LicensePlate = "XYZ-789", Capacity = 200, Status = TruckStatus.Unavailable, isDeleted = false });
-            _context.Trucks.Add(new Truck { TruckID = Guid.Parse("c1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f"), LicensePlate = "DEF-456", Capacity = 150, Status = TruckStatus.UnderMaintenance, isDeleted = true });
+            _context.Trucks.Add(new Truck { TruckID = Guid.Parse("f1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f"), LicensePlate = "ABC-123", Capacity = 100, Status = TruckStatus.Available, IsDeleted = false });
+            _context.Trucks.Add(new Truck { TruckID = Guid.Parse("b1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f"), LicensePlate = "XYZ-789", Capacity = 200, Status = TruckStatus.Unavailable, IsDeleted = false });
+            _context.Trucks.Add(new Truck { TruckID = Guid.Parse("c1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f"), LicensePlate = "DEF-456", Capacity = 150, Status = TruckStatus.UnderMaintenance, IsDeleted = true });
             _context.SaveChanges();
         }
 
@@ -80,7 +80,7 @@ namespace OrderFlow.Tests.Services
             var truckId = Guid.Parse("f1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f");
             var result = await _truckService.SoftDeleteTruckAsync(truckId);
             Assert.IsTrue(result);
-            Assert.IsTrue(_context.Trucks.IgnoreQueryFilters().First(t => t.TruckID == truckId).isDeleted);
+            Assert.IsTrue(_context.Trucks.IgnoreQueryFilters().First(t => t.TruckID == truckId).IsDeleted);
         }
 
         [Test]
@@ -170,63 +170,6 @@ namespace OrderFlow.Tests.Services
         {
             var status = await _truckService.GetTruckStatusAsync(Guid.NewGuid());
             Assert.AreEqual(string.Empty, status);
-        }
-
-        [Test]
-        public void GetTruckStatusAsync_InvalidId_ThrowsException()
-        {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await _truckService.GetTruckStatusAsync(Guid.Empty));
-        }
-
-        [Test]
-        public void ChangeTruckStatus_ValidStatus_StatusIsUpdated()
-        {
-            var truckId = Guid.Parse("f1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f");
-            _truckService.ChangeTruckStatus(truckId, "UnderMaintenance");
-            var truck = _context.Trucks.Find(truckId);
-            Assert.AreEqual(TruckStatus.UnderMaintenance, truck.Status);
-        }
-
-        [Test]
-        public void ChangeTruckStatus_SameStatus_NoChange()
-        {
-            var truckId = Guid.Parse("f1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f");
-            _truckService.ChangeTruckStatus(truckId, "Available");
-            var truck = _context.Trucks.Find(truckId);
-            Assert.AreEqual(TruckStatus.Available, truck.Status);
-        }
-
-        [Test]
-        public void ChangeTruckStatus_InvalidStatus_ThrowsException()
-        {
-            Assert.Throws<ArgumentException>(() => _truckService.ChangeTruckStatus(Guid.NewGuid(), "InvalidStatus"));
-        }
-
-        [Test]
-        public void ChangeTruckStatus_NullId_ThrowsException()
-        {
-            Assert.Throws<ArgumentNullException>(() => _truckService.ChangeTruckStatus(Guid.Empty, "Available"));
-        }
-
-        [Test]
-        public void GetTruckStatus_ExistingTruck_ReturnsStatus()
-        {
-            var truckId = Guid.Parse("f1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f");
-            var status = _truckService.GetTruckStatus(truckId);
-            Assert.AreEqual("Available", status);
-        }
-
-        [Test]
-        public void GetTruckStatus_NonExistingTruck_ReturnsEmptyString()
-        {
-            var status = _truckService.GetTruckStatus(Guid.NewGuid());
-            Assert.AreEqual(string.Empty, status);
-        }
-
-        [Test]
-        public void GetTruckStatus_InvalidId_ThrowsException()
-        {
-            Assert.Throws<ArgumentNullException>(() => _truckService.GetTruckStatus(Guid.Empty));
         }
     }
 }

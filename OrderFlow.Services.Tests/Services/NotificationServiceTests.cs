@@ -58,8 +58,8 @@ namespace OrderFlow.Tests.Services
             Assert.That(notification, Is.Not.Null);
             Assert.That(notification.Title, Is.EqualTo("Test Notification"));
             Assert.That(notification.Message, Is.EqualTo("This is a test message."));
-            Assert.That(notification.ReceiverId, Is.EqualTo(receiver.Id));
-            Assert.That(notification.SenderId, Is.EqualTo(sender.Id));
+            Assert.That(notification.ReceiverID, Is.EqualTo(receiver.Id));
+            Assert.That(notification.SenderID, Is.EqualTo(sender.Id));
             Assert.That(notification.IsRead, Is.False);
             Assert.That(notification.IsDeleted, Is.False);
             Assert.That(notification.CreatedAt.Date, Is.EqualTo(DateTime.UtcNow.Date));
@@ -107,9 +107,9 @@ namespace OrderFlow.Tests.Services
             var notification = await _context.Notifications.SingleOrDefaultAsync();
             Assert.That(notification, Is.Not.Null);
             Assert.That(notification.Title, Is.EqualTo("Admin Notification"));
-            Assert.That(notification.ReceiverId, Is.EqualTo(receiver.Id));
-            Assert.That(notification.SenderId, Is.EqualTo(sender.Id));
-            Assert.That(notification.TruckId, Is.Not.Null);
+            Assert.That(notification.ReceiverID, Is.EqualTo(receiver.Id));
+            Assert.That(notification.SenderID, Is.EqualTo(sender.Id));
+            Assert.That(notification.TruckID, Is.Not.Null);
         }
 
         [Test]
@@ -118,9 +118,9 @@ namespace OrderFlow.Tests.Services
             var driver = await AddUser("Driver1");
             var admin = await AddUser("Admin1");
             await _context.Notifications.AddRangeAsync(
-                new Notification { Id = Guid.NewGuid(), Title = "New Order", ReceiverId = driver.Id, SenderId = admin.Id, CreatedAt = DateTime.UtcNow.AddMinutes(-5), IsRead = false, Sender = admin },
-                new Notification { Id = Guid.NewGuid(), Title = "Completed Delivery", ReceiverId = driver.Id, SenderId = admin.Id, CreatedAt = DateTime.UtcNow.AddMinutes(-10), IsRead = true, Sender = admin },
-                new Notification { Id = Guid.NewGuid(), Title = "Admin Message", ReceiverId = admin.Id, SenderId = driver.Id, CreatedAt = DateTime.UtcNow.AddMinutes(-1), IsRead = false, Sender = driver }
+                new Notification { NotificationID = Guid.NewGuid(), Title = "New Order", ReceiverID = driver.Id, SenderID = admin.Id, CreatedAt = DateTime.UtcNow.AddMinutes(-5), IsRead = false, Sender = admin },
+                new Notification { NotificationID = Guid.NewGuid(), Title = "Completed Delivery", ReceiverID = driver.Id, SenderID = admin.Id, CreatedAt = DateTime.UtcNow.AddMinutes(-10), IsRead = true, Sender = admin },
+                new Notification { NotificationID = Guid.NewGuid(), Title = "Admin Message", ReceiverID = admin.Id, SenderID = driver.Id, CreatedAt = DateTime.UtcNow.AddMinutes(-1), IsRead = false, Sender = driver }
             );
             await _context.SaveChangesAsync();
 
@@ -165,12 +165,12 @@ namespace OrderFlow.Tests.Services
         public async Task ReadAsync_ShouldMarkNotificationAsRead()
         {
             var notificationId = Guid.NewGuid();
-            await _context.Notifications.AddAsync(new Notification { Id = notificationId, Title = "Unread", IsRead = false, CreatedAt = DateTime.UtcNow });
+            await _context.Notifications.AddAsync(new Notification { NotificationID = notificationId, Title = "Unread", IsRead = false, CreatedAt = DateTime.UtcNow });
             await _context.SaveChangesAsync();
 
             await _service.ReadAsync(notificationId);
 
-            var notification = await _context.Notifications.SingleAsync(n => n.Id == notificationId);
+            var notification = await _context.Notifications.SingleAsync(n => n.NotificationID == notificationId);
             Assert.That(notification.IsRead, Is.True);
         }
 
@@ -178,12 +178,12 @@ namespace OrderFlow.Tests.Services
         public async Task ReadAsync_ShouldDoNothingIfAlreadyRead()
         {
             var notificationId = Guid.NewGuid();
-            await _context.Notifications.AddAsync(new Notification { Id = notificationId, Title = "Read", IsRead = true, CreatedAt = DateTime.UtcNow });
+            await _context.Notifications.AddAsync(new Notification { NotificationID = notificationId, Title = "Read", IsRead = true, CreatedAt = DateTime.UtcNow });
             await _context.SaveChangesAsync();
 
             await _service.ReadAsync(notificationId);
 
-            var notification = await _context.Notifications.SingleAsync(n => n.Id == notificationId);
+            var notification = await _context.Notifications.SingleAsync(n => n.NotificationID == notificationId);
             Assert.That(notification.IsRead, Is.True);
         }
 
@@ -191,12 +191,12 @@ namespace OrderFlow.Tests.Services
         public async Task SoftDelete_ShouldMarkNotificationAsDeleted()
         {
             var notificationId = Guid.NewGuid();
-            await _context.Notifications.AddAsync(new Notification { Id = notificationId, Title = "To Delete", IsDeleted = false, CreatedAt = DateTime.UtcNow });
+            await _context.Notifications.AddAsync(new Notification { NotificationID = notificationId, Title = "To Delete", IsDeleted = false, CreatedAt = DateTime.UtcNow });
             await _context.SaveChangesAsync();
 
             await _service.SoftDelete(notificationId);
 
-            var notification = await _context.Notifications.IgnoreQueryFilters().SingleAsync(n => n.Id == notificationId);
+            var notification = await _context.Notifications.IgnoreQueryFilters().SingleAsync(n => n.NotificationID == notificationId);
             Assert.That(notification.IsDeleted, Is.True);
         }
 
@@ -204,13 +204,13 @@ namespace OrderFlow.Tests.Services
         public async Task SoftDelete_ShouldDoNothingIfAlreadyDeleted()
         {
             var notificationId = Guid.NewGuid();
-            await _context.Notifications.AddAsync(new Notification { Id = notificationId, Title = "Already Deleted", IsDeleted = true, CreatedAt = DateTime.UtcNow });
+            await _context.Notifications.AddAsync(new Notification { NotificationID = notificationId, Title = "Already Deleted", IsDeleted = true, CreatedAt = DateTime.UtcNow });
             await _context.SaveChangesAsync();
 
             var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _service.SoftDelete(notificationId));
             Assert.That(ex.Message, Is.EqualTo("Notification not found."));
 
-            var notification = await _context.Notifications.IgnoreQueryFilters().SingleAsync(n => n.Id == notificationId);
+            var notification = await _context.Notifications.IgnoreQueryFilters().SingleAsync(n => n.NotificationID == notificationId);
             Assert.That(notification.IsDeleted, Is.True);
         }
 
@@ -218,12 +218,12 @@ namespace OrderFlow.Tests.Services
         public async Task UnreadAsync_ShouldMarkNotificationAsUnread()
         {
             var notificationId = Guid.NewGuid();
-            await _context.Notifications.AddAsync(new Notification { Id = notificationId, Title = "Read", IsRead = true, CreatedAt = DateTime.UtcNow });
+            await _context.Notifications.AddAsync(new Notification { NotificationID = notificationId, Title = "Read", IsRead = true, CreatedAt = DateTime.UtcNow });
             await _context.SaveChangesAsync();
 
             await _service.UnreadAsync(notificationId);
 
-            var notification = await _context.Notifications.SingleAsync(n => n.Id == notificationId);
+            var notification = await _context.Notifications.SingleAsync(n => n.NotificationID == notificationId);
             Assert.That(notification.IsRead, Is.False);
         }
 
@@ -231,12 +231,12 @@ namespace OrderFlow.Tests.Services
         public async Task UnreadAsync_ShouldDoNothingIfAlreadyUnread()
         {
             var notificationId = Guid.NewGuid();
-            await _context.Notifications.AddAsync(new Notification { Id = notificationId, Title = "Unread", IsRead = false, CreatedAt = DateTime.UtcNow });
+            await _context.Notifications.AddAsync(new Notification { NotificationID = notificationId, Title = "Unread", IsRead = false, CreatedAt = DateTime.UtcNow });
             await _context.SaveChangesAsync();
 
             await _service.UnreadAsync(notificationId);
 
-            var notification = await _context.Notifications.SingleAsync(n => n.Id == notificationId);
+            var notification = await _context.Notifications.SingleAsync(n => n.NotificationID == notificationId);
             Assert.That(notification.IsRead, Is.False);
         }
 
@@ -249,11 +249,11 @@ namespace OrderFlow.Tests.Services
             var notificationId = Guid.NewGuid();
             await _context.Notifications.AddAsync(new Notification
             {
-                Id = notificationId,
+                NotificationID = notificationId,
                 Title = "Old Title",
                 Message = "Old Message",
-                ReceiverId = oldReceiver.Id,
-                SenderId = sender.Id,
+                ReceiverID = oldReceiver.Id,
+                SenderID = sender.Id,
                 CreatedAt = DateTime.UtcNow.AddDays(-1),
                 IsRead = true,
                 IsDeleted = false
@@ -271,10 +271,10 @@ namespace OrderFlow.Tests.Services
             var result = await _service.UpdateNotificationAsync(updateViewModel, notificationId, sender.Id);
 
             Assert.That(result, Is.True);
-            var updatedNotification = await _context.Notifications.SingleAsync(n => n.Id == notificationId);
+            var updatedNotification = await _context.Notifications.SingleAsync(n => n.NotificationID == notificationId);
             Assert.That(updatedNotification.Title, Is.EqualTo("New Title"));
             Assert.That(updatedNotification.Message, Is.EqualTo("New Message"));
-            Assert.That(updatedNotification.ReceiverId, Is.EqualTo(newReceiver.Id));
+            Assert.That(updatedNotification.ReceiverID, Is.EqualTo(newReceiver.Id));
             Assert.That(updatedNotification.IsRead, Is.False);
         }
 
@@ -300,11 +300,11 @@ namespace OrderFlow.Tests.Services
 
             await _context.Notifications.AddAsync(new Notification
             {
-                Id = notificationId,
+                NotificationID = notificationId,
                 Title = "Original",
                 Message = "Original",
-                ReceiverId = receiver.Id,
-                SenderId = sender.Id,
+                ReceiverID = receiver.Id,
+                SenderID = sender.Id,
                 CreatedAt = DateTime.UtcNow
             });
             await _context.SaveChangesAsync();
@@ -314,7 +314,7 @@ namespace OrderFlow.Tests.Services
             var result = await _service.UpdateNotificationAsync(updateViewModel, notificationId, unauthorizedUser.Id);
 
             Assert.That(result, Is.False);
-            var originalNotification = await _context.Notifications.SingleAsync(n => n.Id == notificationId);
+            var originalNotification = await _context.Notifications.SingleAsync(n => n.NotificationID == notificationId);
             Assert.That(originalNotification.Title, Is.EqualTo("Original"));
         }
 
