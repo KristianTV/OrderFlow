@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
+using OrderFlow.Hubs;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Order;
 
@@ -8,13 +12,22 @@ namespace OrderFlow.Controllers
 {
     public class OrderController : BaseController
     {
+
+        private readonly UserManager<ApplicationUser> _userManager;
+
         private readonly ILogger<OrderController> _logger;
         private readonly IOrderService _orderService;
+        private readonly IHubContext<OrderHub> _hubContext;
 
-        public OrderController(ILogger<OrderController> logger, IOrderService orderService)
+        public OrderController(ILogger<OrderController> logger,
+                               IOrderService orderService,
+                               UserManager<ApplicationUser> userManager,
+                               IHubContext<OrderHub> hubContext)
         {
             _logger = logger;
             _orderService = orderService;
+            _hubContext = hubContext;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -86,7 +99,7 @@ namespace OrderFlow.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            return View(new CreateOrderViewModel());
         }
 
         [HttpPost]
@@ -119,6 +132,18 @@ namespace OrderFlow.Controllers
                 return View(createOrderViewModel);
             }
 
+            IEnumerable<string> staff = await GetUsersByRolesAsync(UserRoles.Admin.ToString(), UserRoles.Speditor.ToString());
+
+            await _hubContext.Clients.Users(staff).SendAsync("ReceiveOrderUpdate",
+            new IndexOrderViewModel
+            {
+                OrderID = Guid.NewGuid(),
+                OrderDate = DateTime.UtcNow,
+                DeliveryAddress = createOrderViewModel.DeliveryAddress,
+                PickupAddress = createOrderViewModel.PickupAddress,
+                Status = OrderStatus.Pending.ToString(),
+                isCanceled = false
+            });
             return RedirectToAction(nameof(Index), "Order");
         }
 
@@ -298,6 +323,16 @@ namespace OrderFlow.Controllers
             }
 
             return RedirectToAction(nameof(Index), "Order");
+        }
+        protected async Task<IEnumerable<string>> GetUsersByRolesAsync(params string[] roles)
+        {
+            var userIds = new List<string>();
+            foreach (var role in roles)
+            {
+                var usersInRole = await _userManager.GetUsersInRoleAsync(role);
+                userIds.AddRange(usersInRole.Select(u => u.Id.ToString()));
+            }
+            return userIds.Distinct();
         }
     }
 }

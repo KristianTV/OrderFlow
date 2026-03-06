@@ -65,7 +65,7 @@
         </div>
     </form>
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div id="ordersList" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         @if (Model != null && Model.Any())
         {
             @foreach (var order in Model)
@@ -101,7 +101,7 @@
         }
         else
         {
-            <div class="col-md-6 mx-auto">
+            <div id="noOrdersMessage" class="col-md-6 mx-auto">
                 <div class="alert alert-info text-center shadow-sm" role="alert">
                     <h4 class="alert-heading"><i class="fas fa-info-circle me-2"></i> No Orders Found</h4>
                     <p class="mb-0">It looks like there are no orders to display yet. Click "Create New Order" to add one!</p>
@@ -110,6 +110,9 @@
         }
     </div>
 </div>
+
+<script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+<script src="~/js/order.js" ></script>
 
 @functions {
     private string GetStatusBadgeClass(string status) => status switch

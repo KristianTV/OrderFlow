@@ -59,10 +59,8 @@ app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapHub<NotificationHub>("/notificationHub");
-});
+app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<OrderHub>("/orderHub");
 
 app.MapControllerRoute(
         name: "Admin",
