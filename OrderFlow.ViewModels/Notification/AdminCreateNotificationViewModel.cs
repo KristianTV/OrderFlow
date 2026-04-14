@@ -8,5 +8,8 @@ namespace OrderFlow.ViewModels.Notification
         public Guid? TruckId { get; set; }
 
         public IDictionary<Guid, string>? Trucks { get; set; } = new Dictionary<Guid, string>();
+
+        [Display(Name = "Enable Response")]
+        public bool IsResponseEnabled { get; set; } = true;
     }
 }
