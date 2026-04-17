@@ -1,0 +1,86 @@
+﻿@using OrderFlow.ViewModels.Message
+@model OrderFlow.ViewModels.Notification.DriverDetailsNotificationViewModel
+
+@{
+    var notificationID = Context.Request.RouteValues["id"]?.ToString() ?? "";
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+}
+
+<div class="card shadow-lg mb-4">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-comments me-2"></i> Messages</h5>
+        <button type="button" class="btn btn-sm btn-light"
+                data-bs-toggle="modal" data-bs-target="#addMessageModal">
+            <i class="fas fa-plus me-1"></i> New Message
+        </button>
+    </div>
+
+    <div class="card-body p-0"
+         id="messagesContainer"
+         style="max-height: 420px; overflow-y: auto;">
+
+        @if (Model.Messages != null && Model.Messages.Any())
+        {
+            <ul class="list-group list-group-flush">
+                @foreach (var msg in Model.Messages)
+                {
+                    <li class="list-group-item @(msg.IsRead ? "" : "list-group-item-light")"
+                        data-message-id="@msg.MessageID">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1 me-3">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="fas fa-user-circle me-2 text-secondary"></i>
+                                    <strong>@msg.SenderName</strong>
+                                    <small class="text-muted ms-3">
+                                        <i class="far fa-clock me-1"></i>@msg.SentAt.ToString("dd-MM-yyyy HH:mm")
+                                    </small>
+                                    @if (!msg.IsRead)
+                                    {
+                                        <span class="badge bg-primary ms-2">New</span>
+                                    }
+                                </div>
+                                <p class="mb-0 ps-4 message-content">@msg.Content</p>
+                            </div>
+                            @if (msg.SenderID.ToString().Equals(currentUserId))
+                            {
+                                <div class="d-flex gap-2 flex-shrink-0">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            title="Edit message"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editMessageModal"
+                                            data-message-id="@msg.MessageID"
+                                            data-message-content="@msg.Content">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            title="Delete message"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteMessageModal"
+                                            data-message-id="@msg.MessageID">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="p-4 text-center text-muted fst-italic">
+                <i class="far fa-comment-dots fa-2x mb-2 d-block"></i>
+                No messages yet. Be the first to add one.
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model.Message != null && Model.Message.Any())
+{
+    <partial name="~/Areas/Admin/Views/Message/Edit.cshtml" />
+    <partial name="~/Areas/Admin/Views/Message/Create.cshtml" />
+    <partial name="~/Areas/Admin/Views/Message/Delete.cshtml" />
+}

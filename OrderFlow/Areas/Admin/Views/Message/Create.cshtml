@@ -1,0 +1,45 @@
+﻿@{
+    var notificationID = Context.Request.RouteValues["id"]?.ToString() ?? "";
+}
+
+<div class="modal fade" id="addMessageModal" tabindex="-1"
+     aria-labelledby="addMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="addMessageModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i> New Message
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addMessageForm" asp-antiforgery="true" method="post"
+                  asp-area="Admin" asp-controller="Message" asp-action="Create">
+                <div class="modal-body">
+                    <input type="hidden" name="NotificationID" value="@notificationID" />
+                    <div class="mb-3">
+                        <label for="addMessageContent" class="form-label fw-semibold">
+                            Message Content
+                        </label>
+                        <textarea id="addMessageContent"
+                                  name="Content"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Write your message here..."></textarea>
+                        <div class="invalid-feedback">Please enter a message.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-dark">
+                        <i class="fas fa-paper-plane me-1"></i> Send
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
