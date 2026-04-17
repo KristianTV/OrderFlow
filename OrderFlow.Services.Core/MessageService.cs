@@ -49,7 +49,7 @@ namespace OrderFlow.Services.Core
 
             Message? message = await this.GetMessageByIdAsync(messageId);
 
-            if (message == null || message.IsDeleted || message.SenderID.Equals(senderId))
+            if (message == null || message.IsDeleted || !message.SenderID.Equals(senderId))
                 return false;
 
             message.IsDeleted = true;
