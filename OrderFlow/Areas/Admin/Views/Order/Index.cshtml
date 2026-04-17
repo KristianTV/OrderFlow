@@ -111,8 +111,10 @@
     </div>
 </div>
 
-<script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
-<script src="~/js/order.js" ></script>
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script src="~/js/sonar/order.js" ></script>
+}
 
 @functions {
     private string GetStatusBadgeClass(string status) => status switch

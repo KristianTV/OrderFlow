@@ -1,5 +1,5 @@
 ﻿var connection = new signalR.HubConnectionBuilder()
-    .withUrl("/orderHub")
+    .withUrl("/hubs/order")
     .withAutomaticReconnect()
     .build();
 
