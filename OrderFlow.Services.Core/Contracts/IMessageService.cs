@@ -11,7 +11,7 @@ namespace OrderFlow.Services.Core.Contracts
         Task<IEnumerable<Message?>> GetMessagesByNotificationIdAsync(Guid? notificationId);
         Task<Message> CreateMessageAsync(CreateNotificationMessageViewModel createNotificationMessageViewModel, bool save = true);
         Task<Message> UpdateMessageAsync(CreateNotificationMessageViewModel createNotificationMessageViewModel, Guid? messageId, Guid? senderId, bool save = true);
-        Task<bool> DeleteMessageAsync(Guid? messageId, bool save = true);
+        Task<bool> DeleteMessageAsync(Guid? messageId, Guid? senderId, bool save = true);
         Task<bool> MarkMessageAsReadAsync(Guid? messageId, bool save = true);
     }
 }

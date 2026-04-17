@@ -42,14 +42,14 @@ namespace OrderFlow.Services.Core
             return message;
         }
 
-        public async Task<bool> DeleteMessageAsync(Guid? messageId, bool save = true)
+        public async Task<bool> DeleteMessageAsync(Guid? messageId, Guid? senderId, bool save = true)
         {
             if (messageId == null || messageId.Value.Equals(Guid.Empty))
                 return false;
 
             Message? message = await this.GetMessageByIdAsync(messageId);
 
-            if (message == null || message.IsDeleted)
+            if (message == null || message.IsDeleted || message.SenderID.Equals(senderId))
                 return false;
 
             message.IsDeleted = true;
