@@ -5,8 +5,6 @@
 **OrderFlow** is a diploma project developed as part of the graduation requirements.  
 The project represents an order and delivery management system with role-based access, designed to demonstrate practical skills in software development using modern technologies.
 
----
-
 ## Project Purpose
 
 The main goal of this diploma project is to:
@@ -17,8 +15,6 @@ The main goal of this diploma project is to:
 - Ensure system stability and error handling
 - Demonstrate clean architecture and testing practices
 
----
-
 ## Technologies Used
 
 - **.NET (C#)**
@@ -27,13 +23,9 @@ The main goal of this diploma project is to:
 - **ASP.NET Core**
 - **Unit Testing**
 
----
-
 ## License
 
 This project is licensed under the **Apache License 2.0** .
-
----
 
 ## Author
 
