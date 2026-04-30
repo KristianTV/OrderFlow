@@ -42,13 +42,13 @@ namespace OrderFlow.Services.Core
             }
 
             return await trucks.Select(truck => new IndexTruckViewModel
-                               {
-                                   TruckID = truck.TruckID,
-                                   DriverName = truck.Driver!.UserName!,
-                                   LicensePlate = truck.LicensePlate,
-                                   Capacity = truck.Capacity,
-                                   Status = truck.Status.ToString(),
-                               })
+            {
+                TruckID = truck.TruckID,
+                DriverName = truck.Driver!.UserName!,
+                LicensePlate = truck.LicensePlate,
+                Capacity = truck.Capacity,
+                Status = truck.Status.ToString(),
+            })
                                .ToListAsync();
         }
 
@@ -79,13 +79,13 @@ namespace OrderFlow.Services.Core
             }
 
             return await trucks.Select(t => new DetailsTruckViewModel
-                               {
-                                   TruckID = t.TruckID,
-                                   DriverName = t.Driver!.UserName!,
-                                   LicensePlate = t.LicensePlate,
-                                   Capacity = t.Capacity,
-                                   Status = t.Status.ToString(),
-                               })
+            {
+                TruckID = t.TruckID,
+                DriverName = t.Driver!.UserName!,
+                LicensePlate = t.LicensePlate,
+                Capacity = t.Capacity,
+                Status = t.Status.ToString(),
+            })
                                .SingleOrDefaultAsync();
         }
 

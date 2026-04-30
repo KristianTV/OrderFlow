@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +10,7 @@ using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Course;
 using OrderFlow.ViewModels.Order;
 using OrderFlow.ViewModels.Truck;
+using System.Security.Claims;
 using AdminCourseController = OrderFlow.Areas.Admin.Controllers.CourseController;
 using AdminOrderController = OrderFlow.Areas.Admin.Controllers.OrderController;
 using AdminTruckController = OrderFlow.Areas.Admin.Controllers.TruckController;

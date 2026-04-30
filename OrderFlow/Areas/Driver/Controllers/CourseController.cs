@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Course;
-using OrderFlow.ViewModels.Order;
 
 namespace OrderFlow.Areas.Driver.Controllers
 {

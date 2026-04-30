@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="10.0.7" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\OrderFlow.Data.Models\OrderFlow.Data.Models.csproj" />
     <ProjectReference Include="..\OrderFlow.Data\OrderFlow.Data.csproj" />
     <ProjectReference Include="..\OrderFlow.GCommon\OrderFlow.GCommon.csproj" />

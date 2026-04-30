@@ -63,16 +63,16 @@ namespace OrderFlow.Services.Core
             courses = ApplyCourseQuery(courses, query);
 
             return await courses.Select(tc => new IndexCourseViewModel
-                               {
-                                   TruckCourseID = tc.TruckCourseID,
-                                   TruckID = tc.TruckID,
-                                   PickupAddress = tc.PickupAddress,
-                                   DeliverAddress = tc.DeliverAddress,
-                                   AssignedDate = tc.AssignedDate,
-                                   DeliveryDate = tc.DeliveryDate,
-                                   Status = tc.Status,
-                                   Income = tc.Income
-                               })
+            {
+                TruckCourseID = tc.TruckCourseID,
+                TruckID = tc.TruckID,
+                PickupAddress = tc.PickupAddress,
+                DeliverAddress = tc.DeliverAddress,
+                AssignedDate = tc.AssignedDate,
+                DeliveryDate = tc.DeliveryDate,
+                Status = tc.Status,
+                Income = tc.Income
+            })
                                .ToListAsync();
         }
 
@@ -107,26 +107,26 @@ namespace OrderFlow.Services.Core
             }
 
             return await courses.Select(tc => new DetailsCourseViewModel
-                               {
-                                   TruckCourseID = tc.TruckCourseID,
-                                   TruckID = tc.TruckID,
-                                   TruckPlates = tc.Truck!.LicensePlate ?? string.Empty,
-                                   PickupAddress = tc.PickupAddress,
-                                   DeliverAddress = tc.DeliverAddress,
-                                   AssignedDate = tc.AssignedDate,
-                                   DeliveryDate = tc.DeliveryDate,
-                                   Status = tc.Status,
-                                   Income = tc.Income,
-                                   AssinedOrders = tc.CourseOrders.Select(co => new IndexOrderViewModel
-                                   {
-                                       OrderID = co.OrderID,
-                                       OrderDate = co.Order.OrderDate,
-                                       DeliveryAddress = co.Order.DeliveryAddress,
-                                       PickupAddress = co.Order.PickupAddress,
-                                       Status = co.Order.Status.ToString(),
-                                       isCanceled = co.Order.IsCanceled
-                                   }).ToList(),
-                               })
+            {
+                TruckCourseID = tc.TruckCourseID,
+                TruckID = tc.TruckID,
+                TruckPlates = tc.Truck!.LicensePlate ?? string.Empty,
+                PickupAddress = tc.PickupAddress,
+                DeliverAddress = tc.DeliverAddress,
+                AssignedDate = tc.AssignedDate,
+                DeliveryDate = tc.DeliveryDate,
+                Status = tc.Status,
+                Income = tc.Income,
+                AssinedOrders = tc.CourseOrders.Select(co => new IndexOrderViewModel
+                {
+                    OrderID = co.OrderID,
+                    OrderDate = co.Order.OrderDate,
+                    DeliveryAddress = co.Order.DeliveryAddress,
+                    PickupAddress = co.Order.PickupAddress,
+                    Status = co.Order.Status.ToString(),
+                    isCanceled = co.Order.IsCanceled
+                }).ToList(),
+            })
                                .SingleOrDefaultAsync();
         }
 

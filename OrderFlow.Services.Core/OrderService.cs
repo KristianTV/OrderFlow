@@ -181,27 +181,27 @@ namespace OrderFlow.Services.Core
             }
 
             return await orders.Select(o => new DetailsOrderViewModel
-                               {
-                                   OrderID = o.OrderID,
-                                   UserName = o.User!.UserName!,
-                                   OrderDate = o.OrderDate,
-                                   DeliveryDate = o.DeliveryDate,
-                                   DeliveryAddress = o.DeliveryAddress,
-                                   PickupAddress = o.PickupAddress,
-                                   LoadCapacity = o.LoadCapacity,
-                                   DeliveryInstructions = o.DeliveryInstructions,
-                                   Status = o.Status.ToString(),
-                                   isCanceled = o.IsCanceled,
-                                   TrucksLicensePlates = o.CourseOrders.Select(co => co.TruckCourse.Truck!.LicensePlate).ToList(),
-                                   Payments = o.Payments.Select(payment => new PaymentViewModel
-                                   {
-                                       Id = payment.PaymentID,
-                                       PaymentDate = payment.PaymentDate,
-                                       Amount = payment.Amount,
-                                       PaymentDescription = payment.PaymentDescription
-                                   }).ToList(),
-                                   TotalPrice = o.Payments.Sum(p => p.Amount)
-                               })
+            {
+                OrderID = o.OrderID,
+                UserName = o.User!.UserName!,
+                OrderDate = o.OrderDate,
+                DeliveryDate = o.DeliveryDate,
+                DeliveryAddress = o.DeliveryAddress,
+                PickupAddress = o.PickupAddress,
+                LoadCapacity = o.LoadCapacity,
+                DeliveryInstructions = o.DeliveryInstructions,
+                Status = o.Status.ToString(),
+                isCanceled = o.IsCanceled,
+                TrucksLicensePlates = o.CourseOrders.Select(co => co.TruckCourse.Truck!.LicensePlate).ToList(),
+                Payments = o.Payments.Select(payment => new PaymentViewModel
+                {
+                    Id = payment.PaymentID,
+                    PaymentDate = payment.PaymentDate,
+                    Amount = payment.Amount,
+                    PaymentDescription = payment.PaymentDescription
+                }).ToList(),
+                TotalPrice = o.Payments.Sum(p => p.Amount)
+            })
                                .SingleOrDefaultAsync();
         }
 
