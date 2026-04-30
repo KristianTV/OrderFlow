@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Services.Core.Contracts;
+using OrderFlow.ViewModels.Message;
 using OrderFlow.ViewModels.Notification;
 
 namespace OrderFlow.Controllers
@@ -105,6 +106,19 @@ namespace OrderFlow.Controllers
                                                                            IsRead = n.IsRead,
                                                                            OrderId = n.OrderID,
                                                                            SenderName = n.Sender!.UserName,
+                                                                           IsResponseEnabled = n.CanRespond,
+                                                                           Messages = n.Messages
+                                                                                                .Where(m => m.IsDeleted == false)
+                                                                                                .Select(m => new DetailsNotificationMessageViewModel
+                                                                                                {
+                                                                                                    MessageID = m.MessageID,
+                                                                                                    SenderID = m.SenderID,
+                                                                                                    SenderName = m.Sender.UserName ?? string.Empty,
+                                                                                                    Content = m.Content,
+                                                                                                    SentAt = m.SentAt,
+                                                                                                    IsRead = m.IsRead
+                                                                                                })
+                                                                                                .OrderBy(m => m.SentAt).ToList()
                                                                        }).SingleOrDefaultAsync();
 
                 if (notificationViewModel == null)

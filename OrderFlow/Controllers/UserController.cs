@@ -151,9 +151,9 @@ namespace OrderFlow.Controllers
             }
             ProfileViewModel model = new ProfileViewModel
             {
-                UserName = user.UserName,
-                UserEmail = user.Email,
-                UserPhone = user.PhoneNumber,
+                UserName = user.UserName!,
+                UserEmail = user.Email!,
+                UserPhone = user.PhoneNumber!,
             };
             return View(model);
         }
@@ -178,9 +178,9 @@ namespace OrderFlow.Controllers
             }
             EditProfileViewModel model = new EditProfileViewModel
             {
-                UserName = user.UserName,
-                UserEmail = user.Email,
-                UserPhone = user.PhoneNumber,
+                UserName = user.UserName!,
+                UserEmail = user.Email!,
+                UserPhone = user.PhoneNumber!,
             };
             return View(model);
         }

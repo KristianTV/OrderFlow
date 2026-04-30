@@ -21,8 +21,7 @@
                         data-bs-dismiss="modal">
                     No, Keep It
                 </button>
-                <form id="deleteMessageForm" asp-antiforgery="true" method="post"
-                      asp-area="Admin" asp-controller="Message" asp-action="Delete">
+                <form id="deleteMessageForm" asp-antiforgery="true" method="post" asp-area="" asp-controller="Message" asp-action="Delete">
                     <input type="hidden" id="deleteMessageID" name="id" value="" />
                     <input type="hidden" name="notificationID" value="@notificationID" />
                     <button type="submit" class="btn btn-danger">

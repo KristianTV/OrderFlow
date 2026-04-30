@@ -1,5 +1,5 @@
 ﻿@using OrderFlow.ViewModels.Message
-@model OrderFlow.ViewModels.Notification.DriverDetailsNotificationViewModel
+@model OrderFlow.ViewModels.Notification.DetailsNotificationViewModel
 
 @{
     var notificationID = Context.Request.RouteValues["id"]?.ToString() ?? "";
@@ -21,7 +21,7 @@
 
         @if (Model.Messages != null && Model.Messages.Any())
         {
-            <ul class="list-group list-group-flush">
+            <ul class="list-group list-group-flush p-1">
                 @foreach (var msg in Model.Messages)
                 {
                     <li class="list-group-item @(msg.IsRead ? "" : "list-group-item-light")"
@@ -80,7 +80,7 @@
 
 @if (Model.Message != null && Model.Message.Any())
 {
-    <partial name="~/Areas/Admin/Views/Message/Edit.cshtml" />
-    <partial name="~/Areas/Admin/Views/Message/Create.cshtml" />
-    <partial name="~/Areas/Admin/Views/Message/Delete.cshtml" />
+    <partial name="~/Views/Message/Edit.cshtml" />
+    <partial name="~/Views/Message/Create.cshtml" />
+    <partial name="~/Views/Message/Delete.cshtml" />
 }

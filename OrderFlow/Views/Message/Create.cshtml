@@ -13,8 +13,7 @@
                 <button type="button" class="btn-close btn-close-white"
                         data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="addMessageForm" asp-antiforgery="true" method="post"
-                  asp-area="Admin" asp-controller="Message" asp-action="Create">
+            <form id="addMessageForm" asp-antiforgery="true" method="post" asp-area="" asp-controller="Message" asp-action="Create">
                 <div class="modal-body">
                     <input type="hidden" name="NotificationID" value="@notificationID" />
                     <div class="mb-3">

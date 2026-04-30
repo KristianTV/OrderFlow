@@ -6,9 +6,9 @@ using OrderFlow.Hubs;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Message;
 
-namespace OrderFlow.Areas.Admin.Controllers
+namespace OrderFlow.Controllers
 {
-    public class MessageController : BaseAdminController
+    public class MessageController : BaseController
     {
         private readonly IMessageService _messageService;
         private readonly IHubContext<MessageHub> _hubContext;

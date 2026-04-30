@@ -153,7 +153,7 @@
 
             @if (messagesEnabled)
             {
-                <partial name="_MessageSection" model="Model" />
+                <partial name="~/Views/Message/Index.cshtml" model="Model" />
             }
 
         </div>
@@ -176,11 +176,12 @@
 
     <script>
         const notificationID  = '@notificationID';
+        const currentUserId = "@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value";
     </script>
 
     <script src="~/js/sonar/message.js"></script>
 
-    <script src="~/js/View/Admin/Notification/Detail.js"></script>
+    <script src="~/js/View/Shared/Notification/Detail.js"></script>
 
     <partial name="_ToastContainer" />
 }

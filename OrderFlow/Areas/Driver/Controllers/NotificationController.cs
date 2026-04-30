@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Services.Core.Contracts;
+using OrderFlow.ViewModels.Message;
 using OrderFlow.ViewModels.Notification;
 
 namespace OrderFlow.Areas.Driver.Controllers
@@ -87,6 +88,8 @@ namespace OrderFlow.Areas.Driver.Controllers
                 var notificationViewModel = await _notificationService.GetAll()
                     .AsNoTracking()
                     .Include(n => n.Sender)
+                    .Include(n => n.Messages)
+                    .ThenInclude(m => m.Sender)
                     .Where(n => n.NotificationID.Equals(notificationId) && n.ReceiverID.Equals(userId))
                     .Select(n => new DriverDetailsNotificationViewModel
                     {
@@ -97,6 +100,19 @@ namespace OrderFlow.Areas.Driver.Controllers
                         OrderId = n.OrderID,
                         TruckId = n.TruckID,
                         SenderName = n.Sender!.UserName,
+                        IsResponseEnabled = n.CanRespond,
+                        Messages = n.Messages
+                        .Where(m => m.IsDeleted == false)
+                        .Select(m => new DetailsNotificationMessageViewModel
+                        {
+                            MessageID = m.MessageID,
+                            SenderID = m.SenderID,
+                            SenderName = m.Sender.UserName ?? string.Empty,
+                            Content = m.Content,
+                            SentAt = m.SentAt,
+                            IsRead = m.IsRead
+                        })
+                        .OrderBy(m => m.SentAt).ToList()
                     })
                     .SingleOrDefaultAsync();
 

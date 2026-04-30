@@ -32,6 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await submitForm('deleteMessageForm', 'deleteMessageModal');
         });
 
+        document.querySelectorAll('#addMessageModal, #editMessageModal, #deleteMessageModal')
+            .forEach(modalEl => modalEl.addEventListener('hidden.bs.modal', cleanupModalState));
+
         // ── Populate edit / delete modals on button click ──
 
         document.getElementById('messagesContainer').addEventListener('click', e => {
@@ -56,6 +59,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 });
 
+function cleanupModalState() {
+    if (document.querySelector('.modal.show')) {
+        return;
+    }
+
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+}
+
+function forceCloseModal(modalId) {
+    const modalEl = document.getElementById(modalId);
+    if (!modalEl) {
+        cleanupModalState();
+        return;
+    }
+
+    const forceCleanup = () => {
+        if (modalEl.classList.contains('show')) {
+            modalEl.classList.remove('show');
+            modalEl.style.display = 'none';
+            modalEl.setAttribute('aria-hidden', 'true');
+            modalEl.removeAttribute('aria-modal');
+            modalEl.removeAttribute('role');
+        }
+
+        cleanupModalState();
+    };
+
+    modalEl.addEventListener('hidden.bs.modal', forceCleanup, { once: true });
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.hide();
+
+    requestAnimationFrame(forceCleanup);
+    setTimeout(forceCleanup, 200);
+    setTimeout(forceCleanup, 500);
+}
+
 // ── Shared helpers ────────────────────────────────────────────
 
 /**
@@ -75,16 +117,7 @@ async function submitForm(formId, modalId) {
         });
 
         if (res.ok) {
-            const modalEl = document.getElementById(modalId);
-            const modal   = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-
-            // ── Overlay bug fix: clean up immediately after hiding ──
-            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-            document.body.classList.remove('modal-open');
-            document.body.style.removeProperty('overflow');
-            document.body.style.removeProperty('padding-right');
-
+            forceCloseModal(modalId);
             return true;
         } else {
             showToast('Something went wrong. Please try again.', 'danger');

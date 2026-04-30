@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\js\View\Admin\Notification\Detail.js" />
+    <None Include="wwwroot\js\View\Shared\Notification\Detail.js" />
     <None Include="wwwroot\js\Sonar\message.js" />
   </ItemGroup>
 
@@ -32,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\js\View\Admin\" />
     <Folder Include="wwwroot\js\View\Driver\" />
     <Folder Include="wwwroot\js\View\User\" />
   </ItemGroup>
