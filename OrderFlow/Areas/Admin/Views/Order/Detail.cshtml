@@ -3,12 +3,16 @@
 @{
     ViewData["Title"] = "Order Details";
 }
+
 <div class="container mt-5">
     <div class="row">
-        <h2 class="mb-4 text-center">@ViewData["Title"] - <span class="text-primary">@Model.OrderID</span></h2>
-
+        <div class="col-12">
+            <h2 class="mb-4 text-center">@ViewData["Title"]</h2>
+        </div>
     </div>
+
     <div class="row">
+        @* --- Order Information Card --- *@
         <div class="col-md-7">
             <div class="card shadow-lg mb-4 border-primary">
                 <div class="card-header bg-primary text-white">
@@ -52,217 +56,216 @@
                         </div>
                     }
                     <hr />
-                    <div class="row mb-2">
+                    
+                    @* --- Status Management --- *@
+                    <div class="row mb-2 align-items-center">
                         <div class="col-sm-4 text-muted">Status:</div>
-                        @if (!Model.isCanceled && !Model.Status.Equals("Completed"))
-                        {
-                            <div class="col-sm-8">
+                        <div class="col-sm-8">
+                            @if (!Model.isCanceled && !Model.Status.Equals("Completed"))
+                            {
                                 <div class="dropdown">
-                                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                         <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span>
                                     </button>
-                                    <ul class="dropdown-menu me-3" aria-labelledby="dropdownMenuButton1">
-                                        <li><h6 class="dropdown-header">Edit status</h6></li>
-                                        <li>
-                                            <form asp-area="Admin" asp-controller="Order" asp-action="ChangeStatus" asp-route-id="@Model.OrderID" asp-route-status="Pending" method="post">
-                                                <button type="submit" class="dropdown-item">
-                                                    <span class="badge @GetStatusBadgeClass("Pending")">Pending</span>
-                                                </button>
-                                                @Html.AntiForgeryToken()
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <form asp-area="Admin" asp-controller="Order" asp-action="ChangeStatus" asp-route-id="@Model.OrderID" asp-route-status="OnHold" method="post">
-                                                <button type="submit" class="dropdown-item">
-                                                    <span class="badge @GetStatusBadgeClass("OnHold")">OnHold</span>
-                                                </button>
-                                                @Html.AntiForgeryToken()
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <form asp-area="Admin" asp-controller="Order" asp-action="ChangeStatus" asp-route-id="@Model.OrderID" asp-route-status="Failed" method="post">
-                                                <button type="submit" class="dropdown-item">
-                                                    <span class="badge @GetStatusBadgeClass("Failed")">Failed</span>
-                                                </button>
-                                                @Html.AntiForgeryToken()
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <form asp-area="Admin" asp-controller="Order" asp-action="ChangeStatus" asp-route-id="@Model.OrderID" asp-route-status="Delayed" method="post">
-                                                <button type="submit" class="dropdown-item">
-                                                    <span class="badge @GetStatusBadgeClass("Delayed")">Delayed</span>
-                                                </button>
-                                                @Html.AntiForgeryToken()
-                                            </form>
-                                        </li>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="statusDropdown">
+                                        <li><h6 class="dropdown-header">Update Status</h6></li>
+                                        @foreach (var status in new[] { "Pending", "OnHold", "Failed", "Delayed" })
+                                        {
+                                            <li>
+                                                <form asp-area="Admin" asp-controller="Order" asp-action="ChangeStatus" asp-route-id="@Model.OrderID" asp-route-status="@status" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="dropdown-item">
+                                                        <span class="badge @GetStatusBadgeClass(status)">@status</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        }
                                     </ul>
                                 </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="col-sm-8">
-                                <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span>
-                            </div>
-                        }
+                            }
+                            else
+                            {
+                                <span class="badge @GetStatusBadgeClass(Model.isCanceled ? "Cancelled" : Model.Status)">
+                                    @(Model.isCanceled ? "Cancelled" : Model.Status)
+                                </span>
+                            }
+                        </div>
                     </div>
+
                     @if (Model.isCanceled)
                     {
-                        <div class="row mb-2">
+                        <div class="row mt-2">
                             <div class="col-sm-12">
-                                <p class="text-danger fw-bold"><i class="fas fa-times-circle me-1"></i> This order is canceled.</p>
+                                <p class="text-danger fw-bold mb-0"><i class="fas fa-times-circle me-1"></i> This order is canceled.</p>
                             </div>
                         </div>
                     }
 
-                    @if (Model.TrucksLicensePlates.Any())
-                    {
-                        <div class="row mb-2">
-                            <div class="col-sm-4 text-muted">Trucks Assigned:</div>
-                            @foreach (var truckLicensePlate in Model.TrucksLicensePlates)
+                    @* --- Trucks Section --- *@
+                    <div class="row mt-3">
+                        <div class="col-sm-4 text-muted">Trucks Assigned:</div>
+                        <div class="col-sm-8">
+                            @if (Model.TrucksLicensePlates.Any())
                             {
-                                <div class="col-sm-8"><strong>@truckLicensePlate</strong></div>
+                                @foreach (var truck in Model.TrucksLicensePlates)
+                                {
+                                    <span class="badge bg-dark me-1">@truck</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">No trucks assigned yet.</span>
                             }
                         </div>
-                    }
-                    else
-                    {
-                        <div class="row mb-2">
-                            <div class="col-sm-12">
-                                <p class="text-muted fst-italic">No truck assigned yet.</p>
-                            </div>
-                        </div>
-                    }
+                    </div>
                 </div>
             </div>
         </div>
+
+        @* --- Payments Card --- *@
         <div class="col-md-5">
             <div class="card shadow-lg mb-3">
                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i> Payments</h5>
                     <a asp-area="Admin" asp-controller="Payment" asp-action="Create" asp-route-orderId="@Model.OrderID" class="btn btn-light btn-sm">
-                        <i class="fas fa-plus-circle me-1"></i> Add Payment
+                        <i class="fas fa-plus-circle me-1"></i> Add
                     </a>
                 </div>
                 <div class="card-body">
                     @if (Model.Payments != null && Model.Payments.Any())
                     {
-                        <ul class="list-group mb-3">
+                        <ul class="list-group list-group-flush">
                             @foreach (var payment in Model.Payments)
                             {
-                                <li class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <div>
-                                            <strong>@payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")</strong>
-                                            <span class="badge bg-primary rounded-pill ms-2">@payment.Amount.ToString("C")</span>
+                                var amountClass = payment.Amount < 0 ? "text-warning" : "text-success";
+                                <li class="list-group-item px-0 py-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="w-100">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="fs-4 fw-bold @amountClass">
+                                                    @payment.Amount.ToString("C")
+                                                </div>
+                                                <div class="text-muted small text-end">
+                                                    <i class="fas fa-calendar-alt me-1"></i>
+                                                    @payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")
+                                                </div>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(payment.PaymentDescription))
+                                            {
+                                                <p class="mb-0 mt-1 small">@payment.PaymentDescription</p>
+                                            }
                                         </div>
-                                        <div class="d-flex">
-                                            <a asp-area="Admin" asp-action="Edit" asp-controller="Payment" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID" class="btn btn-sm btn-outline-secondary me-2">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </a>
 
-                                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeletePaymentModal">
-                                                <i class="fas fa-trash-alt me-2"></i> Delete
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
                                             </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                                <li>
+                                                    <a class="dropdown-item" asp-area="Admin" asp-action="Edit" asp-controller="Payment" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID">
+                                                        <i class="fas fa-edit me-2 text-secondary"></i> Edit
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deletePaymentModal-@payment.Id">
+                                                        <i class="fas fa-trash-alt me-2"></i> Delete
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
 
-                                            <div class="modal fade" id="confirmDeletePaymentModal" tabindex="-1" aria-labelledby="confirmDeletePaymentModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog modal-dialog-centered">
-                                                    <div class="modal-content border-danger">
-                                                        <div class="modal-header bg-danger text-white">
-                                                            <h5 class="modal-title" id="confirmDeletePaymentModalLabel">Confirm Deletion</h5>
-                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            Are you sure you want to delete this payment? This action cannot be undone.
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Payment</button>
-                                                            <form asp-antiforgery="true" asp-area="Admin" asp-action="Delete" asp-controller="Payment" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID" method="post">
-                                                                <button type="submit" class="btn btn-danger">
-                                                                    <i class="fas fa-trash-alt me-2"></i> Yes, Delete Payment
-                                                                </button>
-                                                            </form>
-                                                        </div>
-                                                    </div>
+                                    @* --- Delete Payment Modal --- *@
+                                    <div class="modal fade" id="deletePaymentModal-@payment.Id" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title">Confirm Delete</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Delete payment of <strong>@payment.Amount.ToString("C")</strong>?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form asp-area="Admin" asp-controller="Payment" asp-action="Delete" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID" method="post">
+                                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                                    </form>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    @if (!string.IsNullOrEmpty(payment.PaymentDescription))
-                                    {
-                                        <p class="mb-0 text-muted small">@payment.PaymentDescription</p>
-                                    }
                                 </li>
                             }
                         </ul>
-                        <h4 class="text-end mt-4">Total Paid: <span class="text-success fw-bold">@Model.TotalPrice.ToString("C")</span></h4>
+                        <h4 class="text-end mt-4">Total: <span class="text-success fw-bold">@Model.TotalPrice.ToString("C")</span></h4>
                     }
                     else
                     {
-                        <p class="text-muted text-center mb-0">No payments found.</p>
+                        <p class="text-muted text-center py-4">No payments found.</p>
                     }
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="d-flex justify-content-between mt-4">
-        <a class="btn btn-secondary btn-lg" asp-area="Admin" asp-controller="Order" asp-action="Index">
-            <i class="fas fa-arrow-left me-2"></i> Back to Orders
+    @* --- Footer Actions --- *@
+    <div class="d-flex justify-content-between mt-4 pb-5">
+        <a class="btn btn-secondary" asp-area="Admin" asp-controller="Order" asp-action="Index">
+            <i class="fas fa-arrow-left me-2"></i> Back
         </a>
         <div>
-            <a class="btn btn-primary btn-lg me-2" asp-area="Admin" asp-controller="Order" asp-action="Edit" asp-route-id="@Model.OrderID">
+            <a class="btn btn-primary me-2" asp-area="Admin" asp-controller="Order" asp-action="Edit" asp-route-id="@Model.OrderID">
                 <i class="fas fa-edit me-2"></i> Edit Order
             </a>
             @if (!Model.Status.Equals("Completed"))
             {
-                @if (!Model.isCanceled)
+                if (!Model.isCanceled)
                 {
-                    <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
+                    <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
                         <i class="fas fa-times-circle me-2"></i> Cancel Order
                     </button>
-                    <a class="btn btn-success btn-lg shadow-sm" asp-area="Admin" asp-controller="Notification" asp-action="Create" asp-route-orderId="@Model.OrderID">
-                        <i class="fas fa-plus-circle me-2"></i> Create Notification
+                    <a class="btn btn-success" asp-area="Admin" asp-controller="Notification" asp-action="Create" asp-route-orderId="@Model.OrderID">
+                        <i class="fas fa-bell me-2"></i> Notify
                     </a>
                 }
                 else
                 {
-                    <form asp-antiforgery ="true" method="post" asp-area="Admin" asp-controller="Order" asp-action="Reactivate" asp-route-id="@Model.OrderID" class="d-inline">
-                        <button type="submit" class="btn btn-success btn-lg"> <i class="fas fa-check me-2"></i> Reactivate Order</button>
+                    <form asp-area="Admin" asp-controller="Order" asp-action="Reactivate" asp-route-id="@Model.OrderID" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-check me-2"></i> Reactivate</button>
                     </form>
                 }
             }
         </div>
     </div>
 
-    <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+    @* --- Cancel Order Modal --- *@
+    <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-danger">
+            <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="confirmCancelModalLabel">Confirm Cancellation</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Cancel Order?</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to cancel this order? This action cannot be undone.
+                    Are you sure you want to cancel Order #@Model.OrderID?
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
                     <form method="post" asp-area="Admin" asp-controller="Order" asp-action="Cancel" asp-route-id="@Model.OrderID">
-                        <button type="submit" class="btn btn-danger">Yes, Cancel Order</button>
+                        <button type="submit" class="btn btn-danger">Yes, Cancel</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </div>
 
 @functions {
     private string GetStatusBadgeClass(string status) => status switch
     {
-        "Pending" => "bg-warning",
+        "Pending" => "bg-warning text-dark",
         "InProgress" => "bg-primary",
         "Completed" => "bg-success",
         "Cancelled" => "bg-danger",
