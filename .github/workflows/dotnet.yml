@@ -1,7 +1,4 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: .NET CI & Security
 
 on:
   push:
@@ -10,19 +7,43 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
-
+  analyze-and-build:
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write # Required for CodeQL to upload results
+      actions: read
+      contents: read
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+
+    # 1. Code Quality: Style Check
+    - name: Check Formatting
+      run: dotnet format --verify-no-changes
+
+    # 2. Security: Initialize CodeQL
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: 'csharp'
+
+    # 3. Standard Build Process
     - name: Restore dependencies
       run: dotnet restore
+
     - name: Build
       run: dotnet build --no-restore
+
+    # 4. Security: Perform CodeQL Analysis
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+
+    # 5. Functional Testing
     - name: Test
       run: dotnet test --no-build --verbosity normal
