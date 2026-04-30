@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Notification Details";
     var notificationID = Context.Request.RouteValues["id"]?.ToString() ?? "";
+    bool messagesEnabled = Model.IsResponseEnabled;
 }
 
 <div class="container mt-5">
@@ -85,9 +86,27 @@
                         }
                     </div>
                 </div>
-            </div>
+            </div> 
+            @if (messagesEnabled)
+            {
+                <partial name="~/Views/Message/Index.cshtml" model="Model" />
+            }
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+
+    <script>
+        const notificationID  = '@notificationID';
+        const currentUserId = "@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value";
+    </script>
+
+    <script src="~/js/sonar/message.js"></script>
+
+    <script src="~/js/View/Shared/Notification/Detail.js"></script>
+
+    <partial name="_ToastContainer" />
+}
+

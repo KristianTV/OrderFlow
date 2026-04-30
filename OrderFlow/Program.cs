@@ -27,6 +27,7 @@ builder.Services.AddScoped<ITruckService, TruckService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ICourseOrderService, CourseOrderService>();
 builder.Services.AddScoped<ITruckCourseService, TruckCourseService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -59,8 +60,9 @@ app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapHub<NotificationHub>("/notificationHub");
-app.MapHub<OrderHub>("/orderHub");
+app.MapHub<NotificationHub>("/hubs/notification");
+app.MapHub<MessageHub>("/hubs/message");
+app.MapHub<OrderHub>("/hubs/order");
 
 app.MapControllerRoute(
         name: "Admin",

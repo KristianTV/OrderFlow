@@ -22,7 +22,7 @@ namespace OrderFlow.Data.Repository
 
         public async Task<bool> ExistsAsync<T>(Guid id) where T : class
         {
-            return await _context.Set<T>().FindAsync(id) == null;
+            return await _context.Set<T>().FindAsync(id) != null;
         }
 
         public async Task<int> SaveChangesAsync()

@@ -1,4 +1,6 @@
-﻿namespace OrderFlow.ViewModels.Notification
+﻿using OrderFlow.ViewModels.Message;
+
+namespace OrderFlow.ViewModels.Notification
 {
     public class DetailsNotificationViewModel
     {
@@ -14,6 +16,11 @@
 
         public Guid? OrderId { get; set; }
 
+        public IEnumerable<DetailsNotificationMessageViewModel>? Messages { get; set; }
+
         public bool isMarkable { get; set; } = true;
+
+        public bool IsResponseEnabled { get; set; }
+
     }
 }

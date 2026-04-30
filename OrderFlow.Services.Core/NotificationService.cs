@@ -197,6 +197,7 @@ namespace OrderFlow.Services.Core
                 SenderID = senderId,
                 OrderID = createNotification.OrderId,
                 TruckID = createNotification.TruckId,
+                CanRespond = createNotification.IsResponseEnabled
             });
 
             await this.SaveChangesAsync();
@@ -225,6 +226,7 @@ namespace OrderFlow.Services.Core
             existingNotification.TruckID = createNotification.TruckId;
             existingNotification.CreatedAt = DateTime.UtcNow;
             existingNotification.IsRead = false;
+            existingNotification.CanRespond = createNotification.IsResponseEnabled;
 
             await this.SaveChangesAsync();
 

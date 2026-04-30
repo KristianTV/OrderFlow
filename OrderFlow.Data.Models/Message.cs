@@ -7,7 +7,7 @@
         public Guid SenderID { get; set; }
         public ApplicationUser Sender { get; set; } = null!;
 
-        public Guid ReceiverID { get; set; }
+        public Guid? ReceiverID { get; set; }
         public ApplicationUser Receiver { get; set; } = null!;
 
         public Guid? NotificationID { get; set; }

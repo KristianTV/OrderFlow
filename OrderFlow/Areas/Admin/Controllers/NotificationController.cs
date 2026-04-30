@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
+using OrderFlow.ViewModels.Message;
 using OrderFlow.ViewModels.Notification;
 
 namespace OrderFlow.Areas.Admin.Controllers
@@ -290,6 +291,8 @@ namespace OrderFlow.Areas.Admin.Controllers
                 DriverDetailsNotificationViewModel? notificationViewModel = await _notificationService.GetAll()
                                                                                                     .AsNoTracking()
                                                                                                     .Include(n => n.Sender)
+                                                                                                    .Include(n => n.Messages)
+                                                                                                    .ThenInclude(m => m.Sender)
                                                                                                     .Where(n => n.NotificationID.Equals(notificationID))
                                                                                                     .Select(n => new DriverDetailsNotificationViewModel
                                                                                                     {
@@ -299,8 +302,19 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                                                                         IsRead = n.IsRead,
                                                                                                         OrderId = n.OrderID,
                                                                                                         TruckId = n.TruckID,
-                                                                                                        SenderName = n.Sender!.UserName,
-                                                                                                        isMarkable = n.ReceiverID.Equals(userId)
+                                                                                                        SenderName = n.Sender!.UserName ?? string.Empty,
+                                                                                                        isMarkable = n.ReceiverID.Equals(userId),
+                                                                                                        IsResponseEnabled = n.CanRespond,
+                                                                                                        Messages = n.Messages.Where(m => m.IsDeleted == false)
+                                                                                                        .Select(m => new DetailsNotificationMessageViewModel
+                                                                                                        {
+                                                                                                            MessageID = m.MessageID,
+                                                                                                            SenderID = m.SenderID,
+                                                                                                            SenderName = m.Sender.UserName ?? string.Empty,
+                                                                                                            SentAt = m.SentAt,
+                                                                                                            Content = m.Content,
+                                                                                                            IsRead = m.IsRead,
+                                                                                                        }).OrderBy(m => m.SentAt).ToList()
                                                                                                     }).SingleOrDefaultAsync();
 
                 if (notificationViewModel == null)
