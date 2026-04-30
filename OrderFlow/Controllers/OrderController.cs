@@ -41,51 +41,13 @@ namespace OrderFlow.Controllers
 
             try
             {
-                var orders = _orderService.GetAll().AsNoTracking();
-
-                if (!string.IsNullOrEmpty(searchId))
+                IEnumerable<IndexOrderViewModel> indexOrders = await _orderService.GetUserOrdersAsync(userId, new OrderQueryModel
                 {
-                    orders = orders.Where(o => o.OrderID.ToString().Contains(searchId));
-                }
-
-                if (!string.IsNullOrEmpty(statusFilter))
-                {
-                    if (!Enum.TryParse(statusFilter, true, out OrderStatus orderStatus))
-                    {
-                        _logger.LogWarning("Invalid status filter '{StatusFilter}' received in Index action.", statusFilter);
-                        return BadRequest();
-                    }
-                    orders = orders.Where(o => o.Status.Equals(orderStatus));
-                }
-
-                if (hideCompleted.GetValueOrDefault())
-                {
-                    orders = orders.Where(o => o.Status != OrderStatus.Completed);
-                }
-
-                switch (sortOrder)
-                {
-                    case "date_desc":
-                        orders = orders.OrderByDescending(o => o.OrderDate);
-                        break;
-                    case "date_asc":
-                        orders = orders.OrderBy(o => o.OrderDate);
-                        break;
-                    default:
-                        orders = orders.OrderBy(o => o.OrderDate);
-                        break;
-                }
-
-                IEnumerable<IndexOrderViewModel> indexOrders = await orders.Where(o => o.UserID.Equals(userId))
-                                                                           .Select(order => new IndexOrderViewModel
-                                                                           {
-                                                                               OrderID = order.OrderID,
-                                                                               OrderDate = order.OrderDate,
-                                                                               DeliveryAddress = order.DeliveryAddress,
-                                                                               PickupAddress = order.PickupAddress,
-                                                                               Status = order.Status.ToString(),
-                                                                               isCanceled = order.IsCanceled
-                                                                           }).ToListAsync();
+                    HideCompleted = hideCompleted.GetValueOrDefault(),
+                    SearchId = searchId,
+                    StatusFilter = statusFilter,
+                    SortOrder = sortOrder
+                });
 
                 return View(indexOrders);
             }
@@ -163,16 +125,7 @@ namespace OrderFlow.Controllers
 
             try
             {
-                CreateOrderViewModel? createOrderViewModel = await _orderService.GetAll()
-                                                                                .AsNoTracking()
-                                                                                .Where(o => o.OrderID.Equals(orderId) && o.UserID.Equals(userId))
-                                                                                .Select(o => new CreateOrderViewModel
-                                                                                {
-                                                                                    DeliveryAddress = o.DeliveryAddress,
-                                                                                    PickupAddress = o.PickupAddress,
-                                                                                    DeliveryInstructions = o.DeliveryInstructions,
-                                                                                    LoadCapacity = o.LoadCapacity,
-                                                                                }).SingleOrDefaultAsync();
+                CreateOrderViewModel? createOrderViewModel = await _orderService.GetOrderForEditAsync(orderId, userId);
 
                 if (createOrderViewModel == null)
                 {
@@ -246,36 +199,7 @@ namespace OrderFlow.Controllers
 
             try
             {
-                var order = await _orderService.GetAll()
-                                               .AsNoTracking()
-                                               .Include(o => o.User)
-                                               .Include(o => o.Payments)
-                                               .Include(o => o.CourseOrders)
-                                               .ThenInclude(co => co.TruckCourse)
-                                               .ThenInclude(tc => tc.Truck)
-                                               .Where(o => o.OrderID.Equals(orderId) && o.UserID.Equals(userId))
-                                               .Select(o => new DetailsOrderViewModel
-                                               {
-                                                   OrderID = o.OrderID,
-                                                   UserName = o.User!.UserName!,
-                                                   OrderDate = o.OrderDate,
-                                                   DeliveryDate = o.DeliveryDate,
-                                                   DeliveryAddress = o.DeliveryAddress,
-                                                   PickupAddress = o.PickupAddress,
-                                                   LoadCapacity = o.LoadCapacity,
-                                                   DeliveryInstructions = o.DeliveryInstructions,
-                                                   Status = o.Status.ToString(),
-                                                   isCanceled = o.IsCanceled,
-                                                   TrucksLicensePlates = o.CourseOrders.Select(to => to.TruckCourse.Truck.LicensePlate).ToList(),
-                                                   Payments = o.Payments.Select(payment => new PaymentViewModel
-                                                   {
-                                                       Id = payment.PaymentID,
-                                                       PaymentDate = payment.PaymentDate,
-                                                       Amount = payment.Amount,
-                                                       PaymentDescription = payment.PaymentDescription
-                                                   }).ToList(),
-                                                   TotalPrice = o.Payments.Sum(p => p.Amount)
-                                               }).SingleOrDefaultAsync();
+                DetailsOrderViewModel? order = await _orderService.GetOrderDetailsAsync(orderId, userId);
 
                 if (order == null)
                 {

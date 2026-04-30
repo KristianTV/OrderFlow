@@ -7,6 +7,7 @@ using OrderFlow.Services.Core.Contracts;
 using OrderFlow.Services.Core.Extensions;
 using OrderFlow.ViewModels.Course;
 using OrderFlow.ViewModels.CourseOrder;
+using OrderFlow.ViewModels.Order;
 
 namespace OrderFlow.Services.Core
 {
@@ -48,6 +49,87 @@ namespace OrderFlow.Services.Core
                        .Where(tc => tc.TruckCourseID.Equals(courseID));
         }
 
+        public async Task<IEnumerable<IndexCourseViewModel>> GetCoursesAsync(Guid? driverId, CourseQueryModel query)
+        {
+            IQueryable<TruckCourse> courses = this.GetAll().AsNoTracking();
+
+            if (driverId.HasValue)
+            {
+                courses = courses.Include(tc => tc.Truck)
+                                 .Where(tc => tc.Truck != null &&
+                                              tc.Truck.DriverID.Equals(driverId.Value));
+            }
+
+            courses = ApplyCourseQuery(courses, query);
+
+            return await courses.Select(tc => new IndexCourseViewModel
+                               {
+                                   TruckCourseID = tc.TruckCourseID,
+                                   TruckID = tc.TruckID,
+                                   PickupAddress = tc.PickupAddress,
+                                   DeliverAddress = tc.DeliverAddress,
+                                   AssignedDate = tc.AssignedDate,
+                                   DeliveryDate = tc.DeliveryDate,
+                                   Status = tc.Status,
+                                   Income = tc.Income
+                               })
+                               .ToListAsync();
+        }
+
+        public async Task<CreateCourseViewModel?> GetCourseForEditAsync(Guid courseId)
+        {
+            return await this.GetAll()
+                             .AsNoTracking()
+                             .Where(tc => tc.TruckCourseID.Equals(courseId))
+                             .Select(tc => new CreateCourseViewModel
+                             {
+                                 SelectedTruckID = tc.TruckID,
+                                 PickupAddress = tc.PickupAddress,
+                                 DeliverAddress = tc.DeliverAddress,
+                                 Income = tc.Income
+                             })
+                             .SingleOrDefaultAsync();
+        }
+
+        public async Task<DetailsCourseViewModel?> GetCourseDetailsAsync(Guid courseId, Guid? driverId = null)
+        {
+            IQueryable<TruckCourse> courses = this.GetAll()
+                                                  .AsNoTracking()
+                                                  .Include(tc => tc.CourseOrders)
+                                                  .ThenInclude(co => co.Order)
+                                                  .Include(tc => tc.Truck)
+                                                  .Where(tc => tc.TruckCourseID.Equals(courseId));
+
+            if (driverId.HasValue)
+            {
+                courses = courses.Where(tc => tc.Truck != null &&
+                                              tc.Truck.DriverID.Equals(driverId.Value));
+            }
+
+            return await courses.Select(tc => new DetailsCourseViewModel
+                               {
+                                   TruckCourseID = tc.TruckCourseID,
+                                   TruckID = tc.TruckID,
+                                   TruckPlates = tc.Truck!.LicensePlate ?? string.Empty,
+                                   PickupAddress = tc.PickupAddress,
+                                   DeliverAddress = tc.DeliverAddress,
+                                   AssignedDate = tc.AssignedDate,
+                                   DeliveryDate = tc.DeliveryDate,
+                                   Status = tc.Status,
+                                   Income = tc.Income,
+                                   AssinedOrders = tc.CourseOrders.Select(co => new IndexOrderViewModel
+                                   {
+                                       OrderID = co.OrderID,
+                                       OrderDate = co.Order.OrderDate,
+                                       DeliveryAddress = co.Order.DeliveryAddress,
+                                       PickupAddress = co.Order.PickupAddress,
+                                       Status = co.Order.Status.ToString(),
+                                       isCanceled = co.Order.IsCanceled
+                                   }).ToList(),
+                               })
+                               .SingleOrDefaultAsync();
+        }
+
         public async Task<int> AssignOrdersToCourseAsync(IEnumerable<OrderViewModel> ordersToAssign, Guid courseID)
         {
 
@@ -74,7 +156,7 @@ namespace OrderFlow.Services.Core
 
             TruckCourse? truckCourse = await this.GetQueryableByIdAsync(courseID)
                                                  .Include(tc => tc.Truck)
-                                                 .ThenInclude(t => t.Driver)
+                                                 .ThenInclude(t => t!.Driver)
                                                  .Include(tc => tc.CourseOrders)
                                                  .ThenInclude(co => co.Order)
                                                  .SingleOrDefaultAsync();
@@ -84,7 +166,12 @@ namespace OrderFlow.Services.Core
                 throw new InvalidOperationException("This course does not exist.");
             }
 
-            double capacity = truckCourse.Truck.Capacity;
+            if (truckCourse.Truck == null)
+            {
+                throw new InvalidOperationException("This course does not have a truck assigned.");
+            }
+
+            double capacity = truckCourse!.Truck!.Capacity;
 
             double loadedCapacity = truckCourse.CourseOrders.Sum(co => co.Order.LoadCapacity);
 
@@ -288,6 +375,38 @@ namespace OrderFlow.Services.Core
             this.Delete(course);
 
             return await this.SaveChangesAsync() > 0;
+        }
+
+        private static IQueryable<TruckCourse> ApplyCourseQuery(IQueryable<TruckCourse> courses, CourseQueryModel? query)
+        {
+            query ??= new CourseQueryModel();
+
+            if (!string.IsNullOrWhiteSpace(query.SearchId))
+            {
+                courses = courses.Where(tc => tc.TruckCourseID.ToString().Contains(query.SearchId));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.StatusFilter))
+            {
+                if (!Enum.TryParse(query.StatusFilter, true, out CourseStatus courseStatus))
+                {
+                    throw new ArgumentException("Invalid course status.", nameof(query.StatusFilter));
+                }
+
+                courses = courses.Where(tc => tc.Status.Equals(courseStatus));
+            }
+
+            if (query.HideCompleted)
+            {
+                courses = courses.Where(tc => tc.Status != CourseStatus.Delivered);
+            }
+
+            return query.SortOrder switch
+            {
+                "date_desc" => courses.OrderByDescending(tc => tc.AssignedDate),
+                "date_asc" => courses.OrderBy(tc => tc.AssignedDate),
+                _ => courses.OrderBy(tc => tc.AssignedDate)
+            };
         }
     }
 }

@@ -9,6 +9,11 @@ namespace OrderFlow.Services.Core.Contracts
     {
         IQueryable<Order> GetAll();
         Task<Order?> GetOrderByIdAsync(Guid? orderId);
+        Task<IEnumerable<IndexOrderViewModel>> GetUserOrdersAsync(Guid userId, OrderQueryModel query);
+        Task<IEnumerable<IndexOrderViewModel>> GetAdminOrdersAsync(OrderQueryModel query);
+        Task<CreateOrderViewModel?> GetOrderForEditAsync(Guid orderId, Guid userId);
+        Task<AdminCreateOrderViewModel?> GetAdminOrderForEditAsync(Guid orderId);
+        Task<DetailsOrderViewModel?> GetOrderDetailsAsync(Guid orderId, Guid? userId = null);
         Task<IEnumerable<Order>> GetAllByUserIdAsync(Guid? userId);
         Task<IEnumerable<Order>> GetAllByUserIdAndStatusAsync(Guid? userId, OrderStatus status);
         Task<IEnumerable<Order>> GetAllByStatusAsync(OrderStatus status);

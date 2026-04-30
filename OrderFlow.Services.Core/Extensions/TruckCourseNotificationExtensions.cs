@@ -11,13 +11,18 @@ namespace OrderFlow.Services.Core.Extensions
            string title,
            string message)
         {
+            if (course.Truck == null)
+            {
+                throw new ArgumentException("TruckCourse must have a Truck to create a notification.");
+            }
+
             return new NotificationCommand
             {
                 Title = title,
                 Message = message,
                 CourseID = course.TruckCourseID,
                 TruckID = course.TruckID,
-                ReceiverID = course.Truck.DriverID,
+                ReceiverID = course.Truck!.DriverID,
                 CanRespond = false,
             };
         }

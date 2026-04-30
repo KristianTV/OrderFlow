@@ -4,6 +4,7 @@ using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core;
+using OrderFlow.Services.Core.Commands;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Order;
 
@@ -160,9 +161,9 @@ namespace OrderFlow.Tests.Services
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
             Assert.That(updatedOrder.IsCanceled, Is.True);
             Assert.That(updatedOrder.Status, Is.EqualTo(OrderStatus.Cancelled));
-            _mockNotificationService.Verify(s => s.AddAsync(It.Is<Notification>(n =>
+            _mockNotificationService.Verify(s => s.SendSystemNotificationAsync(It.Is<NotificationCommand>(n =>
                 n.Title == $"Order {order.OrderID} has been Cancelled" &&
-                n.ReceiverID == user.Id)), Times.Once);
+                n.ReceiverID == user.Id), false), Times.Once);
         }
 
         [Test]
@@ -188,7 +189,7 @@ namespace OrderFlow.Tests.Services
             //var updatedOrderTruck2 = updatedOrder.CourseOrders.Single(ot => ot.TruckCourseID == orderTruck2.TruckCourseID);
             //Assert.That(updatedOrderTruck2.Status, Is.EqualTo(CourseStatus.Delivered));
 
-            _mockNotificationService.Verify(s => s.AddAsync(It.IsAny<Notification>()), Times.Once);
+            _mockNotificationService.Verify(s => s.SendSystemNotificationAsync(It.IsAny<NotificationCommand>(), false), Times.Once);
         }
 
         [Test]
@@ -257,9 +258,9 @@ namespace OrderFlow.Tests.Services
             Assert.That(result, Is.True);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
             Assert.That(updatedOrder.Status, Is.EqualTo(OrderStatus.InProgress));
-            _mockNotificationService.Verify(s => s.AddAsync(It.Is<Notification>(n =>
+            _mockNotificationService.Verify(s => s.SendSystemNotificationAsync(It.Is<NotificationCommand>(n =>
                 n.Title == $"Order status changed to InProgress" &&
-                n.ReceiverID == user.Id)), Times.Once);
+                n.ReceiverID == user.Id), false), Times.Once);
         }
 
         [Test]
@@ -305,9 +306,9 @@ namespace OrderFlow.Tests.Services
             Assert.That(updatedOrder.Status, Is.EqualTo(OrderStatus.Completed));
             Assert.That(updatedOrder.DeliveryDate, Is.Not.Null);
             Assert.That(updatedOrder.DeliveryDate.Value.Date, Is.EqualTo(DateTime.UtcNow.Date));
-            _mockNotificationService.Verify(s => s.AddAsync(It.Is<Notification>(n =>
+            _mockNotificationService.Verify(s => s.SendSystemNotificationAsync(It.Is<NotificationCommand>(n =>
                 n.Title == $"Order status changed to Completed" &&
-                n.ReceiverID == user.Id)), Times.Once);
+                n.ReceiverID == user.Id), false), Times.Once);
         }
 
         [Test]

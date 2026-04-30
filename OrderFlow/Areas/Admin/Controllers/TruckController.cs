@@ -34,18 +34,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         {
             try
             {
-                var trucks = await _truckService.GetAll()
-                                                 .AsNoTracking()
-                                                 .Include(t => t.Driver)
-                                                 .Select(truck => new IndexTruckViewModel
-                                                 {
-                                                     TruckID = truck.TruckID,
-                                                     DriverName = truck.Driver!.UserName!,
-                                                     LicensePlate = truck.LicensePlate,
-                                                     Capacity = truck.Capacity,
-                                                     Status = truck.Status.ToString(),
-                                                 })
-                                                 .ToListAsync();
+                var trucks = (await _truckService.GetTrucksAsync(query: new TruckQueryModel { Status = status })).ToList();
 
                 if (trucks == null || !trucks.Any())
                 {
@@ -54,50 +43,9 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return View(new List<IndexTruckViewModel>());
                 }
 
-                if (status != null)
-                {
-                    if (status.ToLower().Equals("all"))
-                    {
-                        ViewData["CurrentStatus"] = "All";
-                        status = null;
-                    }
-                }
-
-                if (status != null)
-                {
-                    if (!Enum.TryParse<TruckStatus>(status, true, out TruckStatus truckStatus))
-                    {
-                        _logger.LogWarning("Invalid truck status filter provided: {0}", status);
-                        ModelState.AddModelError(nameof(status), string.Join("Invalid truck status filter provided: {0}", status));
-                        return BadRequest();
-                    }
-
-                    switch (truckStatus)
-                    {
-                        case TruckStatus.Available:
-                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.Available.ToString())).ToList();
-                            ViewData["CurrentStatus"] = TruckStatus.Available.ToString();
-                            break;
-                        case TruckStatus.Unavailable:
-                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.Unavailable.ToString())).ToList();
-
-                            ViewData["CurrentStatus"] = TruckStatus.Unavailable.ToString();
-                            break;
-                        case TruckStatus.UnderMaintenance:
-                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.UnderMaintenance.ToString())).ToList();
-
-                            ViewData["CurrentStatus"] = TruckStatus.UnderMaintenance.ToString();
-                            break;
-                        case TruckStatus.Delayed:
-                            trucks = trucks.Where(t => t.Status.Equals(TruckStatus.Delayed.ToString())).ToList();
-                            ViewData["CurrentStatus"] = TruckStatus.Delayed.ToString();
-                            break;
-                        default:
-                            _logger.LogWarning("Invalid status filter provided: {0}", truckStatus);
-                            ModelState.AddModelError(nameof(truckStatus), string.Join("Invalid status filter provided: {0}", truckStatus));
-                            return BadRequest();
-                    }
-                }
+                ViewData["CurrentStatus"] = string.IsNullOrWhiteSpace(status) || status.Equals("all", StringComparison.OrdinalIgnoreCase)
+                    ? "All"
+                    : status;
 
 
                 return View(trucks);
@@ -184,16 +132,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             try
             {
-                CreateTruckViewModel? createTruckViewModel = await _truckService.GetAll()
-                                                                                .AsNoTracking()
-                                                                                .Where(o => o.TruckID.Equals(truckId))
-                                                                                .Select(o => new CreateTruckViewModel
-                                                                                {
-                                                                                    DriverID = o.DriverID,
-                                                                                    LicensePlate = o.LicensePlate,
-                                                                                    Capacity = o.Capacity,
-                                                                                })
-                                                                                .SingleOrDefaultAsync();
+                CreateTruckViewModel? createTruckViewModel = await _truckService.GetTruckForEditAsync(truckId);
 
                 if (createTruckViewModel == null)
                 {
@@ -267,19 +206,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             try
             {
-                DetailsTruckViewModel? truckDetail = await _truckService.GetAll()
-                                                                        .AsNoTracking()
-                                                                        .Include(o => o.Driver)
-                                                                        .Where(o => o.TruckID.Equals(truckID))
-                                                                        .Select(o => new DetailsTruckViewModel
-                                                                        {
-                                                                            TruckID = o.TruckID,
-                                                                            DriverName = o.Driver!.UserName!,
-                                                                            LicensePlate = o.LicensePlate,
-                                                                            Capacity = o.Capacity,
-                                                                            Status = o.Status.ToString(),
-                                                                        })
-                                                                        .SingleOrDefaultAsync();
+                DetailsTruckViewModel? truckDetail = await _truckService.GetTruckDetailsAsync(truckID);
 
                 if (truckDetail == null)
                 {

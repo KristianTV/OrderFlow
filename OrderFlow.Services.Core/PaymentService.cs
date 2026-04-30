@@ -24,7 +24,7 @@ namespace OrderFlow.Services.Core
             {
 
                 Amount = createPayment.Amount,
-                PaymentDescription = createPayment.PaymentDescription,
+                PaymentDescription = createPayment.PaymentDescription ?? string.Empty,
                 OrderID = orderId,
                 PaymentDate = DateTime.UtcNow
             });
@@ -68,9 +68,8 @@ namespace OrderFlow.Services.Core
             {
                 throw new KeyNotFoundException($"Payment with ID {paymentId} not found.");
             }
-
             payment.Amount = createPayment.Amount;
-            payment.PaymentDescription = createPayment.PaymentDescription;
+            payment.PaymentDescription = createPayment.PaymentDescription ?? string.Empty;
 
             return await SaveChangesAsync() > 0;
 

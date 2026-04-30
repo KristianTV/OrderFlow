@@ -118,12 +118,144 @@ namespace OrderFlow.Services.Core
             return this.All<Order>().AsQueryable();
         }
 
+        public async Task<IEnumerable<IndexOrderViewModel>> GetUserOrdersAsync(Guid userId, OrderQueryModel query)
+        {
+            IQueryable<Order> orders = ApplyOrderQuery(this.GetAll().AsNoTracking(), query)
+                .Where(o => o.UserID.Equals(userId));
+
+            return await ProjectToIndexOrderViewModel(orders).ToListAsync();
+        }
+
+        public async Task<IEnumerable<IndexOrderViewModel>> GetAdminOrdersAsync(OrderQueryModel query)
+        {
+            IQueryable<Order> orders = ApplyOrderQuery(this.GetAll().AsNoTracking(), query);
+
+            return await ProjectToIndexOrderViewModel(orders).ToListAsync();
+        }
+
+        public async Task<CreateOrderViewModel?> GetOrderForEditAsync(Guid orderId, Guid userId)
+        {
+            return await this.GetAll()
+                             .AsNoTracking()
+                             .Where(o => o.OrderID.Equals(orderId) && o.UserID.Equals(userId))
+                             .Select(o => new CreateOrderViewModel
+                             {
+                                 DeliveryAddress = o.DeliveryAddress,
+                                 PickupAddress = o.PickupAddress,
+                                 DeliveryInstructions = o.DeliveryInstructions,
+                                 LoadCapacity = o.LoadCapacity,
+                             })
+                             .SingleOrDefaultAsync();
+        }
+
+        public async Task<AdminCreateOrderViewModel?> GetAdminOrderForEditAsync(Guid orderId)
+        {
+            return await this.GetAll()
+                             .AsNoTracking()
+                             .Where(o => o.OrderID.Equals(orderId))
+                             .Select(o => new AdminCreateOrderViewModel
+                             {
+                                 UsersId = o.UserID,
+                                 DeliveryAddress = o.DeliveryAddress,
+                                 PickupAddress = o.PickupAddress,
+                                 LoadCapacity = o.LoadCapacity,
+                                 DeliveryInstructions = o.DeliveryInstructions
+                             })
+                             .SingleOrDefaultAsync();
+        }
+
+        public async Task<DetailsOrderViewModel?> GetOrderDetailsAsync(Guid orderId, Guid? userId = null)
+        {
+            IQueryable<Order> orders = this.GetAll()
+                                           .AsNoTracking()
+                                           .Include(o => o.User)
+                                           .Include(o => o.Payments)
+                                           .Include(o => o.CourseOrders)
+                                           .ThenInclude(co => co.TruckCourse)
+                                           .ThenInclude(tc => tc.Truck)
+                                           .Where(o => o.OrderID.Equals(orderId));
+
+            if (userId.HasValue)
+            {
+                orders = orders.Where(o => o.UserID.Equals(userId.Value));
+            }
+
+            return await orders.Select(o => new DetailsOrderViewModel
+                               {
+                                   OrderID = o.OrderID,
+                                   UserName = o.User!.UserName!,
+                                   OrderDate = o.OrderDate,
+                                   DeliveryDate = o.DeliveryDate,
+                                   DeliveryAddress = o.DeliveryAddress,
+                                   PickupAddress = o.PickupAddress,
+                                   LoadCapacity = o.LoadCapacity,
+                                   DeliveryInstructions = o.DeliveryInstructions,
+                                   Status = o.Status.ToString(),
+                                   isCanceled = o.IsCanceled,
+                                   TrucksLicensePlates = o.CourseOrders.Select(co => co.TruckCourse.Truck!.LicensePlate).ToList(),
+                                   Payments = o.Payments.Select(payment => new PaymentViewModel
+                                   {
+                                       Id = payment.PaymentID,
+                                       PaymentDate = payment.PaymentDate,
+                                       Amount = payment.Amount,
+                                       PaymentDescription = payment.PaymentDescription
+                                   }).ToList(),
+                                   TotalPrice = o.Payments.Sum(p => p.Amount)
+                               })
+                               .SingleOrDefaultAsync();
+        }
+
         public async Task<Order?> GetOrderByIdAsync(Guid? orderId)
         {
             return await this.GetAll()
                              .AsNoTracking()
                              .Where(x => x.OrderID.Equals(orderId))
                              .SingleOrDefaultAsync();
+        }
+
+        private static IQueryable<Order> ApplyOrderQuery(IQueryable<Order> orders, OrderQueryModel? query)
+        {
+            query ??= new OrderQueryModel();
+
+            if (!string.IsNullOrWhiteSpace(query.SearchId))
+            {
+                orders = orders.Where(o => o.OrderID.ToString().Contains(query.SearchId));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.StatusFilter))
+            {
+                if (!Enum.TryParse(query.StatusFilter, true, out OrderStatus orderStatus))
+                {
+                    throw new ArgumentException("Invalid order status.", nameof(query.StatusFilter));
+                }
+
+                orders = orders.Where(o => o.Status.Equals(orderStatus));
+            }
+
+            if (query.HideCompleted)
+            {
+                orders = orders.Where(o => o.Status != OrderStatus.Completed);
+            }
+
+            return query.SortOrder switch
+            {
+                "date_desc" => orders.OrderByDescending(o => o.OrderDate),
+                "date_asc" => orders.OrderBy(o => o.OrderDate),
+                _ => orders.OrderBy(o => o.OrderDate)
+            };
+        }
+
+        private static IQueryable<IndexOrderViewModel> ProjectToIndexOrderViewModel(IQueryable<Order> orders)
+        {
+            return orders.Select(order => new IndexOrderViewModel
+            {
+                OrderID = order.OrderID,
+                OrderDate = order.OrderDate,
+                DeliveryAddress = order.DeliveryAddress,
+                PickupAddress = order.PickupAddress,
+                Status = order.Status.ToString(),
+                isCanceled = order.IsCanceled
+            });
         }
 
         private async Task<Order?> GetTrackingOrderByIdAsync(Guid? orderId)
@@ -257,6 +389,16 @@ namespace OrderFlow.Services.Core
                                      .ThenInclude(co => co.TruckCourse)
                                      .Where(x => x.OrderID.Equals(orderID))
                                      .SingleOrDefaultAsync();
+
+            if (order == null)
+            {
+                throw new ArgumentNullException(nameof(order));
+            }
+
+            if (order.CourseOrders == null || !order.CourseOrders.Any(co => co.TruckCourse.Status.Equals(CourseStatus.Assigned)))
+            {
+                throw new ArgumentNullException("OrderTrucks");
+            }
 
             //if (order != null)
             //{

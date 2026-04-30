@@ -21,9 +21,9 @@
 
         public bool isCanceled { get; set; }
 
-        public ICollection<string?> TrucksLicensePlates { get; set; } = new List<string?>();
+        public IEnumerable<string?> TrucksLicensePlates { get; set; } = new List<string?>();
 
-        public ICollection<PaymentViewModel> Payments { get; set; } = new HashSet<PaymentViewModel>();
+        public IEnumerable<PaymentViewModel> Payments { get; set; } = new HashSet<PaymentViewModel>();
 
         public decimal TotalPrice { get; set; }
     }

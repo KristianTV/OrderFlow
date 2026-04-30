@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using OrderFlow.Data.Models;
-using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Course;
-using OrderFlow.ViewModels.Order;
 
 namespace OrderFlow.Areas.Admin.Controllers
 {
@@ -23,66 +20,18 @@ namespace OrderFlow.Areas.Admin.Controllers
             _truckCourseService = truckCourseService;
             _truckService = truckService;
         }
-        private async Task<Dictionary<Guid, string>> GetAvailableTrucksAsync()
-        {
-            return await _truckService.GetAll()
-                                      .Where(t => t.Status.Equals(TruckStatus.Available))
-                                      .ToDictionaryAsync(truck => truck.TruckID,
-                                                         truck => truck.LicensePlate);
-        }
-
         [HttpGet]
         public async Task<IActionResult> Index(bool? hideCompleted, string? searchId = null, string? statusFilter = null, string? sortOrder = null)
         {
             try
             {
-                var courses = _truckCourseService.GetAll().AsNoTracking();
-
-                if (!string.IsNullOrEmpty(searchId))
+                IEnumerable<IndexCourseViewModel> indexAllCourses = await _truckCourseService.GetCoursesAsync(null, new CourseQueryModel
                 {
-                    courses = courses.Where(o => o.TruckCourseID.ToString().Contains(searchId));
-                }
-
-                if (!string.IsNullOrEmpty(statusFilter))
-                {
-                    if (!Enum.TryParse(statusFilter, out CourseStatus courseStatus))
-                    {
-                        _logger.LogWarning("Invalid status filter provided.");
-                        return BadRequest();
-                    }
-                    courses = courses.Where(o => o.Status.Equals(courseStatus));
-                }
-
-                if (hideCompleted.HasValue && hideCompleted.Value)
-                {
-                    courses = courses.Where(o => o.Status != CourseStatus.Delivered);
-                }
-
-                switch (sortOrder)
-                {
-                    case "date_desc":
-                        courses = courses.OrderByDescending(o => o.AssignedDate);
-                        break;
-                    case "date_asc":
-                        courses = courses.OrderBy(o => o.AssignedDate);
-                        break;
-                    default:
-                        courses = courses.OrderBy(o => o.AssignedDate);
-                        break;
-                }
-
-                IEnumerable<IndexCourseViewModel> indexAllCourses = await courses.Select((tc) => new IndexCourseViewModel
-                {
-                    TruckCourseID = tc.TruckCourseID,
-                    TruckID = tc.TruckID,
-                    PickupAddress = tc.PickupAddress,
-                    DeliverAddress = tc.DeliverAddress,
-                    AssignedDate = tc.AssignedDate,
-                    DeliveryDate = tc.DeliveryDate,
-                    Status = tc.Status,
-                    Income = tc.Income
-                })
-                                                                                   .ToListAsync();
+                    HideCompleted = hideCompleted.GetValueOrDefault(),
+                    SearchId = searchId,
+                    StatusFilter = statusFilter,
+                    SortOrder = sortOrder
+                });
 
                 return View(indexAllCourses);
             }
@@ -98,7 +47,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         {
             CreateCourseViewModel createCourseViewModel = new CreateCourseViewModel
             {
-                AvailableTruckIDs = await GetAvailableTrucksAsync()
+                AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync()
             };
 
             return View(createCourseViewModel);
@@ -110,7 +59,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                createCourseViewModel.AvailableTruckIDs = await GetAvailableTrucksAsync();
+                createCourseViewModel.AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync();
                 return View(createCourseViewModel);
             }
 
@@ -119,7 +68,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 if (!await _truckCourseService.CreateCourseAsync(createCourseViewModel))
                 {
                     ModelState.AddModelError(string.Empty, "Failed to create the order. Please check the provided details and try again.");
-                    createCourseViewModel.AvailableTruckIDs = await GetAvailableTrucksAsync(); ;
+                    createCourseViewModel.AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync();
                     return View(createCourseViewModel);
                 }
             }
@@ -127,7 +76,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 _logger.LogError(ex, "An error occurred while creating a new order.");
                 ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
-                createCourseViewModel.AvailableTruckIDs = await GetAvailableTrucksAsync();
+                createCourseViewModel.AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync();
                 return View(createCourseViewModel);
             }
 
@@ -152,17 +101,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             CreateCourseViewModel? createCourseViewModel = null;
             try
             {
-                createCourseViewModel = await _truckCourseService.GetAll()
-                                                                 .AsNoTracking()
-                                                                 .Where(tc => tc.TruckCourseID.Equals(CourseId))
-                                                                 .Select(tc => new CreateCourseViewModel
-                                                                 {
-                                                                     SelectedTruckID = tc.TruckID,
-                                                                     PickupAddress = tc.PickupAddress,
-                                                                     DeliverAddress = tc.DeliverAddress,
-                                                                     Income = tc.Income
-                                                                 })
-                                                                 .SingleOrDefaultAsync();
+                createCourseViewModel = await _truckCourseService.GetCourseForEditAsync(CourseId);
             }
             catch (Exception ex)
             {
@@ -176,7 +115,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            createCourseViewModel.AvailableTruckIDs = await GetAvailableTrucksAsync();
+            createCourseViewModel.AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync();
 
             return View(createCourseViewModel);
         }
@@ -201,7 +140,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             if (!ModelState.IsValid)
             {
-                createCourseViewModel.AvailableTruckIDs = await GetAvailableTrucksAsync();
+                createCourseViewModel.AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync();
                 return View(createCourseViewModel);
             }
 
@@ -215,7 +154,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 if (!await _truckCourseService.UpdateCourseAsync(createCourseViewModel, courseId))
                 {
                     ModelState.AddModelError(string.Empty, "Failed to update the course. The course may have been modified by another user.");
-                    createCourseViewModel.AvailableTruckIDs = await GetAvailableTrucksAsync();
+                    createCourseViewModel.AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync();
                     return View(createCourseViewModel);
                 }
             }
@@ -223,7 +162,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 _logger.LogError(ex, "An error occurred while updating course with ID {courseId}.", courseId);
                 ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
-                createCourseViewModel.AvailableTruckIDs = await GetAvailableTrucksAsync();
+                createCourseViewModel.AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync();
                 return View(createCourseViewModel);
             }
 
@@ -248,35 +187,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             DetailsCourseViewModel? course = null;
             try
             {
-                course = await _truckCourseService.GetAll()
-                                                  .AsNoTracking()
-                                                  .Include(tc => tc.CourseOrders)
-                                                  .Include(tc => tc.Truck)
-                                                  .Where(tc => tc.TruckCourseID.Equals(courseId))
-                                                  .Select(tc => new DetailsCourseViewModel
-                                                  {
-                                                      TruckCourseID = tc.TruckCourseID,
-                                                      TruckID = tc.TruckID,
-                                                      TruckPlates = tc.Truck.LicensePlate ?? string.Empty,
-                                                      PickupAddress = tc.PickupAddress,
-                                                      DeliverAddress = tc.DeliverAddress,
-                                                      AssignedDate = tc.AssignedDate,
-                                                      DeliveryDate = tc.DeliveryDate,
-                                                      Status = tc.Status,
-                                                      Income = tc.Income,
-                                                      AssinedOrders = tc.CourseOrders.Select(co => new IndexOrderViewModel
-                                                      {
-                                                          OrderID = co.OrderID,
-                                                          OrderDate = co.Order.OrderDate,
-                                                          DeliveryAddress = co.Order.DeliveryAddress,
-                                                          PickupAddress = co.Order.PickupAddress,
-                                                          Status = co.Order.Status.ToString(),
-                                                          isCanceled = co.Order.IsCanceled
-                                                      })
-                                                      .ToList(),
-
-                                                  })
-                                                  .SingleOrDefaultAsync();
+                course = await _truckCourseService.GetCourseDetailsAsync(courseId);
             }
             catch (Exception ex)
             {

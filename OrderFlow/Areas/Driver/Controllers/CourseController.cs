@@ -33,57 +33,13 @@ namespace OrderFlow.Areas.Driver.Controllers
                     return RedirectToAction("Error", "Home");
                 }
 
-                var courses = _truckCourseService.GetAll()
-                                                 .AsNoTracking()
-                                                 .Include(tc => tc.Truck)
-                                                 .Where(tc => tc.Truck != null &&
-                                                              tc.Truck.DriverID.Equals(userID));
-
-                if (!string.IsNullOrEmpty(searchId))
+                IEnumerable<IndexCourseViewModel> indexAllCourses = await _truckCourseService.GetCoursesAsync(userID, new CourseQueryModel
                 {
-                    courses = courses.Where(tc => tc.TruckCourseID.ToString().Contains(searchId));
-                }
-
-                if (!string.IsNullOrEmpty(statusFilter))
-                {
-                    if (!Enum.TryParse(statusFilter, out CourseStatus courseStatus))
-                    {
-                        _logger.LogWarning("Invalid status filter provided.");
-                        return BadRequest();
-                    }
-                    courses = courses.Where(tc => tc.Status.Equals(courseStatus));
-                }
-
-                if (hideCompleted.HasValue && hideCompleted.Value)
-                {
-                    courses = courses.Where(tc => tc.Status != CourseStatus.Delivered);
-                }
-
-                switch (sortOrder)
-                {
-                    case "date_desc":
-                        courses = courses.OrderByDescending(tc => tc.AssignedDate);
-                        break;
-                    case "date_asc":
-                        courses = courses.OrderBy(tc => tc.AssignedDate);
-                        break;
-                    default:
-                        courses = courses.OrderBy(tc => tc.AssignedDate);
-                        break;
-                }
-
-                IEnumerable<IndexCourseViewModel> indexAllCourses = await courses.Select((tc) => new IndexCourseViewModel
-                {
-                    TruckCourseID = tc.TruckCourseID,
-                    TruckID = tc.TruckID,
-                    PickupAddress = tc.PickupAddress,
-                    DeliverAddress = tc.DeliverAddress,
-                    AssignedDate = tc.AssignedDate,
-                    DeliveryDate = tc.DeliveryDate,
-                    Status = tc.Status,
-                    Income = tc.Income
-                })
-                .ToListAsync();
+                    HideCompleted = hideCompleted.GetValueOrDefault(),
+                    SearchId = searchId,
+                    StatusFilter = statusFilter,
+                    SortOrder = sortOrder
+                });
 
                 return View(indexAllCourses);
             }
@@ -118,37 +74,7 @@ namespace OrderFlow.Areas.Driver.Controllers
             DetailsCourseViewModel? course = null;
             try
             {
-                course = await _truckCourseService.GetAll()
-                                                  .AsNoTracking()
-                                                  .Include(tc => tc.CourseOrders)
-                                                  .Include(tc => tc.Truck)
-                                                  .Where(tc => tc.TruckCourseID.Equals(courseId) &&
-                                                               tc.Truck != null &&
-                                                               tc.Truck.DriverID.Equals(userID))
-                                                  .Select(tc => new DetailsCourseViewModel
-                                                  {
-                                                      TruckCourseID = tc.TruckCourseID,
-                                                      TruckID = tc.TruckID,
-                                                      TruckPlates = tc.Truck.LicensePlate ?? string.Empty,
-                                                      PickupAddress = tc.PickupAddress,
-                                                      DeliverAddress = tc.DeliverAddress,
-                                                      AssignedDate = tc.AssignedDate,
-                                                      DeliveryDate = tc.DeliveryDate,
-                                                      Status = tc.Status,
-                                                      Income = tc.Income,
-                                                      AssinedOrders = tc.CourseOrders.Select(co => new IndexOrderViewModel
-                                                      {
-                                                          OrderID = co.OrderID,
-                                                          OrderDate = co.Order.OrderDate,
-                                                          DeliveryAddress = co.Order.DeliveryAddress,
-                                                          PickupAddress = co.Order.PickupAddress,
-                                                          Status = co.Order.Status.ToString(),
-                                                          isCanceled = co.Order.IsCanceled
-                                                      })
-                                                      .ToList(),
-
-                                                  })
-                                                  .SingleOrDefaultAsync();
+                course = await _truckCourseService.GetCourseDetailsAsync(courseId, userID);
             }
             catch (Exception ex)
             {
