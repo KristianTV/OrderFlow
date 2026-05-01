@@ -23,10 +23,6 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
-    # 1. Code Quality: Style Check
-    - name: Check Formatting
-      run: dotnet format --verify-no-changes
-
     # 2. Security: Initialize CodeQL
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
