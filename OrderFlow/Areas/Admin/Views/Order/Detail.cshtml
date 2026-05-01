@@ -12,7 +12,6 @@
     </div>
 
     <div class="row">
-        @* --- Order Information Card --- *@
         <div class="col-md-7">
             <div class="card shadow-lg mb-4 border-primary">
                 <div class="card-header bg-primary text-white">
@@ -57,7 +56,6 @@
                     }
                     <hr />
                     
-                    @* --- Status Management --- *@
                     <div class="row mb-2 align-items-center">
                         <div class="col-sm-4 text-muted">Status:</div>
                         <div class="col-sm-8">
@@ -67,7 +65,7 @@
                                     <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                         <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="statusDropdown">
+                                    <ul class="dropdown-menu dropdown-menu-start shadow" aria-labelledby="statusDropdown">
                                         <li><h6 class="dropdown-header">Update Status</h6></li>
                                         @foreach (var status in new[] { "Pending", "OnHold", "Failed", "Delayed" })
                                         {
@@ -101,7 +99,6 @@
                         </div>
                     }
 
-                    @* --- Trucks Section --- *@
                     <div class="row mt-3">
                         <div class="col-sm-4 text-muted">Trucks Assigned:</div>
                         <div class="col-sm-8">
@@ -109,7 +106,7 @@
                             {
                                 @foreach (var truck in Model.TrucksLicensePlates)
                                 {
-                                    <span class="badge bg-dark me-1">@truck</span>
+                                    <p class="me-1"><i b-ijfvsifnbj="" class="fas fa-truck me-1"></i>@truck</p>
                                 }
                             }
                             else
@@ -122,7 +119,6 @@
             </div>
         </div>
 
-        @* --- Payments Card --- *@
         <div class="col-md-5">
             <div class="card shadow-lg mb-3">
                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
@@ -176,7 +172,6 @@
                                         </div>
                                     </div>
 
-                                    @* --- Delete Payment Modal --- *@
                                     <div class="modal fade" id="deletePaymentModal-@payment.Id" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
@@ -210,7 +205,6 @@
         </div>
     </div>
 
-    @* --- Footer Actions --- *@
     <div class="d-flex justify-content-between mt-4 pb-5">
         <a class="btn btn-secondary" asp-area="Admin" asp-controller="Order" asp-action="Index">
             <i class="fas fa-arrow-left me-2"></i> Back
@@ -240,7 +234,6 @@
         </div>
     </div>
 
-    @* --- Cancel Order Modal --- *@
     <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
