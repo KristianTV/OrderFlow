@@ -130,75 +130,61 @@
                 <div class="card-body">
                     @if (Model.Payments != null && Model.Payments.Any())
                     {
-                        <ul class="list-group list-group-flush">
-                            @foreach (var payment in Model.Payments)
-                            {
-                                var amountClass = payment.Amount < 0 ? "text-warning" : "text-success";
-                                <li class="list-group-item px-0 py-3">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="w-100">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div class="fs-4 fw-bold @amountClass">
-                                                    @payment.Amount.ToString("C")
-                                                </div>
-                                                <div class="text-muted small text-end">
-                                                    <i class="fas fa-calendar-alt me-1"></i>
-                                                    @payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")
-                                                </div>
-                                            </div>
-                                            @if (!string.IsNullOrEmpty(payment.PaymentDescription))
-                                            {
-                                                <p class="mb-0 mt-1 small">@payment.PaymentDescription</p>
-                                            }
-                                        </div>
-
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="fas fa-ellipsis-v"></i>
+                        @foreach (var payment in Model.Payments)
+                        {
+                            var amountClass = payment.Amount < 0 ? "text-warning" : "text-success";
+                            <div class="pb-3 border-start ps-3 position-relative mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small text-end">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        @payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")
+                                    </span>
+                                    <span class="fs-4 fw-bold @amountClass">
+                                        @payment.Amount.ToString("C")
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                @if (!string.IsNullOrEmpty(payment.PaymentDescription))
+                                {
+                                    <p class="x-small mb-0">@payment.PaymentDescription</p>
+                                }
+                                else{
+                                    <p class="x-small mb-0">No information</p>
+                                }
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                                        <li>
+                                            <a class="dropdown-item" asp-area="Admin" asp-action="Edit" asp-controller="Payment" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID">
+                                                <i class="fas fa-edit me-2 text-secondary"></i> Edit
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deletePaymentModal-@payment.Id">
+                                                <i class="fas fa-trash-alt me-2"></i> Delete
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow">
-                                                <li>
-                                                    <a class="dropdown-item" asp-area="Admin" asp-action="Edit" asp-controller="Payment" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID">
-                                                        <i class="fas fa-edit me-2 text-secondary"></i> Edit
-                                                    </a>
-                                                </li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li>
-                                                    <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deletePaymentModal-@payment.Id">
-                                                        <i class="fas fa-trash-alt me-2"></i> Delete
-                                                    </button>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-
-                                    <div class="modal fade" id="deletePaymentModal-@payment.Id" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header bg-danger text-white">
-                                                    <h5 class="modal-title">Confirm Delete</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    Delete payment of <strong>@payment.Amount.ToString("C")</strong>?
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <form asp-area="Admin" asp-controller="Payment" asp-action="Delete" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID" method="post">
-                                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                            }
-                        </ul>
-                        <h4 class="text-end mt-4">Total: <span class="text-success fw-bold">@Model.TotalPrice.ToString("C")</span></h4>
+                                        </li>
+                                    </ul>
+                                </div>
+                                </div>
+                            </div>
+                        }
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h5 mb-0">Total Paid</span>
+                                <span class="h4 fw-bold text-success mb-0">@Model.TotalPrice.ToString("C")</span>
+                            </div>
+                        </div>
                     }
                     else
                     {
-                        <p class="text-muted text-center py-4">No payments found.</p>
+                        <div class="text-center py-4">
+                            <i class="fas fa-receipt fa-3x text-light mb-3"></i>
+                            <p class="text-muted small">No transactions found.</p>
+                        </div>
                     }
                 </div>
             </div>

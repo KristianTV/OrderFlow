@@ -76,7 +76,7 @@
                             @foreach (var truckLicensePlate in Model.TrucksLicensePlates)
                             {
 
-                                <div class="col-sm-8"><strong>@truckLicensePlate</strong></div>
+                                <div class="col-sm-8"><i b-ijfvsifnbj="" class="fas fa-truck me-1"></i><strong>@truckLicensePlate</strong></div>
 
                             }
                         </div>
@@ -100,29 +100,42 @@
                 <div class="card-body">
                     @if (Model.Payments != null && Model.Payments.Any())
                     {
-                        <ul class="list-group mb-3">
                             @foreach (var payment in Model.Payments)
                             {
-                                <li class="list-group-item flex justify-between items-center py-3 px-4 border-b border-gray-200 last:border-b-0">
-                                    <div class="flex flex-col text-left">
-                                        <div class="flex items-center">
-                                            <strong class="text-gray-900 text-base">@payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")</strong>
-                                            <span class="badge bg-primary rounded-pill ms-2">@payment.Amount.ToString("C")</span>
-                                        </div>
-                                        @if (!string.IsNullOrEmpty(payment.PaymentDescription))
-                                        {
-                                            <p class="mt-1 text-gray-600 text-sm">@payment.PaymentDescription</p>
-                                        }
+                                var amountClass = payment.Amount < 0 ? "text-warning" : "text-success";
+                                <div class="pb-3 border-start ps-3 position-relative mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted small text-end">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            @payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")
+                                        </span>
+                                        <span class="fs-4 fw-bold @amountClass">
+                                            @payment.Amount.ToString("C")
+                                        </span>
                                     </div>
-                                </li>
-
+                                    @if (!string.IsNullOrEmpty(payment.PaymentDescription))
+                                    {
+                                        <p class="x-small mb-0">@payment.PaymentDescription</p>
+                                }
+                                else
+                                {
+                                    <p class="x-small mb-0">No information</p>
+                                }
+                                </div>
                             }
-                        </ul>
-                        <h4 class="text-end mt-4">Total Paid: <span class="text-success fw-bold">@Model.TotalPrice.ToString("C")</span></h4>
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h5 mb-0">Total Paid</span>
+                                <span class="h4 fw-bold text-success mb-0">@Model.TotalPrice.ToString("C")</span>
+                            </div>
+                        </div>
                     }
                     else
                     {
-                        <p class="text-muted text-center mb-0">No payments found.</p>
+                        <div class="text-center py-4">
+                            <i class="fas fa-receipt fa-3x text-light mb-3"></i>
+                            <p class="text-muted small">No transactions found.</p>
+                        </div>
                     }
                 </div>
             </div>
