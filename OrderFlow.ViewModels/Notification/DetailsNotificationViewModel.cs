@@ -16,6 +16,8 @@ namespace OrderFlow.ViewModels.Notification
 
         public Guid? OrderId { get; set; }
 
+        public Guid? PaymentId { get; set; }
+
         public IEnumerable<DetailsNotificationMessageViewModel>? Messages { get; set; }
 
         public bool isMarkable { get; set; } = true;

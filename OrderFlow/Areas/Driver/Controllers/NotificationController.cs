@@ -97,8 +97,9 @@ namespace OrderFlow.Areas.Driver.Controllers
                         Message = n.Message,
                         CreatedAt = n.CreatedAt,
                         IsRead = n.IsRead,
-                        OrderId = n.OrderID,
                         TruckId = n.TruckID,
+                        TruckSpendingId = n.TruckSpendingID,
+                        CourseId = n.CourseID,
                         SenderName = n.Sender!.UserName,
                         IsResponseEnabled = n.CanRespond,
                         Messages = n.Messages
@@ -128,7 +129,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                     await _notificationService.ReadAsync(notificationId);
                     notificationViewModel.IsRead = true;
                 }
-
+                ViewBag.CurrentUserId = userId;
                 return View(notificationViewModel);
             }
             catch (Exception ex)

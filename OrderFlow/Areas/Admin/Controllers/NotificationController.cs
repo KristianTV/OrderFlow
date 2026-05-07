@@ -15,15 +15,26 @@ namespace OrderFlow.Areas.Admin.Controllers
         private readonly INotificationService _notificationService;
         private readonly IOrderService _orderService;
         private readonly ITruckService _truckService;
+        private readonly ITruckCourseService _truckCourseService;
+        private readonly IPaymentService _paymentService;
+        // private readonly itru _truckService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public NotificationController(ILogger<NotificationController> logger, INotificationService notificationService, IOrderService orderService, ITruckService truckService, UserManager<ApplicationUser> userManager)
+        public NotificationController(ILogger<NotificationController> logger,
+                                        INotificationService notificationService,
+                                        IOrderService orderService,
+                                        ITruckService truckService,
+                                        ITruckCourseService truckCourseService,
+                                        IPaymentService paymentService,
+                                        UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
             _notificationService = notificationService;
             _orderService = orderService;
             _userManager = userManager;
             _truckService = truckService;
+            _truckCourseService = truckCourseService;
+            _paymentService = paymentService;
         }
 
         [HttpGet]
@@ -98,6 +109,9 @@ namespace OrderFlow.Areas.Admin.Controllers
                     Receivers = await GetUsers(),
                     Orders = await GetOrders(),
                     Trucks = await GetTrucks(),
+                    Courses = await GetCourses(),
+                    Payments = await GetPayments(),
+                    TruckSpendings = await GetTruckSpendings()
                 };
 
                 if (!string.IsNullOrEmpty(orderId))
@@ -137,6 +151,9 @@ namespace OrderFlow.Areas.Admin.Controllers
                     createNotification.Receivers = await GetUsers();
                     createNotification.Orders = await GetOrders();
                     createNotification.Trucks = await GetTrucks();
+                    createNotification.Courses = await GetCourses();
+                    createNotification.Payments = await GetPayments();
+                    createNotification.TruckSpendings = await GetTruckSpendings();
                     return View(createNotification);
                 }
 
@@ -187,12 +204,16 @@ namespace OrderFlow.Areas.Admin.Controllers
 
                 AdminCreateNotificationViewModel? createNotification = await _notificationService.GetAll()
                                                                                                 .Where(n => n.NotificationID.Equals(notificationId) && n.SenderID.Equals(userId))
-                                                                                                .Select(o => new AdminCreateNotificationViewModel
+                                                                                                .Select(n => new AdminCreateNotificationViewModel
                                                                                                 {
-                                                                                                    Title = o.Title,
-                                                                                                    Message = o.Message,
-                                                                                                    ReceiverId = o.ReceiverID,
-                                                                                                    OrderId = o.OrderID,
+                                                                                                    Title = n.Title,
+                                                                                                    Message = n.Message,
+                                                                                                    ReceiverId = n.ReceiverID,
+                                                                                                    OrderId = n.OrderID,
+                                                                                                    TruckId = n.TruckID,
+                                                                                                    CourseId = n.CourseID,
+                                                                                                    PaymentId = n.PaymentID,
+                                                                                                    TruckSpendingId = n.TruckSpendingID,
                                                                                                 }).SingleOrDefaultAsync();
 
                 if (createNotification == null)
@@ -203,6 +224,9 @@ namespace OrderFlow.Areas.Admin.Controllers
                 createNotification.Receivers = await GetUsers();
                 createNotification.Orders = await GetOrders();
                 createNotification.Trucks = await GetTrucks();
+                createNotification.Courses = await GetCourses();
+                createNotification.Payments = await GetPayments();
+                createNotification.TruckSpendings = await GetTruckSpendings();
 
                 return View(createNotification);
             }
@@ -236,6 +260,9 @@ namespace OrderFlow.Areas.Admin.Controllers
                     createNotification.Receivers = await GetUsers();
                     createNotification.Orders = await GetOrders();
                     createNotification.Trucks = await GetTrucks();
+                    createNotification.Courses = await GetCourses();
+                    createNotification.Payments = await GetPayments();
+                    createNotification.TruckSpendings = await GetTruckSpendings();
                     return View(createNotification);
                 }
 
@@ -262,6 +289,9 @@ namespace OrderFlow.Areas.Admin.Controllers
                 createNotification.Receivers = await GetUsers();
                 createNotification.Orders = await GetOrders();
                 createNotification.Trucks = await GetTrucks();
+                createNotification.Courses = await GetCourses();
+                createNotification.Payments = await GetPayments();
+                createNotification.TruckSpendings = await GetTruckSpendings();
                 return View(createNotification);
             }
         }
@@ -302,6 +332,9 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                                                                         IsRead = n.IsRead,
                                                                                                         OrderId = n.OrderID,
                                                                                                         TruckId = n.TruckID,
+                                                                                                        CourseId = n.CourseID,
+                                                                                                        PaymentId = n.PaymentID,
+                                                                                                        TruckSpendingId = n.TruckSpendingID,
                                                                                                         SenderName = n.Sender!.UserName ?? string.Empty,
                                                                                                         isMarkable = n.ReceiverID.Equals(userId),
                                                                                                         IsResponseEnabled = n.CanRespond,
@@ -327,7 +360,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     await _notificationService.ReadAsync(notificationID);
                     notificationViewModel.IsRead = true;
                 }
-
+                ViewBag.CurrentUserId = userId;
                 return View(notificationViewModel);
             }
             catch (Exception ex)
@@ -495,5 +528,32 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                            t => t.TruckID.ToString() + " - " + t.Driver.UserName
                                                          );
         }
+
+        private async Task<IDictionary<Guid, string>> GetTruckSpendings()
+        {
+
+            return new Dictionary<Guid, string>();
+        }
+
+        private async Task<IDictionary<Guid, string>> GetPayments()
+        {
+            return await _paymentService.GetAll()
+                                        .Include(t => t.Order)
+                                        .ToDictionaryAsync(
+                                                          t => t.PaymentID,
+                                                          t => t.Order.OrderID.ToString() + " - " + t.OrderID.ToString()
+                                                        );
+        }
+
+        private async Task<IDictionary<Guid, string>> GetCourses()
+        {
+            return await _truckCourseService.GetAll()
+                                            .Include(t => t.Truck)
+                                            .ToDictionaryAsync(
+                                                           t => t.TruckCourseID,
+                                                           t => t.TruckCourseID.ToString() + " - " + (t.Truck?.LicensePlate ?? "Not Assigned")
+                                                         );
+        }
+
     }
 }

@@ -4,6 +4,7 @@
     ViewData["Title"] = "Notification Details";
     var notificationID = Context.Request.RouteValues["id"]?.ToString() ?? "";
     bool messagesEnabled = Model.IsResponseEnabled;
+    Guid currentUserId = ViewBag.CurrentUserId ?? Guid.Empty;
 }
 
 <div class="container mt-5">
@@ -42,21 +43,27 @@
                         <div class="row mb-2">
                             <div class="col-sm-4 text-muted">Associated Order:</div>
                             <div class="col-sm-8">
-                                <a asp-area="" asp-controller="Order" asp-action="Detail" asp-route-id="@Model.OrderId" class="text-decoration-none">
-                                    <i class="fas fa-box-open me-1"></i> View Associated Order
+                                <a asp-area="" asp-controller="Order" asp-action="Detail"
+                                       asp-route-id="@Model.OrderId" class="text-decoration-none">
+                                    <i class="fas fa-box-open me-1"></i> View Associated Order <i class="fa-solid fa-share-from-square"></i>
                                 </a>
                             </div>
                         </div>
                     }
-                    else
+
+                    @if (Model.PaymentId.HasValue)
                     {
                         <div class="row mb-2">
-                            <div class="col-sm-4 text-muted">Associated Order:</div>
+                            <div class="col-sm-4 text-muted">Associated Payment:</div>
                             <div class="col-sm-8">
-                                <p class="mb-0 text-muted fst-italic">No order associated.</p>
+                                <a asp-area="" asp-controller="Payment" asp-action="Detail"
+                                       asp-route-id="@Model.PaymentId" class="text-decoration-none">
+                                    <i class="fas fa-credit-card me-1"></i> View Associated Payment <i class="fa-solid fa-share-from-square"></i>
+                                </a>
                             </div>
                         </div>
                     }
+
                     <hr />
                     <h5 class="mt-3 mb-2">Message:</h5>
                     <p class="card-text">
@@ -100,7 +107,7 @@
 
     <script>
         const notificationID  = '@notificationID';
-        const currentUserId = "@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value";
+         const currentUserId = '@currentUserId';
     </script>
 
     <script src="~/js/sonar/message.js"></script>

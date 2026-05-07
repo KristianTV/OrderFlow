@@ -41,37 +41,100 @@
                         <span asp-validation-for="ReceiverId" class="text-danger mt-1 d-block"></span>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label asp-for="OrderId" class="form-label">Associated Order (Optional)</label>
                         <select asp-for="OrderId" class="form-select">
-                            <option value="">-- Select Order --</option>
-                            @if (Model.Orders != null)
+                            @if (Model.Orders != null && Model.Orders!.Count > 0)
                             {
+                                <option value="">-- Select Order --</option>
+                            
                                 foreach (var order in Model.Orders)
                                 {
                                     <option value="@order.Key">@order.Value</option>
                                 }
                             }
+                            else
+                            {
+                                <option value="">-- No Orders Available --</option>
+                            }
                         </select>
                         <span asp-validation-for="OrderId" class="text-danger mt-1 d-block"></span>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label asp-for="TruckId" class="form-label">Associated Truck (Optional)</label>
                         <select asp-for="TruckId" class="form-select">
-                            <option value="">-- Select Truck --</option>
-                            @if (Model.Trucks != null)
+                            @if (Model.Trucks != null && Model.Trucks!.Count > 0)
                             {
-                                foreach (var order in Model.Trucks)
+                                <option value="">-- Select Truck --</option>
+                                foreach (var truck in Model.Trucks)
                                 {
-                                    <option value="@order.Key">@order.Value</option>
+                                    <option value="@truck.Key">@truck.Value</option>
                                 }
+                            }
+                            else
+                            {
+                                <option value="">-- No Trucks Available --</option>
                             }
                         </select>
                         <span asp-validation-for="TruckId" class="text-danger mt-1 d-block"></span>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
+                        <label asp-for="CourseId" class="form-label">Associated Course (Optional)</label>
+                        <select asp-for="CourseId" class="form-select">
+                            @if (Model.Courses != null && Model.Courses!.Count > 0)
+                            {
+                                <option value="">-- Select Course --</option>
+                                foreach (var course in Model.Courses)
+                                {
+                                    <option value="@course.Key">@course.Value</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="">-- No Courses Available --</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CourseId" class="text-danger mt-1 d-block"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="PaymentId" class="form-label">Associated Payment (Optional)</label>
+                        <select asp-for="PaymentId" class="form-select">
+                            @if (Model.Payments != null && Model.Payments!.Count > 0)
+                            {
+                                <option value="">-- Select Payment --</option>
+                                foreach (var payment in Model.Payments)
+                                {
+                                    <option value="@payment.Key">@payment.Value</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="">-- No Payment Available --</option>
+                            }
+                        </select>
+                        <span asp-validation-for="PaymentId" class="text-danger mt-1 d-block"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="TruckSpendingId" class="form-label">Associated Truck Spending (Optional)</label>
+                        <select asp-for="TruckSpendingId" class="form-select">
+                            @if (Model.TruckSpendings != null && Model.TruckSpendings!.Count > 0)
+                            {
+                                <option value="">-- Select Truck Spending --</option>
+                                foreach (var truckSpending in Model.TruckSpendings)
+                                {
+                                    <option value="@truckSpending.Key">@truckSpending.Value</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="">-- No Truck Spendings Available --</option>
+                            }
+                        </select>
+                        <span asp-validation-for="TruckSpendingId" class="text-danger mt-1 d-block"></span>
+                    </div>
+                    <div class="mb-3">
                         <input asp-for="IsResponseEnabled" class="form-check-input" type="checkbox" />
                         <label asp-for="IsResponseEnabled" class="form-check-label"></label>
                         <span asp-validation-for="IsResponseEnabled" class="text-danger mt-1 d-block"></span>
@@ -80,7 +143,7 @@
                     <hr />
 
                     <div class="d-flex justify-content-between align-items-center">
-                        <a asp-area ="Admin" asp-action="Index" asp-controller="Notification" class="btn btn-secondary btn-lg">
+                        <a asp-area="Admin" asp-action="Index" asp-controller="Notification" class="btn btn-secondary btn-lg">
                             <i class="fas fa-arrow-left me-2"></i> Cancel
                         </a>
                         <button type="submit" class="btn btn-primary btn-lg">

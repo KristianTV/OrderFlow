@@ -186,6 +186,11 @@ namespace OrderFlow.Services.Core
                 throw new ArgumentNullException(nameof(createNotification), "CreateNotificationViewModel cannot be null.");
             }
 
+            if (!await VerifyIds(createNotification))
+            {
+                throw new InvalidOperationException("Invalid IDs provided.");
+            }
+
             await this.AddAsync(new Notification
             {
                 Title = createNotification.Title,
@@ -197,10 +202,48 @@ namespace OrderFlow.Services.Core
                 SenderID = senderId,
                 OrderID = createNotification.OrderId,
                 TruckID = createNotification.TruckId,
+                CourseID = createNotification.CourseId,
+                PaymentID = createNotification.PaymentId,
+                TruckSpendingID = createNotification.TruckSpendingId,
                 CanRespond = createNotification.IsResponseEnabled
             });
 
             await this.SaveChangesAsync();
+        }
+
+        private async Task<bool> VerifyIds(AdminCreateNotificationViewModel createNotification)
+        {
+            if (!await this.ExistsAsync<ApplicationUser>(createNotification.ReceiverId))
+            {
+                throw new InvalidOperationException("Receiver not found.");
+            }
+
+            if (createNotification.OrderId != null && !await this.ExistsAsync<Order>(createNotification.OrderId))
+            {
+                throw new InvalidOperationException("Order not found.");
+            }
+
+            if (createNotification.TruckId != null && !await this.ExistsAsync<Truck>(createNotification.TruckId))
+            {
+                throw new InvalidOperationException("Truck not found.");
+            }
+
+            if (createNotification.CourseId != null && !await this.ExistsAsync<TruckCourse>(createNotification.CourseId))
+            {
+                throw new InvalidOperationException("Course not found.");
+            }
+
+            if (createNotification.PaymentId != null && !await this.ExistsAsync<Payment>(createNotification.PaymentId))
+            {
+                throw new InvalidOperationException("Payment not found.");
+            }
+
+            if (createNotification.TruckSpendingId != null && !await this.ExistsAsync<TruckSpending>(createNotification.TruckSpendingId))
+            {
+                throw new InvalidOperationException("Truck Spending not found.");
+            }
+
+            return true;
         }
 
         public async Task<bool> UpdateNotificationAsync(AdminCreateNotificationViewModel createNotification, Guid notification, Guid userId)
@@ -219,11 +262,19 @@ namespace OrderFlow.Services.Core
                 return false;
             }
 
+            if (!await VerifyIds(createNotification))
+            {
+                throw new InvalidOperationException("Invalid IDs provided.");
+            }
+
             existingNotification.Title = createNotification.Title;
             existingNotification.Message = createNotification.Message;
             existingNotification.ReceiverID = createNotification.ReceiverId;
             existingNotification.OrderID = createNotification.OrderId;
             existingNotification.TruckID = createNotification.TruckId;
+            existingNotification.CourseID = createNotification.CourseId;
+            existingNotification.PaymentID = createNotification.PaymentId;
+            existingNotification.TruckSpendingID = createNotification.TruckSpendingId;
             existingNotification.CreatedAt = DateTime.UtcNow;
             existingNotification.IsRead = false;
             existingNotification.CanRespond = createNotification.IsResponseEnabled;

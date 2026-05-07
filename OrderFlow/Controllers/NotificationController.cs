@@ -105,6 +105,7 @@ namespace OrderFlow.Controllers
                                                                            CreatedAt = n.CreatedAt,
                                                                            IsRead = n.IsRead,
                                                                            OrderId = n.OrderID,
+                                                                           PaymentId = n.PaymentID,
                                                                            SenderName = n.Sender!.UserName,
                                                                            IsResponseEnabled = n.CanRespond,
                                                                            Messages = n.Messages
@@ -132,7 +133,7 @@ namespace OrderFlow.Controllers
                     await _notificationService.ReadAsync(notificationID);
                     notificationViewModel.IsRead = true;
                 }
-
+                ViewBag.CurrentUserId = userId;
                 return View(notificationViewModel);
             }
             catch (Exception ex)

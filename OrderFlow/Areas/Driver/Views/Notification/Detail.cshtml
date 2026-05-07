@@ -4,6 +4,7 @@
     ViewData["Title"] = "Notification Details";
     var notificationID = Context.Request.RouteValues["id"]?.ToString() ?? "";
     bool messagesEnabled = Model.IsResponseEnabled;
+    Guid currentUserId = ViewBag.CurrentUserId ?? Guid.Empty;
 }
 
 <div class="container mt-5">
@@ -40,41 +41,42 @@
                             <div class="col-sm-8"><i class="fas fa-user me-1"></i> @Model.SenderName</div>
                         </div>
                     }
-                    @if (Model.OrderId.HasValue)
-                    {
-                        <div class="row mb-2">
-                            <div class="col-sm-4 text-muted">Associated Order:</div>
-                            <div class="col-sm-8">
-                                <i class="fas fa-box-open me-1"></i> @Model.OrderId.Value.ToString()
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="row mb-2">
-                            <div class="col-sm-4 text-muted">Associated Order:</div>
-                            <div class="col-sm-8">
-                                <p class="mb-0 text-muted fst-italic">No order associated.</p>
-                            </div>
-                        </div>
-                    }
+
                     @if (Model.TruckId.HasValue)
                     {
                         <div class="row mb-2">
                             <div class="col-sm-4 text-muted">Associated Truck:</div>
                             <div class="col-sm-8">
-                                <a asp-area="Driver" asp-controller="Truck" asp-action="Detail" asp-route-id="@Model.TruckId" class="text-decoration-none">
-                                    <i class="fas fa-truck me-1"></i> View Associated Truck
+                                <a asp-area="Driver" asp-controller="Truck" asp-action="Detail"
+                                       asp-route-id="@Model.TruckId" class="text-decoration-none">
+                                    <i class="fas fa-truck me-1"></i> View Associated Truck <i class="fa-solid fa-share-from-square"></i>
                                 </a>
                             </div>
                         </div>
                     }
-                    else
+
+                    @if (Model.CourseId.HasValue)
                     {
                         <div class="row mb-2">
-                            <div class="col-sm-4 text-muted">Associated Truck:</div>
+                            <div class="col-sm-4 text-muted">Associated Course:</div>
                             <div class="col-sm-8">
-                                <p class="mb-0 text-muted fst-italic">No truck associated.</p>
+                                <a asp-area="Driver" asp-controller="Course" asp-action="Detail"
+                                       asp-route-id="@Model.CourseId" class="text-decoration-none">
+                                    <i class="fas fa-book me-1"></i> View Associated Course <i class="fa-solid fa-share-from-square"></i>
+                                </a>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.TruckSpendingId.HasValue)
+                    {
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Associated Truck Spending:</div>
+                            <div class="col-sm-8">
+                                <a asp-area="Driver" asp-controller="TruckSpending" asp-action="Detail"
+                                       asp-route-id="@Model.TruckSpendingId" class="text-decoration-none">
+                                    <i class="fas fa-credit-card me-1"></i> View Associated Truck Spending <i class="fa-solid fa-share-from-square"></i>
+                                </a>
                             </div>
                         </div>
                     }
@@ -119,7 +121,7 @@
 
      <script>
         const notificationID  = '@notificationID';
-        const currentUserId = "@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value";
+        const currentUserId = '@currentUserId';
     </script>
 
     <script src="~/js/sonar/message.js"></script>
