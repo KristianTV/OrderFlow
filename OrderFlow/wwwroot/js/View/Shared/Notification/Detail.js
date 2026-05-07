@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
 
     // ── Guard: only run message-panel logic when panel exists ──
@@ -9,94 +8,52 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-        initSonarConnection(notificationID);
-        scrollMessagesToBottom();
+    scrollMessagesToBottom();
+    initSonarConnection(notificationID);
 
-        // ── CRUD form submissions──
+    // ── CRUD form submissions──
 
-        document.getElementById('addMessageForm')?.addEventListener('submit', async e => {
-            e.preventDefault();
-            const ok = await submitForm('addMessageForm', 'addMessageModal');
-            if (ok) {
-                document.getElementById('addMessageContent').value = '';
-            }
-        });
+    document.getElementById('addMessageForm')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        const ok = await submitForm('addMessageForm', 'addMessageModal');
+        if (ok) {
+            document.getElementById('addMessageContent').value = '';
+        }
+    });
 
-        document.getElementById('editMessageForm')?.addEventListener('submit', async e => {
-            e.preventDefault();
-            await submitForm('editMessageForm', 'editMessageModal');
-        });
+    document.getElementById('editMessageForm')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        await submitForm('editMessageForm', 'editMessageModal');
+    });
 
-        document.getElementById('deleteMessageForm')?.addEventListener('submit', async e => {
-            e.preventDefault();
-            await submitForm('deleteMessageForm', 'deleteMessageModal');
-        });
+    document.getElementById('deleteMessageForm')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        await submitForm('deleteMessageForm', 'deleteMessageModal');
+    });
 
-        document.querySelectorAll('#addMessageModal, #editMessageModal, #deleteMessageModal')
-            .forEach(modalEl => modalEl.addEventListener('hidden.bs.modal', cleanupModalState));
+    // ── Populate edit / delete modals on button click ──
 
-        // ── Populate edit / delete modals on button click ──
+    document.getElementById('messagesContainer').addEventListener('click', e => {
+        const editBtn = e.target.closest('[data-bs-target="#editMessageModal"]');
+        const deleteBtn = e.target.closest('[data-bs-target="#deleteMessageModal"]');
 
-        document.getElementById('messagesContainer').addEventListener('click', e => {
-            const editBtn = e.target.closest('[data-bs-target="#editMessageModal"]');
-            const deleteBtn = e.target.closest('[data-bs-target="#deleteMessageModal"]');
+        if (editBtn) {
+            const msgId = editBtn.dataset.messageId;
+            const editForm = document.getElementById('editMessageForm');
+            const url = new URL(editForm.action, window.location.origin);
+            url.searchParams.set('messageId', msgId);
+            editForm.action = url.toString();
 
-            if (editBtn) {
-                const msgId = editBtn.dataset.messageId;
-                const editForm = document.getElementById('editMessageForm');
-                const url = new URL(editForm.action, window.location.origin);
-                url.searchParams.set('messageId', msgId);
-                editForm.action = url.toString();
-
-                document.getElementById('editMessageContent').value =
-                    editBtn.dataset.messageContent;
-            }
-
-            if (deleteBtn) {
-                document.getElementById('deleteMessageID').value =
-                    deleteBtn.dataset.messageId;
-            }
-        });
-});
-
-function cleanupModalState() {
-    if (document.querySelector('.modal.show')) {
-        return;
-    }
-
-    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-    document.body.classList.remove('modal-open');
-    document.body.style.removeProperty('overflow');
-    document.body.style.removeProperty('padding-right');
-}
-
-function forceCloseModal(modalId) {
-    const modalEl = document.getElementById(modalId);
-    if (!modalEl) {
-        cleanupModalState();
-        return;
-    }
-
-    const forceCleanup = () => {
-        if (modalEl.classList.contains('show')) {
-            modalEl.classList.remove('show');
-            modalEl.style.display = 'none';
-            modalEl.setAttribute('aria-hidden', 'true');
-            modalEl.removeAttribute('aria-modal');
-            modalEl.removeAttribute('role');
+            document.getElementById('editMessageContent').value =
+                editBtn.dataset.messageContent;
         }
 
-        cleanupModalState();
-    };
-
-    modalEl.addEventListener('hidden.bs.modal', forceCleanup, { once: true });
-    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-    modal.hide();
-
-    requestAnimationFrame(forceCleanup);
-    setTimeout(forceCleanup, 200);
-    setTimeout(forceCleanup, 500);
-}
+        if (deleteBtn) {
+            document.getElementById('deleteMessageID').value =
+                deleteBtn.dataset.messageId;
+        }
+    });
+});
 
 // ── Shared helpers ────────────────────────────────────────────
 
@@ -111,13 +68,21 @@ async function submitForm(formId, modalId) {
     const form = document.getElementById(formId);
     try {
         const res = await fetch(form.action, {
-            method:  'POST',
-            body:    new FormData(form),
+            method: 'POST',
+            body: new FormData(form),
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
 
         if (res.ok) {
-            forceCloseModal(modalId);
+            const modalEl = document.getElementById(modalId);
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+
+            if (modalInstance) {
+                modalInstance.hide();
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            } else {
+                showToast('Something went wrong. Please try again.', 'danger');
+            }
             return true;
         } else {
             showToast('Something went wrong. Please try again.', 'danger');
