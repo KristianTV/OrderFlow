@@ -36,6 +36,22 @@ namespace OrderFlow.Tests.Services
             return user;
         }
 
+        private async Task<Order> AddOrder()
+        {
+            var order = new Order { OrderID = Guid.NewGuid() };
+            await _context.Orders.AddAsync(order);
+            await _context.SaveChangesAsync();
+            return order;
+        }
+
+        private async Task<Truck> AddTruck()
+        {
+            var truck = new Truck { TruckID = Guid.NewGuid() };
+            await _context.Trucks.AddAsync(truck);
+            await _context.SaveChangesAsync();
+            return truck;
+        }
+
         [Test]
         public async Task CreateNotificationAsync_ShouldCreateNotificationSuccessfully()
         {
@@ -93,13 +109,16 @@ namespace OrderFlow.Tests.Services
         {
             var sender = await AddUser("AdminUser");
             var receiver = await AddUser("DriverUser");
+            var order = await AddOrder();
+            var truck = await AddTruck();
+
             var createNotificationViewModel = new AdminCreateNotificationViewModel
             {
                 Title = "Admin Notification",
                 Message = "Admin message.",
                 ReceiverId = receiver.Id,
-                OrderId = Guid.NewGuid(),
-                TruckId = Guid.NewGuid()
+                OrderId = order.OrderID,
+                TruckId = truck.TruckID
             };
 
             await _service.CreateNotificationAsync(createNotificationViewModel, sender.Id);

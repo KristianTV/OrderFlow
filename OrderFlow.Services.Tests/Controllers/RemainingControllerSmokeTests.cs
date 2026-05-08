@@ -166,6 +166,8 @@ namespace OrderFlow.Tests.Controllers
                 Mock.Of<INotificationService>(),
                 Mock.Of<IOrderService>(),
                 Mock.Of<ITruckService>(),
+                Mock.Of<ITruckCourseService>(),
+                Mock.Of<IPaymentService>(),
                 CreateUserManagerMock().Object);
 
             var result = await controller.Detail("bad-id");
