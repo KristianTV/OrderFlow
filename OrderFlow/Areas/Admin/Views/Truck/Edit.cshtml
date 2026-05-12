@@ -2,17 +2,24 @@
 @model CreateTruckViewModel;
 @{
     ViewData["Title"] = "Edit Truck";
-    var id = Context.Request.RouteValues["id"]?.ToString() ?? "";
+     Guid id = ViewBag.TruckId != null ? ViewBag.TruckId : Guid.Empty;
 }
 
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card shadow-lg mt-5">
             <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">@ViewData["Title"] for Truck @id</h3>
+                <h3 class="mb-0">@ViewData["Title"]</h3>
             </div>
             <div class="card-body">
-                <form id="editTruckForm" asp-area="Admin" asp-controller="Truck" asp-action="Edit" asp-route-id="@id" asp-antiforgery="true" method="post">
+                <form id="editTruckForm" 
+                      asp-area="Admin" 
+                      asp-controller="Truck" 
+                      asp-action="Edit" 
+                      asp-route-id="@id" 
+                      asp-antiforgery="true" 
+                      method="post">
+
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                     <div class="mb-3">
@@ -63,31 +70,10 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
+    <script src="~/js/View/Shared/track-changes.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const form = document.getElementById("editTruckForm");
-            const saveBtn = document.getElementById("saveBtn");
-
-            const initialState = new FormData(form);
-
-            function isFormChanged() {
-                const currentState = new FormData(form);
-
-                for (let pair of initialState.entries()) {
-                    if (currentState.get(pair[0]) !== pair[1]) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            form.addEventListener("input", function() {
-                saveBtn.disabled = !isFormChanged();
-            });
-
-            form.addEventListener("change", function() {
-                saveBtn.disabled = !isFormChanged();
-            });
+                 watchFormChanges("editTruckForm", "saveBtn");
         });
     </script>
 }

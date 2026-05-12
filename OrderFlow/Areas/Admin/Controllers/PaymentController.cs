@@ -93,7 +93,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return RedirectToAction("Index", "Order");
             }
 
-            if (string.IsNullOrEmpty(orderId) || !Guid.TryParse(orderId, out _))
+            if (string.IsNullOrEmpty(orderId) || !Guid.TryParse(orderId, out var _orderId))
             {
                 TempData["Error"] = "Invalid or missing Order ID for payment editing.";
                 _logger.LogWarning("Edit Payment GET: Invalid or missing Order ID '{OrderId}' for Payment ID '{PaymentId}'", orderId, Id);
@@ -105,7 +105,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 editPayment = await _paymentService.GetAll()
                                                    .AsNoTracking()
-                                                   .Where(p => p.PaymentID.Equals(paymentId))
+                                                   .Where(p => p.PaymentID.Equals(paymentId) && p.OrderID.Equals(_orderId))
                                                    .Select(p => new CreatePaymentViewModel
                                                    {
                                                        Amount = p.Amount,
@@ -126,7 +126,8 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return RedirectToAction("Detail", "Order", new { id = orderId });
             }
 
-            ViewData["OrderId"] = orderId;
+            ViewBag.OrderId = orderId;
+            ViewBag.PaymentId = paymentId;
             return View(editPayment);
         }
 
@@ -134,17 +135,14 @@ namespace OrderFlow.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CreatePaymentViewModel createPayment, string? Id, string? orderId)
         {
-            if (!ModelState.IsValid)
-            {
-                ViewData["OrderId"] = orderId;
-                return View(createPayment);
-            }
 
-            if (string.IsNullOrEmpty(Id) || !Guid.TryParse(Id, out var paymentId))
+            Guid paymentId = Guid.Empty;
+            if (string.IsNullOrEmpty(Id) || !Guid.TryParse(Id, out paymentId))
             {
                 ModelState.AddModelError(string.Empty, "Payment ID cannot be null or empty or invalid.");
                 _logger.LogWarning("Edit Payment POST: Invalid or missing Payment ID '{PaymentId}'.", Id);
-                ViewData["OrderId"] = orderId;
+                ViewBag.OrderId = orderId;
+                ViewBag.PaymentId = paymentId;
                 return View(createPayment);
             }
 
@@ -152,10 +150,17 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Order ID cannot be null or empty or invalid.");
                 _logger.LogWarning("Edit Payment POST: Invalid or missing Order ID '{OrderId}' for Payment ID '{PaymentId}'.", orderId, Id);
-                ViewData["OrderId"] = orderId;
+                ViewBag.OrderId = orderId;
+                ViewBag.PaymentId = paymentId;
                 return View(createPayment);
             }
 
+            if (!ModelState.IsValid)
+            {
+                ViewData["OrderId"] = orderId;
+                ViewBag.PaymentId = paymentId;
+                return View(createPayment);
+            }
             try
             {
                 bool success = await _paymentService.UpdatePaymentAsync(paymentId, createPayment);
@@ -170,7 +175,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     ModelState.AddModelError(string.Empty, "Failed to update payment. The payment might not exist or the data is invalid.");
                     _logger.LogError("Edit Payment POST: Service failed to update payment ID: {PaymentId} for Order ID: {OrderId}", paymentId, orderId);
-                    ViewData["OrderId"] = orderId;
+                    ViewBag.OrderId = orderId;
                     return View(createPayment);
                 }
             }
@@ -178,7 +183,8 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 _logger.LogError(ex, "An error occurred while updating payment with ID {PaymentId} for Order ID {OrderId}.", paymentId, orderId);
                 ModelState.AddModelError(string.Empty, "An unexpected error occurred while updating the payment. Please try again.");
-                ViewData["OrderId"] = orderId;
+                ViewBag.OrderId = orderId;
+
                 return View(createPayment);
             }
         }

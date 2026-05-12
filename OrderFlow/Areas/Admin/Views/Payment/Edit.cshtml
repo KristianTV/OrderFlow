@@ -2,8 +2,8 @@
 @model CreatePaymentViewModel;
 @{
     ViewData["Title"] = "Edit Payment";
-    var id = Context.Request.RouteValues["id"]?.ToString() ?? "";
-    var orderId = Context.Request.Query["orderId"].ToString() ?? "";
+    Guid id = ViewBag.PaymentId != null ? ViewBag.PaymentId : Guid.Empty;
+    string orderId = !string.IsNullOrEmpty(ViewBag.OrderId) ? ViewBag.OrderId : string.Empty;
 }
 
 <div class="row justify-content-center">
@@ -15,7 +15,7 @@
                 <h3 class="mb-0">@ViewData["Title"]</h3>
             </div>
             <div class="card-body">
-                <form asp-antiforgery ="true" asp-area="Admin" asp-action="Edit" asp-controller="Payment" asp-route-id="@id" asp-route-orderId="@orderId" method="post">
+                <form id="editPaymentForm" asp-antiforgery ="true" asp-area="Admin" asp-action="Edit" asp-controller="Payment" asp-route-id="@id" asp-route-orderId="@orderId" method="post">
 
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
@@ -37,7 +37,7 @@
                         <a asp-area="Admin" asp-action="Detail" asp-controller="Order" asp-route-id="@orderId" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-2"></i> Back
                         </a>
-                        <button type="submit" class="btn btn-primary btn-lg">
+                        <button type="submit" id="saveBtn" class="btn btn-primary btn-lg">
                             <i class="fas fa-dollar-sign me-2"></i> Submit Payment
                         </button>
                     </div>
@@ -48,7 +48,12 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="~/js/View/Shared/track-changes.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+                 watchFormChanges("editPaymentForm", "saveBtn");
+        });
+    </script>
 }

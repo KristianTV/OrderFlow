@@ -32,7 +32,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             IEnumerable<IndexUserRowsViewModel> usersRows = users.Select(user => new IndexUserRowsViewModel
             {
                 UserId = user.Id,
-                UserName = user.UserName,
+                UserName = user.UserName ?? string.Empty,
                 Roles = userService.GetRolesAsync(user).Result
             }).ToList();
 
@@ -45,6 +45,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeRow(string? id, string? role)
         {
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(role))
@@ -57,6 +58,13 @@ namespace OrderFlow.Areas.Admin.Controllers
             try
             {
                 var user = await userService.FindByIdAsync(id);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("User with ID {UserId} not found.", id);
+                    ModelState.AddModelError(string.Empty, "User not found.");
+                    return NotFound();
+                }
 
                 await userService.RemoveFromRolesAsync(user, await userService.GetRolesAsync(user));
                 var result = await userService.AddToRoleAsync(user, role);

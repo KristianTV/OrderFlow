@@ -3,7 +3,7 @@
 @model CreateOrderViewModel;
 @{
     ViewData["Title"] = "Edit Order";
-    var id = Context.Request.RouteValues["id"]?.ToString() ?? "";
+     Guid id = ViewBag.OrderId != null ? ViewBag.OrderId : Guid.Empty;
 }
 
 <div class="row justify-content-center">
@@ -13,7 +13,7 @@
                 <h3 class="mb-0">@ViewData["Title"] for Order @id</h3> 
             </div>
             <div class="card-body">
-                <form asp-antiforgery="true" asp-controller="Order" asp-action="Edit" asp-route-id="@id" method="post">
+                <form id="editOrderForm" asp-antiforgery="true" asp-controller="Order" asp-action="Edit" asp-route-id="@id" method="post">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                     <div class="mb-3">
@@ -46,7 +46,7 @@
                         <a asp-action="Detail" asp-controller="Order" asp-route-id="@id" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-2"></i> Back to Order Details 
                         </a>
-                        <button type="submit" class="btn btn-primary btn-lg">
+                        <button type="submit" id="saveBtn" class="btn btn-primary btn-lg">
                             <i class="fas fa-save me-2"></i> Save Order 
                         </button>
                     </div>
@@ -58,4 +58,10 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/View/Shared/track-changes.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+                 watchFormChanges("editOrderForm", "saveBtn");
+        });
+    </script>
 }

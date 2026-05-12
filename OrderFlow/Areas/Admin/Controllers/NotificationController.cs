@@ -228,6 +228,8 @@ namespace OrderFlow.Areas.Admin.Controllers
                 createNotification.Payments = await GetPayments();
                 createNotification.TruckSpendings = await GetTruckSpendings();
 
+                ViewBag.NotificationId = notificationId;
+
                 return View(createNotification);
             }
             catch (Exception ex)
@@ -241,20 +243,20 @@ namespace OrderFlow.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(AdminCreateNotificationViewModel createNotification, string? id)
         {
+
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid notificationId))
+            {
+                _logger.LogWarning("Invalid Notification ID format.");
+                ModelState.AddModelError(nameof(notificationId), "Invalid Notification ID format.");
+                return BadRequest();
+            }
             try
             {
-                if (string.IsNullOrEmpty(id))
-                {
-                    return NotFound();
-                }
-
-                if (!Guid.TryParse(id, out Guid notificationId))
-                {
-                    _logger.LogWarning("Invalid Notification ID format.");
-                    ModelState.AddModelError(nameof(notificationId), "Invalid Notification ID format.");
-                    return BadRequest();
-                }
-
                 if (!ModelState.IsValid)
                 {
                     createNotification.Receivers = await GetUsers();
@@ -263,6 +265,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     createNotification.Courses = await GetCourses();
                     createNotification.Payments = await GetPayments();
                     createNotification.TruckSpendings = await GetTruckSpendings();
+                    ViewBag.NotificationId = notificationId;
                     return View(createNotification);
                 }
 
@@ -292,6 +295,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 createNotification.Courses = await GetCourses();
                 createNotification.Payments = await GetPayments();
                 createNotification.TruckSpendings = await GetTruckSpendings();
+                ViewBag.NotificationId = notificationId;
                 return View(createNotification);
             }
         }

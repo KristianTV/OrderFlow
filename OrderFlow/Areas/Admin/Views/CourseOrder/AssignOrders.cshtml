@@ -1,7 +1,7 @@
 ﻿@model OrderFlow.ViewModels.CourseOrder.AssignOrdersToCourseViewModel
 @{
     ViewData["Title"] = "Assign Orders To Truck";
-    var id = Context.Request.RouteValues["id"]?.ToString() ?? "";
+    Guid id = Model.CourseId;
 }
 
 <div class="container mt-5">

@@ -73,7 +73,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
                 CreateTruckViewModel createTruckViewModel = new CreateTruckViewModel
                 {
-                    Drivers = users
+                    Drivers = users!
                 };
 
                 return View(createTruckViewModel);
@@ -141,6 +141,8 @@ namespace OrderFlow.Areas.Admin.Controllers
                 }
 
                 createTruckViewModel.Drivers = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
+
+                ViewBag.TruckId = truckId;
                 return View(createTruckViewModel);
             }
             catch (Exception ex)
@@ -155,11 +157,13 @@ namespace OrderFlow.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CreateTruckViewModel createTruckViewModel, string? id)
         {
-            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out Guid truckId))
+            Guid truckId = Guid.Empty;
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out truckId))
             {
                 _logger.LogWarning("Edit POST: Invalid or missing Truck ID '{TruckId}'", id);
                 ModelState.AddModelError(string.Empty, "Invalid or missing truck ID.");
                 createTruckViewModel.Drivers = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
+                ViewBag.TruckId = truckId;
                 return View(createTruckViewModel);
             }
 
@@ -181,6 +185,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     _logger.LogWarning("Edit POST: UpdateTruckAsync failed for Truck ID '{TruckId}'.", truckId);
                     ModelState.AddModelError(string.Empty, "Failed to update truck. It may no longer exist.");
                     createTruckViewModel.Drivers = await GetUsersInRoleAsync(UserRoles.Driver.ToString());
+                    ViewBag.TruckId = truckId;
                     return View(createTruckViewModel);
                 }
             }
@@ -340,17 +345,17 @@ namespace OrderFlow.Areas.Admin.Controllers
             }
         }
 
-        private async Task<Dictionary<Guid, string?>> GetUsersInRoleAsync(string roleName)
+        private async Task<Dictionary<Guid, string>> GetUsersInRoleAsync(string roleName)
         {
             try
             {
                 var users = await _userManager.GetUsersInRoleAsync(roleName);
-                return users.ToDictionary(user => user.Id, user => user.UserName);
+                return users.ToDictionary(user => user.Id, user => user.UserName ?? string.Empty);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to retrieve users in role '{RoleName}'.", roleName);
-                return new Dictionary<Guid, string?>();
+                return new Dictionary<Guid, string>();
             }
         }
     }

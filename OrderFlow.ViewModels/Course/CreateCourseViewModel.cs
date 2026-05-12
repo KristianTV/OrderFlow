@@ -25,6 +25,7 @@ namespace OrderFlow.ViewModels.Course
         public string DeliverAddress { get; set; } = string.Empty;
 
         [Display(Name = "Income")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal? Income { get; set; }
     }
 }

@@ -7,6 +7,7 @@ namespace OrderFlow.ViewModels.Payment
     {
         [Required(ErrorMessage = ErrorMessages.PropertyIsRequired)]
         [Display(Name = "Order ID")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
 
         [StringLength(ValidationConstants.Payment.PaymentDescriptionMaxLength,

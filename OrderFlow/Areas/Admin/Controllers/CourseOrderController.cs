@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.CourseOrder;
@@ -48,6 +49,14 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest("Invalid course ID.");
             }
 
+            if (!await _truckCourseService.ExistsAsync<TruckCourse>(courseID))
+            {
+                _logger.LogError("Course not found.");
+                ModelState.AddModelError(nameof(courseID), "Course not found.");
+                return NotFound();
+            }
+
+
             var course = await _truckCourseService.GetAll()
                                                   .Include(c => c.Truck)
                                                   .Include(c => c.CourseOrders)
@@ -83,10 +92,8 @@ namespace OrderFlow.Areas.Admin.Controllers
                                             }).ToListAsync()
             };
 
-
             return View(assignOrders);
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -94,16 +101,23 @@ namespace OrderFlow.Areas.Admin.Controllers
         {
             if (string.IsNullOrEmpty(id))
             {
-                _logger.LogError(id, "Order ID must be provided.");
+                _logger.LogError("Order ID must be provided.");
                 ModelState.AddModelError(nameof(id), "Order ID must be provided.");
                 return NotFound();
             }
 
             if (!Guid.TryParse(id, out Guid courseID))
             {
-                _logger.LogError(id, "Invalid Order ID format.");
+                _logger.LogError("Invalid Order ID format.");
                 ModelState.AddModelError(nameof(courseID), "Invalid Order ID format.");
                 return BadRequest();
+            }
+
+            if (!await _truckCourseService.ExistsAsync<TruckCourse>(courseID))
+            {
+                _logger.LogError("Course not found.");
+                ModelState.AddModelError(nameof(courseID), "Course not found.");
+                return NotFound();
             }
 
             if (!ModelState.IsValid)

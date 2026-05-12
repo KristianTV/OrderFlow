@@ -111,11 +111,13 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             if (createOrderViewModel == null)
             {
-                _logger.LogError(nameof(createOrderViewModel), $"Order with ID {orderId} was not found.");
+                _logger.LogError($"Order with ID {orderId} was not found.");
                 return NotFound();
             }
 
             createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
+
+            ViewBag.OrderId = orderId;
 
             return View(createOrderViewModel);
         }
@@ -157,6 +159,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     ModelState.AddModelError(string.Empty, "Failed to update the order. The order may have been modified by another user.");
                     createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
+                    ViewBag.OrderId = orderId;
                     return View(createOrderViewModel);
                 }
             }
@@ -165,6 +168,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 _logger.LogError(ex, "An error occurred while updating order with ID {OrderId}.", orderId);
                 ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
                 createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
+                ViewBag.OrderId = orderId;
                 return View(createOrderViewModel);
             }
 
@@ -200,7 +204,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             if (order == null)
             {
 
-                _logger.LogError(nameof(order), "An error occurred while retrieving details for order with ID {OrderId}.", orderId);
+                _logger.LogError("An error occurred while retrieving details for order with ID {OrderId}.", orderId);
                 return NotFound();
             }
 
@@ -231,7 +235,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
                 if (order == null)
                 {
-                    _logger.LogError(nameof(order), "An error occurred while retrieving details for order with ID {OrderId}.", orderId);
+                    _logger.LogError("An error occurred while retrieving details for order with ID {OrderId}.", orderId);
                     ModelState.AddModelError(nameof(order), $"Order with ID {orderId} was not found.");
                     return NotFound();
                 }
@@ -243,7 +247,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
                 if (!await _orderService.CancelOrderAsync(orderId, order.UserID))
                 {
-                    _logger.LogError(nameof(order), "An error occurred while retrieving details for order with ID {OrderId}.", orderId);
+                    _logger.LogError("An error occurred while retrieving details for order with ID {OrderId}.", orderId);
                     ModelState.AddModelError(nameof(order), "Failed to cancel the order. It might already be in a state that cannot be canceled.");
                     return BadRequest();
                 }

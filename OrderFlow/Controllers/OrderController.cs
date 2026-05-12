@@ -132,6 +132,8 @@ namespace OrderFlow.Controllers
                     return NotFound();
                 }
 
+                ViewBag.OrderId = orderId;
+
                 return View(createOrderViewModel);
             }
             catch (Exception ex)

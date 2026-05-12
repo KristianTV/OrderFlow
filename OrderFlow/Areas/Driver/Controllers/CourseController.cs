@@ -73,16 +73,16 @@ namespace OrderFlow.Areas.Driver.Controllers
             {
                 course = await _truckCourseService.GetCourseDetailsAsync(courseId, userID);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "An error occurred while retrieving details for course with ID {courseId}.", courseId);
+                _logger.LogError("An error occurred while retrieving details for course with ID {courseId}.", courseId);
                 return BadRequest();
             }
 
             if (course == null)
             {
 
-                _logger.LogError(nameof(course), "An error occurred while retrieving details for course with ID {courseId}.", courseId);
+                _logger.LogError("An error occurred while retrieving details for course with ID {courseId}.", courseId);
                 return NotFound();
             }
 

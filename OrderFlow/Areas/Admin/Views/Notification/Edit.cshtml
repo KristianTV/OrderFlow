@@ -2,17 +2,23 @@
 @model AdminCreateNotificationViewModel;
 @{
     ViewData["Title"] = "Edit Notification";
-    var id = Context.Request.RouteValues["id"]?.ToString() ?? "";
+    Guid id = ViewBag.NotificationId != null ? ViewBag.NotificationId : Guid.Empty;
 }
 
 <div class="row justify-content-center">
     <div class="col-md-7">
         <div class="card shadow-lg mt-5">
             <div class="card-header bg-primary text-white">
-                <h3 class="mb-0"><i class="fas fa-bell me-2"></i> @ViewData["Title"] @(!string.IsNullOrEmpty(id) ? $" - {id}" : "")</h3>
+                <h3 class="mb-0"><i class="fas fa-bell me-2"></i> @ViewData["Title"]</h3>
             </div>
             <div class="card-body">
-                <form asp-antiforgery="true" asp-area="Admin" asp-controller="Notification" asp-action="Edit" asp-route-id="@id" method="post">
+                <form id="editNotificationForm"
+                    asp-antiforgery="true"
+                    asp-area="Admin"
+                    asp-controller="Notification"
+                    asp-action="Edit"
+                    asp-route-id="@id"
+                    method="post">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                     <div class="mb-3">
@@ -147,7 +153,7 @@
                         <a asp-area="Admin" asp-action="Index" asp-controller="Notification" class="btn btn-secondary btn-lg">
                             <i class="fas fa-arrow-left me-2"></i> Cancel
                         </a>
-                        <button type="submit" class="btn btn-primary btn-lg">
+                        <button type="submit" id="saveBtn" class="btn btn-primary btn-lg">
                             <i class="fas fa-save me-2"></i> Save Notification
                         </button>
                     </div>
@@ -159,4 +165,10 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/View/Shared/track-changes.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+                 watchFormChanges("editNotificationForm", "saveBtn");
+        });
+    </script>
 }

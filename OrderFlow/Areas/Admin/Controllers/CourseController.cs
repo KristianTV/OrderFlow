@@ -111,11 +111,13 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             if (createCourseViewModel == null)
             {
-                _logger.LogError(nameof(createCourseViewModel), $"Course with ID {CourseId} was not found.");
+                _logger.LogError($"Course with ID {CourseId} was not found.");
                 return NotFound();
             }
 
             createCourseViewModel.AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync();
+
+            ViewBag.CourseId = CourseId;
 
             return View(createCourseViewModel);
         }
@@ -141,12 +143,13 @@ namespace OrderFlow.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 createCourseViewModel.AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync();
+                ViewBag.CourseId = courseId;
                 return View(createCourseViewModel);
             }
 
             try
             {
-                if (await _truckCourseService.ExistsAsync<TruckCourse>(courseId))
+                if (!await _truckCourseService.ExistsAsync<TruckCourse>(courseId))
                 {
                     return NotFound($"Course with ID {courseId} was not found.");
                 }
@@ -155,6 +158,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     ModelState.AddModelError(string.Empty, "Failed to update the course. The course may have been modified by another user.");
                     createCourseViewModel.AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync();
+                    ViewBag.CourseId = courseId;
                     return View(createCourseViewModel);
                 }
             }
@@ -163,6 +167,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 _logger.LogError(ex, "An error occurred while updating course with ID {courseId}.", courseId);
                 ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
                 createCourseViewModel.AvailableTruckIDs = await _truckService.GetAvailableTruckOptionsAsync();
+                ViewBag.CourseId = courseId;
                 return View(createCourseViewModel);
             }
 
@@ -198,7 +203,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             if (course == null)
             {
 
-                _logger.LogError(nameof(course), "An error occurred while retrieving details for course with ID {courseId}.", courseId);
+                _logger.LogError("An error occurred while retrieving details for course with ID {courseId}.", courseId);
                 return NotFound();
             }
 
