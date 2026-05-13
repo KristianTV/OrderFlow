@@ -2,7 +2,7 @@
 @model AdminCreateNotificationViewModel;
 @{
     ViewData["Title"] = "Edit Notification";
-    Guid id = ViewBag.NotificationId != null ? ViewBag.NotificationId : Guid.Empty;
+    Guid id = ViewBag.NotificationId ?? Guid.Empty;
 }
 
 <div class="row justify-content-center">

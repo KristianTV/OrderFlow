@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "Edit Course";
-    Guid id = ViewBag.CourseId != null ? ViewBag.CourseId : Guid.Empty;
+    Guid id = ViewBag.CourseId ?? Guid.Empty;
 }
 
 <div class="row justify-content-center">

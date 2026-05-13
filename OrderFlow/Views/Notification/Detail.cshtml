@@ -2,7 +2,7 @@
 @model DetailsNotificationViewModel;
 @{
     ViewData["Title"] = "Notification Details";
-    var notificationID = Context.Request.RouteValues["id"]?.ToString() ?? "";
+    Guid notificationID = ViewBag.NotificationId ?? Guid.Empty;
     bool messagesEnabled = Model.IsResponseEnabled;
     Guid currentUserId = ViewBag.CurrentUserId ?? Guid.Empty;
 }

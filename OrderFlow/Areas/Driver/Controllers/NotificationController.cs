@@ -129,6 +129,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                     await _notificationService.ReadAsync(notificationId);
                     notificationViewModel.IsRead = true;
                 }
+                ViewBag.NotificationId = notificationId;
                 ViewBag.CurrentUserId = userId;
                 return View(notificationViewModel);
             }

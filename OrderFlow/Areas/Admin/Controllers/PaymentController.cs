@@ -26,7 +26,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return RedirectToAction("Index", "Order");
             }
 
-            ViewData["OrderId"] = orderId;
+            ViewBag.OrderId = orderId;
             return View(new CreatePaymentViewModel());
         }
 
@@ -36,7 +36,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewData["OrderId"] = orderId;
+                ViewBag.OrderId = orderId;
                 return View(createPayment);
             }
 
@@ -44,7 +44,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Order ID cannot be null or empty.");
                 _logger.LogWarning("Create Payment POST: Order ID was null or empty.");
-                ViewData["OrderId"] = orderId;
+                ViewBag.OrderId = orderId;
                 return View(createPayment);
             }
 
@@ -52,7 +52,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Invalid Order ID format.");
                 _logger.LogWarning("Create Payment POST: Invalid Order ID format '{OrderId}'.", orderId);
-                ViewData["OrderId"] = orderId;
+                ViewBag.OrderId = orderId;
                 return View(createPayment);
             }
 
@@ -70,7 +70,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     ModelState.AddModelError(string.Empty, "Failed to create payment. Please check the order details and try again.");
                     _logger.LogError("Create Payment POST: Service failed to create payment for Order ID: {OrderId}", parsedOrderId);
-                    ViewData["OrderId"] = orderId;
+                    ViewBag.OrderId = orderId;
                     return View(createPayment);
                 }
             }
@@ -78,7 +78,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 _logger.LogError(ex, "An error occurred while creating a payment for Order ID: {OrderId}", parsedOrderId);
                 ModelState.AddModelError(string.Empty, "An unexpected error occurred while creating the payment. Please try again.");
-                ViewData["OrderId"] = orderId;
+                ViewBag.OrderId = orderId;
                 return View(createPayment);
             }
         }

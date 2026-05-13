@@ -133,6 +133,7 @@ namespace OrderFlow.Controllers
                     await _notificationService.ReadAsync(notificationID);
                     notificationViewModel.IsRead = true;
                 }
+                ViewBag.NotificationId = notificationID;
                 ViewBag.CurrentUserId = userId;
                 return View(notificationViewModel);
             }

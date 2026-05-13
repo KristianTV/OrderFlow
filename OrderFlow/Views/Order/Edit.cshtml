@@ -3,7 +3,7 @@
 @model CreateOrderViewModel;
 @{
     ViewData["Title"] = "Edit Order";
-     Guid id = ViewBag.OrderId != null ? ViewBag.OrderId : Guid.Empty;
+     Guid id = ViewBag.OrderId ?? Guid.Empty;
 }
 
 <div class="row justify-content-center">

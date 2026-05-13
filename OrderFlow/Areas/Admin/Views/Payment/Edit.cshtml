@@ -2,7 +2,7 @@
 @model CreatePaymentViewModel;
 @{
     ViewData["Title"] = "Edit Payment";
-    Guid id = ViewBag.PaymentId != null ? ViewBag.PaymentId : Guid.Empty;
+    Guid id = ViewBag.PaymentId ?? Guid.Empty;
     string orderId = !string.IsNullOrEmpty(ViewBag.OrderId) ? ViewBag.OrderId : string.Empty;
 }
 

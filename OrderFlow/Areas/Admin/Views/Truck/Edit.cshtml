@@ -2,7 +2,7 @@
 @model CreateTruckViewModel;
 @{
     ViewData["Title"] = "Edit Truck";
-     Guid id = ViewBag.TruckId != null ? ViewBag.TruckId : Guid.Empty;
+     Guid id = ViewBag.TruckId ?? Guid.Empty;
 }
 
 <div class="row justify-content-center">

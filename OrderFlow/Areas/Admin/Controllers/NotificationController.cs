@@ -364,7 +364,10 @@ namespace OrderFlow.Areas.Admin.Controllers
                     await _notificationService.ReadAsync(notificationID);
                     notificationViewModel.IsRead = true;
                 }
+
+                ViewBag.NotificationID = notificationID;
                 ViewBag.CurrentUserId = userId;
+
                 return View(notificationViewModel);
             }
             catch (Exception ex)

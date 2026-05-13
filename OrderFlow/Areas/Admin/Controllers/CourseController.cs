@@ -88,13 +88,13 @@ namespace OrderFlow.Areas.Admin.Controllers
         {
             if (string.IsNullOrEmpty(id))
             {
-                _logger.LogError(id, "Course ID must be provided.");
+                _logger.LogError("Course ID must be provided.");
                 return NotFound();
             }
 
             if (!Guid.TryParse(id, out Guid CourseId))
             {
-                _logger.LogError(id, "Invalid Course ID format.");
+                _logger.LogError("Invalid Course ID format.");
                 return BadRequest();
             }
 
@@ -128,14 +128,14 @@ namespace OrderFlow.Areas.Admin.Controllers
         {
             if (string.IsNullOrEmpty(id))
             {
-                _logger.LogError(id, "Course ID must be provided.");
+                _logger.LogError("Course ID must be provided.");
                 ModelState.AddModelError(nameof(id), "Course ID must be provided.");
                 return NotFound();
             }
 
             if (!Guid.TryParse(id, out Guid courseId))
             {
-                _logger.LogError(id, "Invalid Course ID format.");
+                _logger.LogError("Invalid Course ID format.");
                 ModelState.AddModelError(nameof(courseId), "Invalid Course ID format.");
                 return BadRequest();
             }
@@ -179,13 +179,13 @@ namespace OrderFlow.Areas.Admin.Controllers
         {
             if (string.IsNullOrEmpty(id))
             {
-                _logger.LogError(id, "Course ID must be provided.");
+                _logger.LogError("Course ID must be provided.");
                 return BadRequest();
             }
 
             if (!Guid.TryParse(id, out Guid courseId))
             {
-                _logger.LogError(id, "Invalid Course ID format.");
+                _logger.LogError("Invalid Course ID format.");
                 return NotFound();
             }
 
