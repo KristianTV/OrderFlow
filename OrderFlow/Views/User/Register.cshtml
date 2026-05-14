@@ -1,4 +1,5 @@
-﻿@using OrderFlow.ViewModels.User
+@using OrderFlow.Data.Models.Enums
+@using OrderFlow.ViewModels.User
 @model RegisterViewModel
 
 @{
@@ -6,7 +7,7 @@
 }
 
 <div class="row justify-content-center mt-5">
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-8 col-lg-6">
         <div class="card shadow-lg">
             <div class="card-header bg-primary text-white text-center">
                 <h3 class="mb-0"><i class="fas fa-user-plus me-2"></i> @ViewData["Title"]</h3>
@@ -16,30 +17,108 @@
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                     <div class="mb-3">
-                        <label asp-for="@Model.UserName" class="form-label"></label>
-                        <input asp-for="@Model.UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="Choose a username" />
-                        <span asp-validation-for="@Model.UserName" class="text-danger mt-1 d-block"></span>
+                        <label asp-for="AccountType" class="form-label"></label>
+                        <div class="btn-group w-100" role="group" aria-label="Account type">
+                            <input asp-for="AccountType" type="radio" class="btn-check" id="accountTypePersonal" value="@AccountType.Personal" checked="@(Model.AccountType == AccountType.Personal)" />
+                            <label class="btn btn-outline-primary" for="accountTypePersonal">Personal</label>
+
+                            <input asp-for="AccountType" type="radio" class="btn-check" id="accountTypeCompany" value="@AccountType.Company" checked="@(Model.AccountType == AccountType.Company)" />
+                            <label class="btn btn-outline-primary" for="accountTypeCompany">Company</label>
+                        </div>
+                        <span asp-validation-for="AccountType" class="text-danger mt-1 d-block"></span>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="@Model.Email" class="form-label"></label>
-                        <input asp-for="@Model.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter your email address" />
-                        <span asp-validation-for="@Model.Email" class="text-danger mt-1 d-block"></span>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="UserName" class="form-label"></label>
+                            <input asp-for="UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="Choose a username" />
+                            <span asp-validation-for="UserName" class="text-danger mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter your email address" />
+                            <span asp-validation-for="Email" class="text-danger mt-1 d-block"></span>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="@Model.Password" class="form-label"></label>
-                        <input asp-for="@Model.Password" type="password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Create a password" />
-                        <span asp-validation-for="@Model.Password" class="text-danger mt-1 d-block"></span>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password" type="password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Create a password" />
+                            <span asp-validation-for="Password" class="text-danger mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label"></label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Confirm your password" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger mt-1 d-block"></span>
+                        </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label asp-for="@Model.ConfirmPassword" class="form-label"></label>
-                        <input asp-for="@Model.ConfirmPassword" type="password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Confirm your password" />
-                        <span asp-validation-for="@Model.ConfirmPassword" class="text-danger mt-1 d-block"></span>
+                    <div id="personalFields" class="profile-fields">
+                        <h5 class="mt-2 mb-3">Personal Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FirstName" class="form-label"></label>
+                                <input asp-for="FirstName" class="form-control" />
+                                <span asp-validation-for="FirstName" class="text-danger mt-1 d-block"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LastName" class="form-label"></label>
+                                <input asp-for="LastName" class="form-control" />
+                                <span asp-validation-for="LastName" class="text-danger mt-1 d-block"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PersonalNumber" class="form-label"></label>
+                                <input asp-for="PersonalNumber" class="form-control" />
+                                <span asp-validation-for="PersonalNumber" class="text-danger mt-1 d-block"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DateOfBirth" class="form-label"></label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                                <span asp-validation-for="DateOfBirth" class="text-danger mt-1 d-block"></span>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label asp-for="Address" class="form-label"></label>
+                                <input asp-for="Address" class="form-control" />
+                                <span asp-validation-for="Address" class="text-danger mt-1 d-block"></span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="d-grid gap-2">
+                    <div id="companyFields" class="profile-fields d-none">
+                        <h5 class="mt-2 mb-3">Company Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CompanyName" class="form-label"></label>
+                                <input asp-for="CompanyName" class="form-control" />
+                                <span asp-validation-for="CompanyName" class="text-danger mt-1 d-block"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="VATNumber" class="form-label"></label>
+                                <input asp-for="VATNumber" class="form-control" />
+                                <span asp-validation-for="VATNumber" class="text-danger mt-1 d-block"></span>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label asp-for="CompanyAddress" class="form-label"></label>
+                                <input asp-for="CompanyAddress" class="form-control" />
+                                <span asp-validation-for="CompanyAddress" class="text-danger mt-1 d-block"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ContactPersonName" class="form-label"></label>
+                                <input asp-for="ContactPersonName" class="form-control" />
+                                <span asp-validation-for="ContactPersonName" class="text-danger mt-1 d-block"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ContactPhone" class="form-label"></label>
+                                <input asp-for="ContactPhone" class="form-control" />
+                                <span asp-validation-for="ContactPhone" class="text-danger mt-1 d-block"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-2">
                         <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg">
                             <i class="fas fa-user-plus me-2"></i> Register
                         </button>
@@ -57,4 +136,22 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const personalRadio = document.getElementById('accountTypePersonal');
+            const companyRadio = document.getElementById('accountTypeCompany');
+            const personalFields = document.getElementById('personalFields');
+            const companyFields = document.getElementById('companyFields');
+
+            function syncAccountFields() {
+                const isCompany = companyRadio.checked;
+                personalFields.classList.toggle('d-none', isCompany);
+                companyFields.classList.toggle('d-none', !isCompany);
+            }
+
+            personalRadio.addEventListener('change', syncAccountFields);
+            companyRadio.addEventListener('change', syncAccountFields);
+            syncAccountFields();
+        })();
+    </script>
 }

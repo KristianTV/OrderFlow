@@ -1,7 +1,9 @@
-﻿@using OrderFlow.ViewModels.User
-@model ProfileViewModel;
+@using OrderFlow.Data.Models.Enums
+@using OrderFlow.ViewModels.User
+@model ProfileViewModel
 @{
     ViewData["Title"] = "User Profile";
+    var isPersonal = Model.AccountType == AccountType.Personal;
 }
 
 <div class="profile-container">
@@ -9,45 +11,212 @@
         <h1><i class="fas fa-user-circle"></i> @ViewData["Title"]</h1>
     </div>
 
-    <div class="profile-card">
+    <div id="profileAlert" class="alert d-none" role="alert"></div>
+
+    <form id="profileForm" class="profile-card" asp-antiforgery="true" asp-area="" asp-controller="User" asp-action="Profile" method="post">
+        <input type="hidden" id="AccountType" value="@((int)Model.AccountType)" />
+
         <div class="profile-info">
             <div class="profile-field">
-                <label asp-for="UserName">
-                    <i class="fas fa-user"></i> User Name
-                </label>
-                <p>@Model.UserName</p>
+                <label for="UserName"><i class="fas fa-user"></i> User Name</label>
+                <p data-display-for="UserName">@Model.UserName</p>
+                <input id="UserName" class="form-control d-none" value="@Model.UserName" />
             </div>
             <div class="profile-field">
-                <label asp-for="UserEmail">
-                    <i class="fas fa-envelope"></i> Email
-                </label>
-                <p>@Model.UserEmail</p>
+                <label for="UserEmail"><i class="fas fa-envelope"></i> Email</label>
+                <p data-display-for="UserEmail">@Model.UserEmail</p>
+                <input id="UserEmail" type="email" class="form-control d-none" value="@Model.UserEmail" />
             </div>
             <div class="profile-field">
-                <label asp-for="UserPhone">
-                    <i class="fas fa-phone"></i> Phone
-                </label>
-                <p>@Model.UserPhone</p>
+                <label for="UserPhone"><i class="fas fa-phone"></i> Phone</label>
+                <p data-display-for="UserPhone">@(string.IsNullOrWhiteSpace(Model.UserPhone) ? "Not provided" : Model.UserPhone)</p>
+                <input id="UserPhone" class="form-control d-none" value="@Model.UserPhone" />
             </div>
+            <div class="profile-field">
+                <label><i class="fas fa-id-badge"></i> Account Type</label>
+                <p>@Model.AccountTypeName</p>
+            </div>
+
+            @if (isPersonal)
+            {
+                <div class="profile-field">
+                    <label for="FirstName">First Name</label>
+                    <p data-display-for="FirstName">@Model.FirstName</p>
+                    <input id="FirstName" class="form-control d-none" value="@Model.FirstName" />
+                </div>
+                <div class="profile-field">
+                    <label for="LastName">Last Name</label>
+                    <p data-display-for="LastName">@Model.LastName</p>
+                    <input id="LastName" class="form-control d-none" value="@Model.LastName" />
+                </div>
+                <div class="profile-field">
+                    <label for="PersonalNumber">Personal Number</label>
+                    <p data-display-for="PersonalNumber">@Model.PersonalNumber</p>
+                    <input id="PersonalNumber" class="form-control d-none" value="@Model.PersonalNumber" />
+                </div>
+                <div class="profile-field">
+                    <label for="Address">Address</label>
+                    <p data-display-for="Address">@Model.Address</p>
+                    <input id="Address" class="form-control d-none" value="@Model.Address" />
+                </div>
+                <div class="profile-field">
+                    <label for="DateOfBirth">Date Of Birth</label>
+                    <p data-display-for="DateOfBirth">@(Model.DateOfBirth?.ToString("yyyy-MM-dd") ?? "Not provided")</p>
+                    <input id="DateOfBirth" type="date" class="form-control d-none" value="@Model.DateOfBirth?.ToString("yyyy-MM-dd")" />
+                </div>
+            }
+            else
+            {
+                <div class="profile-field">
+                    <label for="CompanyName">Company Name</label>
+                    <p data-display-for="CompanyName">@Model.CompanyName</p>
+                    <input id="CompanyName" class="form-control d-none" value="@Model.CompanyName" />
+                </div>
+                <div class="profile-field">
+                    <label for="VATNumber">VAT Number</label>
+                    <p data-display-for="VATNumber">@Model.VATNumber</p>
+                    <input id="VATNumber" class="form-control d-none" value="@Model.VATNumber" />
+                </div>
+                <div class="profile-field">
+                    <label for="CompanyAddress">Company Address</label>
+                    <p data-display-for="CompanyAddress">@Model.CompanyAddress</p>
+                    <input id="CompanyAddress" class="form-control d-none" value="@Model.CompanyAddress" />
+                </div>
+                <div class="profile-field">
+                    <label for="ContactPersonName">Contact Person</label>
+                    <p data-display-for="ContactPersonName">@Model.ContactPersonName</p>
+                    <input id="ContactPersonName" class="form-control d-none" value="@Model.ContactPersonName" />
+                </div>
+                <div class="profile-field">
+                    <label for="ContactPhone">Contact Phone</label>
+                    <p data-display-for="ContactPhone">@Model.ContactPhone</p>
+                    <input id="ContactPhone" class="form-control d-none" value="@Model.ContactPhone" />
+                </div>
+            }
         </div>
 
         <div class="profile-actions">
-            <a asp-area="" asp-controller="User" asp-action="ChangePassword" method="post" class="btn btn-primary">
+            <a asp-area="" asp-controller="User" asp-action="ChangePassword" class="btn btn-primary">
                 <i class="fas fa-key"></i> Change Password
             </a>
 
-            <a asp-area="" asp-controller="User" asp-action="EditProfile" method="post" class="btn btn-secondary">
+            <button id="editProfileButton" type="button" class="btn btn-secondary">
                 <i class="fas fa-pen"></i> Edit
-            </a>
+            </button>
 
-            <form asp-antiforgery="true" asp-area="" asp-controller="User" asp-action="DeleteAccount" method="post">
-                <button type="submit" class="btn btn-danger">
-                    <i class="fas fa-trash-alt"></i> Delete Account
-                </button>
-            </form>
+            <button id="saveProfileButton" type="submit" class="btn btn-success d-none">
+                <i class="fas fa-check"></i> Save
+            </button>
+
+            <button id="cancelProfileButton" type="button" class="btn btn-secondary d-none">
+                Cancel
+            </button>
         </div>
-    </div>
+    </form>
+
+    <form class="delete-account-form mt-3" asp-antiforgery="true" asp-area="" asp-controller="User" asp-action="DeleteAccount" method="post">
+        <button type="submit" class="btn btn-danger w-100">
+            <i class="fas fa-trash-alt"></i> Delete Account
+        </button>
+    </form>
 </div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const form = document.getElementById('profileForm');
+            const alertBox = document.getElementById('profileAlert');
+            const editButton = document.getElementById('editProfileButton');
+            const saveButton = document.getElementById('saveProfileButton');
+            const cancelButton = document.getElementById('cancelProfileButton');
+            const displayFields = Array.from(form.querySelectorAll('[data-display-for]'));
+            const inputs = Array.from(form.querySelectorAll('input.form-control'));
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+            const originalValues = new Map(inputs.map(input => [input.id, input.value]));
+
+            function setEditing(isEditing) {
+                displayFields.forEach(field => field.classList.toggle('d-none', isEditing));
+                inputs.forEach(input => input.classList.toggle('d-none', !isEditing));
+                editButton.classList.toggle('d-none', isEditing);
+                saveButton.classList.toggle('d-none', !isEditing);
+                cancelButton.classList.toggle('d-none', !isEditing);
+                alertBox.classList.add('d-none');
+            }
+
+            function getPayload() {
+                const payload = {
+                    UserName: document.getElementById('UserName').value,
+                    UserEmail: document.getElementById('UserEmail').value,
+                    UserPhone: document.getElementById('UserPhone').value,
+                    AccountType: Number(document.getElementById('AccountType').value)
+                };
+
+                inputs.forEach(input => {
+                    if (!(input.id in payload)) {
+                        payload[input.id] = input.value || null;
+                    }
+                });
+
+                return payload;
+            }
+
+            function showAlert(type, message) {
+                alertBox.className = `alert alert-${type}`;
+                alertBox.textContent = message;
+            }
+
+            editButton.addEventListener('click', () => setEditing(true));
+            cancelButton.addEventListener('click', () => {
+                inputs.forEach(input => {
+                    input.value = originalValues.get(input.id) ?? '';
+                });
+                setEditing(false);
+            });
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                saveButton.disabled = true;
+
+                const response = await fetch('@Url.Action("Profile", "User")', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(getPayload())
+                });
+
+                saveButton.disabled = false;
+
+                if (!response.ok) {
+                    const data = await response.json().catch(() => null);
+                    const firstError = data?.errors
+                        ? Object.values(data.errors).flat()[0]
+                        : 'Unable to update profile.';
+                    showAlert('danger', firstError);
+                    return;
+                }
+
+                const data = await response.json();
+                inputs.forEach(input => {
+                    let nextValue = data[input.id.charAt(0).toLowerCase() + input.id.slice(1)] ?? data[input.id] ?? '';
+                    if (input.type === 'date' && nextValue) {
+                        nextValue = nextValue.substring(0, 10);
+                    }
+                    input.value = nextValue;
+                    originalValues.set(input.id, nextValue);
+                    const display = form.querySelector(`[data-display-for="${input.id}"]`);
+                    if (display) {
+                        display.textContent = nextValue || 'Not provided';
+                    }
+                });
+
+                setEditing(false);
+                showAlert('success', 'Profile updated successfully.');
+            });
+        })();
+    </script>
+}
 
 <style>
     body {
@@ -56,7 +225,7 @@
     }
 
     .profile-container {
-        max-width: 600px;
+        max-width: 700px;
         margin: 50px auto;
         padding: 20px;
     }
@@ -66,12 +235,12 @@
         margin-bottom: 30px;
     }
 
-        .profile-header h1 {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
+    .profile-header h1 {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
 
     .profile-card {
         background-color: #fff;
@@ -88,67 +257,36 @@
         margin-bottom: 20px;
     }
 
-        .profile-field label {
-            display: flex;
-            align-items: center;
-            font-weight: bold;
-            color: #555;
-            margin-bottom: 5px;
-        }
+    .profile-field label {
+        display: flex;
+        align-items: center;
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 5px;
+    }
 
-            .profile-field label i {
-                margin-right: 8px;
-            }
+    .profile-field label i {
+        margin-right: 8px;
+    }
 
-        .profile-field p {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 4px;
-            color: #333;
-            margin: 0;
-        }
+    .profile-field p {
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 4px;
+        color: #333;
+        margin: 0;
+        min-height: 46px;
+    }
 
     .profile-actions {
         display: flex;
         justify-content: space-between;
         gap: 15px;
+        flex-wrap: wrap;
     }
 
-    .btn {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-        text-decoration: none;
-        text-align: center;
-        flex-grow: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .profile-actions .btn {
+        flex: 1 1 150px;
     }
-
-        .btn i {
-            margin-right: 8px;
-        }
-
-    .btn-primary {
-        background-color: #007bff;
-        color: #fff;
-    }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-
-    .btn-danger {
-        background-color: #dc3545;
-        color: #fff;
-    }
-
-        .btn-danger:hover {
-            background-color: #c82333;
-        }
 </style>

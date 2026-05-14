@@ -21,6 +21,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options => opt
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
+builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITruckService, TruckService>();
