@@ -59,9 +59,9 @@
                             @if (User.IsInRole("Admin"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link @(currentController == "Role" && currentArea == "Admin" ? "active" : "")"
-                                       asp-area="Admin" asp-controller="Role" asp-action="Index">
-                                        <i class="fas fa-user-shield me-1"></i> Roles
+                                    <a class="nav-link @(currentController == "Account" && currentArea == "Admin" ? "active" : "")"
+                                       asp-area="Admin" asp-controller="Account" asp-action="Index">
+                                        <i class="fas fa-user-shield me-1"></i> Accounts
                                     </a>
                                 </li>
                             }
