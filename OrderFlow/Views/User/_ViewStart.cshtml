@@ -1,0 +1,14 @@
+@{
+    if (User?.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("Speditor")))
+    {
+        Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    }
+    else if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Driver"))
+    {
+        Layout = "~/Areas/Driver/Views/Shared/_Layout.cshtml";
+    }
+    else
+    {
+        Layout = "_Layout";
+    }
+}
