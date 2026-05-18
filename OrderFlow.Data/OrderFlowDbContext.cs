@@ -9,15 +9,15 @@ namespace OrderFlow.Data
 {
     public class OrderFlowDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
     {
-        private readonly Guid AdminRoleId = Guid.NewGuid();
-        private readonly Guid SpeditorRoleId = Guid.NewGuid();
-        private readonly Guid DriverRoleId = Guid.NewGuid();
-        private readonly Guid UserRoleId = Guid.NewGuid();
+        private static readonly Guid AdminRoleId = Guid.Parse("b91c3da6-5bde-478d-bf2c-257b2fc9567c");
+        private static readonly Guid SpeditorRoleId = Guid.Parse("206f9e28-522f-4d34-8bfd-ec37b093a331");
+        private static readonly Guid DriverRoleId = Guid.Parse("d349122c-ed4a-43ca-b939-b3a9ff9fa0fb");
+        private static readonly Guid UserRoleId = Guid.Parse("782b39c1-d0e7-4f18-8a2b-1077a438c048");
 
-        private readonly Guid AdminUserId = Guid.NewGuid();
-        private readonly Guid SpeditorUserId = Guid.NewGuid();
-        private readonly Guid DriverUserId = Guid.NewGuid();
-        private readonly Guid RegularUserId = Guid.NewGuid();
+        private static readonly Guid AdminUserId = Guid.Parse("922b605c-25eb-4ded-b2a7-7966b38b8685");
+        private static readonly Guid SpeditorUserId = Guid.Parse("051eafea-deaa-4fbe-b442-25b7be18fa8e");
+        private static readonly Guid DriverUserId = Guid.Parse("cca021da-da51-4bd7-b968-8294cf006dfd");
+        private static readonly Guid RegularUserId = Guid.Parse("862c30cd-17ee-4557-8222-c926bebf0a66");
 
         public OrderFlowDbContext(DbContextOptions<OrderFlowDbContext> options)
           : base(options)
@@ -51,24 +51,28 @@ namespace OrderFlow.Data
                 new IdentityRole<Guid>
                 {
                     Id = AdminRoleId,
+                    ConcurrencyStamp = null,
                     Name = "Admin",
                     NormalizedName = "ADMIN"
                 },
                 new IdentityRole<Guid>
                 {
                     Id = SpeditorRoleId,
+                    ConcurrencyStamp = null,
                     Name = "Speditor",
                     NormalizedName = "SPEDITOR"
                 },
                 new IdentityRole<Guid>
                 {
                     Id = DriverRoleId,
+                    ConcurrencyStamp = null,
                     Name = "Driver",
                     NormalizedName = "DRIVER"
                 },
                 new IdentityRole<Guid>
                 {
                     Id = UserRoleId,
+                    ConcurrencyStamp = null,
                     Name = "User",
                     NormalizedName = "USER"
                 }
@@ -77,8 +81,6 @@ namespace OrderFlow.Data
 
         protected void SeedUsers(ModelBuilder builder)
         {
-            var passwordHasher = new PasswordHasher<ApplicationUser>();
-
             var adminUser = new ApplicationUser
             {
                 Id = AdminUserId,
@@ -87,14 +89,15 @@ namespace OrderFlow.Data
                 Email = "admin@gmail.com",
                 NormalizedEmail = "ADMIN@GMAIL.COM",
                 EmailConfirmed = true,
-                PasswordHash = passwordHasher.HashPassword(null, "Admin123!"),
-                SecurityStamp = Guid.NewGuid().ToString(),
+                ConcurrencyStamp = "9d3d41db-b3d8-4e59-8a85-6c125ab6c6cf",
+                SecurityStamp = "66545229-a1b8-408d-afd9-ce9ce3edc048",
                 PhoneNumber = "1234567890",
                 PhoneNumberConfirmed = true,
                 TwoFactorEnabled = false,
                 LockoutEnabled = true,
                 AccessFailedCount = 0,
-                AccountType = AccountType.Personal
+                AccountType = AccountType.Personal,
+                PasswordHash = "AQAAAAIAAYagAAAAEHVYKQgsgG5GJLVN5GvdLD1kD2Vkx58fLxzi9jdmMH3wIbH4UsvW9+t3E4bfAXoVTQ=="
             };
             builder.Entity<ApplicationUser>().HasData(adminUser);
 
@@ -106,14 +109,15 @@ namespace OrderFlow.Data
                 Email = "speditor@gmail.com",
                 NormalizedEmail = "SPEDITOR@GMAIL.COM",
                 EmailConfirmed = true,
-                PasswordHash = passwordHasher.HashPassword(null, "Speditor123!"),
-                SecurityStamp = Guid.NewGuid().ToString(),
+                ConcurrencyStamp = "df2b7fe5-0158-4cdf-8eec-c1f660590919",
+                SecurityStamp = "77560b6c-d614-451f-8b10-aaa59d40108e",
                 PhoneNumber = "1234567890",
                 PhoneNumberConfirmed = true,
                 TwoFactorEnabled = false,
                 LockoutEnabled = true,
                 AccessFailedCount = 0,
-                AccountType = AccountType.Personal
+                AccountType = AccountType.Personal,
+                PasswordHash = "AQAAAAIAAYagAAAAEL9Ps09TT5d/dtrX80yK6H/KdC0Kh9Rr+tFJtAvD2MrWfoSrwAMJ/jJqYYa1GXJwlQ=="
             };
             builder.Entity<ApplicationUser>().HasData(speditorUser);
 
@@ -125,14 +129,15 @@ namespace OrderFlow.Data
                 Email = "driver@gmail.com",
                 NormalizedEmail = "DRIVER@GMAIL.COM",
                 EmailConfirmed = true,
-                PasswordHash = passwordHasher.HashPassword(null, "Driver123!"),
-                SecurityStamp = Guid.NewGuid().ToString(),
+                ConcurrencyStamp = "1a645d87-508f-4081-89ca-e62d845060c8",
+                SecurityStamp = "6aeebefd-d08b-4ade-8a87-91ebeba082f1",
                 PhoneNumber = "1234567890",
                 PhoneNumberConfirmed = true,
                 TwoFactorEnabled = false,
                 LockoutEnabled = true,
                 AccessFailedCount = 0,
-                AccountType = AccountType.Personal
+                AccountType = AccountType.Personal,
+                PasswordHash = "AQAAAAIAAYagAAAAELc41rT3Vb6VnyQjCoTyd5iD6QA3wKspGtImItv6xC3ZdXKAOvBWj6ahbUytwMjo1A=="
             };
             builder.Entity<ApplicationUser>().HasData(driverUser);
 
@@ -144,14 +149,15 @@ namespace OrderFlow.Data
                 Email = "user@gmail.com",
                 NormalizedEmail = "USER@GMAIL.COM",
                 EmailConfirmed = true,
-                PasswordHash = passwordHasher.HashPassword(null, "User123!"),
-                SecurityStamp = Guid.NewGuid().ToString(),
+                ConcurrencyStamp = "6edb66da-be0a-4a50-baf5-ca406103a6b4",
+                SecurityStamp = "24472bcf-990a-49bf-b2e5-343897fe1c68",
                 PhoneNumber = "1234567890",
                 PhoneNumberConfirmed = true,
                 TwoFactorEnabled = false,
                 LockoutEnabled = true,
                 AccessFailedCount = 0,
-                AccountType = AccountType.Personal
+                AccountType = AccountType.Personal,
+                PasswordHash = "AQAAAAIAAYagAAAAEC+0D9crqWZFGHRJK+X/2FSbmoWYbBzxZ6t0shCx3/3ALqljPRuCq9yw0U4gkWuh8A=="
             };
             builder.Entity<ApplicationUser>().HasData(regularUser);
         }

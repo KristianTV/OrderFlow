@@ -69,7 +69,7 @@ namespace OrderFlow.Tests.Services
             Assert.That(payment.Amount, Is.EqualTo(50.00m));
             Assert.That(payment.PaymentDescription, Is.EqualTo("Test Payment"));
             Assert.That(payment.OrderID, Is.EqualTo(orderId));
-            Assert.That(payment.PaymentDate, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
+            Assert.That(payment.CreatedOn, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
         }
 
         [Test]

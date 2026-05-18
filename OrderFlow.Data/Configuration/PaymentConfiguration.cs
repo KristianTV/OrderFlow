@@ -10,8 +10,11 @@ namespace OrderFlow.Data.Configuration
         {
             builder.HasKey(p => p.PaymentID);
 
-            builder.Property(p => p.PaymentDate)
+            builder.Property(p => p.CreatedOn)
                    .IsRequired();
+
+            builder.Property(p => p.PaymentDate)
+                   .IsRequired(false);
 
             builder.Property(p => p.PaymentDescription)
                    .IsRequired(false)
@@ -22,7 +25,7 @@ namespace OrderFlow.Data.Configuration
                    .HasPrecision(18, 2);
 
             builder.Property(p => p.PaymentMethod)
-                   .IsRequired();
+                   .IsRequired(false);
 
             builder.HasOne(p => p.Order)
                    .WithMany(o => o.Payments)

@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.GCommon;
+using System.ComponentModel.DataAnnotations;
 
 namespace OrderFlow.ViewModels.User
 {

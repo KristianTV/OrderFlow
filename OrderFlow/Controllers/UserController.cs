@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.Services.Core.Extensions;
@@ -13,20 +12,17 @@ namespace OrderFlow.Controllers
     {
         private readonly ILogger<UserController> _logger;
         private readonly IAccountService _accountService;
-        private readonly OrderFlowDbContext _dbContext;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
 
         public UserController(
             ILogger<UserController> logger,
             IAccountService accountService,
-            OrderFlowDbContext dbContext,
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager)
         {
             _logger = logger;
             _accountService = accountService;
-            _dbContext = dbContext;
             _userManager = userManager;
             _signInManager = signInManager;
         }

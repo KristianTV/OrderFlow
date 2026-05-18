@@ -59,6 +59,7 @@ namespace OrderFlow.Tests.Controllers
         {
             var controller = new UserController(
                 Mock.Of<ILogger<UserController>>(),
+                Mock.Of<IAccountService>(),
                 CreateUserManagerMock().Object,
                 CreateSignInManagerMock().Object);
             controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
@@ -149,9 +150,10 @@ namespace OrderFlow.Tests.Controllers
         [Test]
         public async Task RoleChangeRow_ReturnsBadRequestWhenInputIsMissing()
         {
-            var controller = new RoleController(
+            var controller = new AccountController(
                 Mock.Of<ILogger<AccountController>>(),
-                CreateUserManagerMock().Object);
+                CreateUserManagerMock().Object,
+                Mock.Of<IAccountService>());
 
             var result = await controller.ChangeRow(null, "Admin");
 
