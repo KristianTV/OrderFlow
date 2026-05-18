@@ -115,24 +115,24 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="sortDropdown">
                         <li><h6 class="dropdown-header">Username</h6></li>
-                        <li><a class="dropdown-item @(currentSortOrder == "username_asc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="username_asc">A → Z</a></li>
-                        <li><a class="dropdown-item @(currentSortOrder == "username_desc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="username_desc">Z → A</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "username_asc" ? "active" : "")" asp-area="Admin" asp-controller="Account" asp-action="Index" asp-route-sortOrder="username_asc">A → Z</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "username_desc" ? "active" : "")" asp-area="Admin" asp-controller="Account" asp-action="Index" asp-route-sortOrder="username_desc">Z → A</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">Email</h6></li>
-                        <li><a class="dropdown-item @(currentSortOrder == "email_asc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="email_asc">A → Z</a></li>
-                        <li><a class="dropdown-item @(currentSortOrder == "email_desc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="email_desc">Z → A</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "email_asc" ? "active" : "")" asp-area="Admin" asp-controller="Account" asp-action="Index" asp-route-sortOrder="email_asc">A → Z</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "email_desc" ? "active" : "")" asp-area="Admin" asp-controller="Account" asp-action="Index" asp-route-sortOrder="email_desc">Z → A</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">Display name</h6></li>
-                        <li><a class="dropdown-item @(currentSortOrder == "display_name_asc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="display_name_asc">A → Z</a></li>
-                        <li><a class="dropdown-item @(currentSortOrder == "display_name_desc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="display_name_desc">Z → A</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "display_name_asc" ? "active" : "")" asp-area="Admin" asp-controller="Account" asp-action="Index" asp-route-sortOrder="display_name_asc">A → Z</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "display_name_desc" ? "active" : "")" asp-area="Admin" asp-controller="Account" asp-action="Index" asp-route-sortOrder="display_name_desc">Z → A</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">Account type</h6></li>
-                        <li><a class="dropdown-item @(currentSortOrder == "account_type_asc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="account_type_asc">A → Z</a></li>
-                        <li><a class="dropdown-item @(currentSortOrder == "account_type_desc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="account_type_desc">Z → A</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "account_type_asc" ? "active" : "")" asp-area="Admin" asp-controller="Account" asp-action="Index" asp-route-sortOrder="account_type_asc">A → Z</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "account_type_desc" ? "active" : "")" asp-area="Admin" asp-controller="Account" asp-action="Index" asp-route-sortOrder="account_type_desc">Z → A</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">Role</h6></li>
-                        <li><a class="dropdown-item @(currentSortOrder == "role_asc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="role_asc">A → Z</a></li>
-                        <li><a class="dropdown-item @(currentSortOrder == "role_desc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="role_desc">Z → A</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "role_asc" ? "active" : "")" asp-area="Admin" asp-controller="Account" asp-action="Index" asp-route-sortOrder="role_asc">A → Z</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "role_desc" ? "active" : "")" asp-area="Admin" asp-controller="Account" asp-action="Index" asp-route-sortOrder="role_desc">Z → A</a></li>
                     </ul>
                 </div>
             </div>
@@ -185,7 +185,12 @@
                                         </p>
                                         <div class="badge-row">
                                             <span class="@AccountTypeBadges.GetAccountTypeBadgeClass(@userRow.AccountType)">
-                                                <i class="fas fa-building"></i>
+                                                @if (userRow.AccountType.Equals(AccountType.Personal.ToString()))
+                                                {
+                                                    <i class="fas fa-user"></i>
+                                                }else{
+                                                    <i class="fas fa-building"></i>
+                                                }
                                                 @userRow.AccountType
                                             </span>
                                             @if (userRow.Roles != null && userRow.Roles.Any())
@@ -211,7 +216,7 @@
                                                                     <form asp-area="Admin"
                                                                           asp-antiforgery="true"
                                                                           asp-action="ChangeRow"
-                                                                          asp-controller="Role"
+                                                                          asp-controller="Account"
                                                                           asp-route-id="@userRow.UserId"
                                                                           asp-route-role="@roleName"
                                                                           method="post">
@@ -246,14 +251,14 @@
                                 <div class="d-flex gap-2 flex-wrap align-items-center user-actions">
                                     <a class="btn btn-outline-primary btn-sm action-btn"
                                        asp-area="Admin"
-                                       asp-controller="Role"
+                                       asp-controller="Account"
                                        asp-action="Detail"
                                        asp-route-id="@userRow.UserId">
                                         <i class="fas fa-eye"></i> View
                                     </a>
                                     <a class="btn btn-outline-secondary btn-sm action-btn"
                                        asp-area="Admin"
-                                       asp-controller="Role"
+                                       asp-controller="Account"
                                        asp-action="Edit"
                                        asp-route-id="@userRow.UserId">
                                         <i class="fas fa-pencil-alt"></i> Edit
