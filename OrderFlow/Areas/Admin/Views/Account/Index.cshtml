@@ -1,0 +1,326 @@
+﻿@using OrderFlow.Data.Models.Enums
+@using OrderFlow.Helpers
+@using OrderFlow.ViewModels.Role
+@model IEnumerable<IndexUserRowsViewModel>;
+
+@{
+    ViewData["Title"] = "User List";
+    string currentSortOrder = ViewData["CurrentSortOrder"] as string ?? "username_asc";
+}
+
+<style>
+    .user-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 10px;
+        transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .user-card:hover {
+        border-color: #ced4da;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    
+    .avatar-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 15px;
+        flex-shrink: 0;
+    }
+
+    .search-wrapper {
+        position: relative;
+    }
+
+    .search-wrapper .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        pointer-events: none;
+    }
+
+    .search-wrapper input {
+        padding-left: 38px;
+    }
+
+ 
+
+    .user-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+    }
+
+    .user-meta {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 2px 0 0;
+    }
+
+    .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .action-btn {
+        font-size: 13px;
+        padding: 6px 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .user-card.d-none-search {
+        display: none !important;
+    }
+
+    @@media (max-width: 576px) {
+        .user-actions {
+            width: 100%;
+            justify-content: flex-start !important;
+            margin-top: 12px;
+        }
+    }
+</style>
+
+<link rel="stylesheet" href="~/css/role-badges.css" />
+<link rel="stylesheet" href="~/css/account-type-badges.css" />
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h1 class="h4 fw-semibold mb-0">User Management</h1>
+                    <p class="text-muted small mb-0">@Model?.Count() user(s) in the system</p>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle action-btn" type="button"
+                            id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-sort"></i> Sort: @GetSortLabel(currentSortOrder)
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="sortDropdown">
+                        <li><h6 class="dropdown-header">Username</h6></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "username_asc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="username_asc">A → Z</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "username_desc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="username_desc">Z → A</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Email</h6></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "email_asc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="email_asc">A → Z</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "email_desc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="email_desc">Z → A</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Display name</h6></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "display_name_asc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="display_name_asc">A → Z</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "display_name_desc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="display_name_desc">Z → A</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Account type</h6></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "account_type_asc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="account_type_asc">A → Z</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "account_type_desc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="account_type_desc">Z → A</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Role</h6></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "role_asc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="role_asc">A → Z</a></li>
+                        <li><a class="dropdown-item @(currentSortOrder == "role_desc" ? "active" : "")" asp-area="Admin" asp-controller="Role" asp-action="Index" asp-route-sortOrder="role_desc">Z → A</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            @if (TempData["SuccessMessage"] is string successMessage)
+            {
+                <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                    <i class="fas fa-check-circle me-2"></i> @successMessage
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div id="statusMessage" class="alert alert-success alert-dismissible fade show d-none mb-3" role="alert">
+                <span id="statusMessageText"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="search-wrapper mb-3">
+                <i class="fas fa-search search-icon"></i>
+                <input id="userSearch"
+                       type="text"
+                       class="form-control"
+                       placeholder="Search by username, email or display name…"
+                       autocomplete="off" />
+            </div>
+
+            <div id="userList">
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var userRow in Model)
+                    {
+                        string initials = AccountTypeBadges.GetInitials(userRow.UserName);
+                        string avatarStyle = AccountTypeBadges.GetAvatarStyle(userRow.UserName);
+                        string searchData = $"{userRow.UserName} {userRow.Email} {userRow.DisplayName}".ToLower();
+
+                        <div class="user-card" data-searchable="@searchData">
+                            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+
+                                <div class="d-flex align-items-center gap-3 flex-grow-1" style="min-width: 0;">
+                                    <div class="avatar-circle" @avatarStyle >@initials</div>
+                                    <div style="min-width: 0;">
+                                        <p class="user-name">@userRow.UserName</p>
+                                        <p class="user-meta">
+                                            @userRow.Email
+                                            @if (!string.IsNullOrWhiteSpace(userRow.DisplayName))
+                                            {
+                                                <span class="mx-1">·</span>
+                                                <span>@userRow.DisplayName</span>
+                                            }
+                                        </p>
+                                        <div class="badge-row">
+                                            <span class="@AccountTypeBadges.GetAccountTypeBadgeClass(@userRow.AccountType)">
+                                                <i class="fas fa-building"></i>
+                                                @userRow.AccountType
+                                            </span>
+                                            @if (userRow.Roles != null && userRow.Roles.Any())
+                                            {
+                                                @foreach (var role in userRow.Roles)
+                                                {
+                                                    <div class="dropdown">
+                                                        <button class="@RoleBadges.GetRoleBadgeClass(role) btn btn-outline-dark btn-sm dropdown-toggle action-btn"
+                                                                type="button"
+                                                                id="dropdownMenuButton_@userRow.UserId"
+                                                                data-bs-toggle="dropdown"
+                                                                aria-expanded="false">
+                                                            <i class="@RoleBadges.GetRoleIconClass(role)"></i> @role
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm"
+                                                            aria-labelledby="dropdownMenuButton_@userRow.UserId">
+                                                            <li><h6 class="dropdown-header">Change role</h6></li>
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            @foreach (var roleName in Enum.GetValues(typeof(UserRoles)).Cast<UserRoles>())
+                                                            {
+                                                                bool hasRole = userRow!.Roles!.Contains(roleName.ToString());
+                                                                <li>
+                                                                    <form asp-area="Admin"
+                                                                          asp-antiforgery="true"
+                                                                          asp-action="ChangeRow"
+                                                                          asp-controller="Role"
+                                                                          asp-route-id="@userRow.UserId"
+                                                                          asp-route-role="@roleName"
+                                                                          method="post">
+                                                                        <button type="submit"
+                                                                                class="dropdown-item d-flex align-items-center gap-2 @(hasRole ? "active" : "")">
+                                                                            <i class="@RoleBadges.GetRoleIconClass(roleName.ToString())"></i>
+                                                                            @if (hasRole)
+                                                                            {
+                                                                                <span>Current @roleName</span>
+                                                                                <i class="fas fa-check ms-auto text-success" style="font-size: 11px;"></i>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <span>Change to @roleName</span>
+                                                                            }
+                                                                        </button>
+                                                                    </form>
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="role-badge role-badge-default fst-italic">No roles assigned</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2 flex-wrap align-items-center user-actions">
+                                    <a class="btn btn-outline-primary btn-sm action-btn"
+                                       asp-area="Admin"
+                                       asp-controller="Role"
+                                       asp-action="Detail"
+                                       asp-route-id="@userRow.UserId">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <a class="btn btn-outline-secondary btn-sm action-btn"
+                                       asp-area="Admin"
+                                       asp-controller="Role"
+                                       asp-action="Edit"
+                                       asp-route-id="@userRow.UserId">
+                                        <i class="fas fa-pencil-alt"></i> Edit
+                                    </a>
+                                    
+                                </div>
+
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-users fa-2x mb-3 d-block opacity-50"></i>
+                        No users found in the system.
+                    </div>
+                }
+            </div>
+
+            <p id="noSearchResults" class="text-center text-muted py-4 d-none">
+                <i class="fas fa-search me-2"></i> No users match your search.
+            </p>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const input = document.getElementById('userSearch');
+        const cards = document.querySelectorAll('#userList .user-card');
+        const noResults = document.getElementById('noSearchResults');
+
+        input.addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            let visible = 0;
+            cards.forEach(function (card) {
+                const match = !q || card.dataset.searchable.includes(q);
+                card.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            noResults.classList.toggle('d-none', visible > 0 || !q);
+        });
+    })();
+</script>
+
+
+
+
+@functions {
+
+    string GetSortLabel(string sortOrder)
+    {
+        return sortOrder switch
+        {
+            "username_desc"      => "Username Z–A",
+            "email_asc"          => "Email A–Z",
+            "email_desc"         => "Email Z–A",
+            "display_name_asc"   => "Display name A–Z",
+            "display_name_desc"  => "Display name Z–A",
+            "account_type_asc"   => "Account type A–Z",
+            "account_type_desc"  => "Account type Z–A",
+            "role_asc"           => "Role A–Z",
+            "role_desc"          => "Role Z–A",
+            _                    => "Username A–Z"
+        };
+    }
+   
+}
