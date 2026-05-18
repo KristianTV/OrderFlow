@@ -150,7 +150,7 @@ namespace OrderFlow.Tests.Controllers
         public async Task RoleChangeRow_ReturnsBadRequestWhenInputIsMissing()
         {
             var controller = new RoleController(
-                Mock.Of<ILogger<RoleController>>(),
+                Mock.Of<ILogger<AccountController>>(),
                 CreateUserManagerMock().Object);
 
             var result = await controller.ChangeRow(null, "Admin");
