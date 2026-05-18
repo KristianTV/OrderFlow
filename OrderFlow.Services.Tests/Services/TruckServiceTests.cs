@@ -54,7 +54,7 @@ namespace OrderFlow.Tests.Services
         [Test]
         public async Task CreateTruckAsync_WithNullViewModel_ReturnsFalse()
         {
-            var result = await _truckService.CreateTruckAsync(null);
+            var result = await _truckService.CreateTruckAsync(null!);
             Assert.IsFalse(result);
         }
 
@@ -123,7 +123,7 @@ namespace OrderFlow.Tests.Services
         public async Task UpdateTruckAsync_WithNullViewModel_ReturnsFalse()
         {
             var truckId = Guid.Parse("f1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f");
-            var result = await _truckService.UpdateTruckAsync(null, truckId);
+            var result = await _truckService.UpdateTruckAsync(null!, truckId);
             Assert.IsFalse(result);
         }
 
@@ -133,7 +133,7 @@ namespace OrderFlow.Tests.Services
             var truckId = Guid.Parse("f1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f");
             await _truckService.ChangeTruckStatusAsync(truckId, "Unavailable");
             var truck = await _context.Trucks.FindAsync(truckId);
-            Assert.AreEqual(TruckStatus.Unavailable, truck.Status);
+            Assert.AreEqual(TruckStatus.Unavailable, truck!.Status);
         }
 
         [Test]
@@ -142,7 +142,7 @@ namespace OrderFlow.Tests.Services
             var truckId = Guid.Parse("f1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f");
             await _truckService.ChangeTruckStatusAsync(truckId, "Available");
             var truck = await _context.Trucks.FindAsync(truckId);
-            Assert.AreEqual(TruckStatus.Available, truck.Status);
+            Assert.AreEqual(TruckStatus.Available, truck!.Status);
         }
 
         [Test]

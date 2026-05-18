@@ -147,7 +147,7 @@ namespace OrderFlow.Tests.Services
         {
             var paymentId = Guid.NewGuid();
 
-            Assert.ThrowsAsync<ArgumentNullException>(() => _paymentService.UpdatePaymentAsync(paymentId, null));
+            Assert.ThrowsAsync<ArgumentNullException>(() => _paymentService.UpdatePaymentAsync(paymentId, null!));
         }
     }
 }

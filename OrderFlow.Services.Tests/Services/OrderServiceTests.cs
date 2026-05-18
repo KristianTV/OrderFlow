@@ -144,7 +144,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.True);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.IsCanceled, Is.True);
+            Assert.That(updatedOrder!.IsCanceled, Is.True);
             Assert.That(updatedOrder.Status, Is.EqualTo(OrderStatus.Cancelled));
             _mockNotificationService.Verify(s => s.AddAsync(It.IsAny<Notification>()), Times.Never);
         }
@@ -159,7 +159,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.True);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.IsCanceled, Is.True);
+            Assert.That(updatedOrder!.IsCanceled, Is.True);
             Assert.That(updatedOrder.Status, Is.EqualTo(OrderStatus.Cancelled));
             _mockNotificationService.Verify(s => s.SendSystemNotificationAsync(It.Is<NotificationCommand>(n =>
                 n.Title == $"Order {order.OrderID} has been Cancelled" &&
@@ -222,7 +222,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.False);
             var originalOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(originalOrder.Status, Is.EqualTo(OrderStatus.Pending));
+            Assert.That(originalOrder!.Status, Is.EqualTo(OrderStatus.Pending));
         }
 
         [Test]
@@ -243,7 +243,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.True);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.Status, Is.EqualTo(OrderStatus.InProgress));
+            Assert.That(updatedOrder!.Status, Is.EqualTo(OrderStatus.InProgress));
             _mockNotificationService.Verify(s => s.AddAsync(It.IsAny<Notification>()), Times.Never);
         }
 
@@ -257,7 +257,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.True);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.Status, Is.EqualTo(OrderStatus.InProgress));
+            Assert.That(updatedOrder!.Status, Is.EqualTo(OrderStatus.InProgress));
             _mockNotificationService.Verify(s => s.SendSystemNotificationAsync(It.Is<NotificationCommand>(n =>
                 n.Title == $"Order status changed to InProgress" &&
                 n.ReceiverID == user.Id), false), Times.Once);
@@ -289,7 +289,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.True);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.Status, Is.EqualTo(OrderStatus.Completed));
+            Assert.That(updatedOrder!.Status, Is.EqualTo(OrderStatus.Completed));
             _mockNotificationService.Verify(s => s.AddAsync(It.IsAny<Notification>()), Times.Never);
         }
 
@@ -303,7 +303,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.True);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.Status, Is.EqualTo(OrderStatus.Completed));
+            Assert.That(updatedOrder!.Status, Is.EqualTo(OrderStatus.Completed));
             Assert.That(updatedOrder.DeliveryDate, Is.Not.Null);
             Assert.That(updatedOrder.DeliveryDate.Value.Date, Is.EqualTo(DateTime.UtcNow.Date));
             _mockNotificationService.Verify(s => s.SendSystemNotificationAsync(It.Is<NotificationCommand>(n =>
@@ -360,7 +360,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.True);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.IsCanceled, Is.False);
+            Assert.That(updatedOrder!.IsCanceled, Is.False);
             Assert.That(updatedOrder.Status, Is.EqualTo(OrderStatus.Pending));
         }
 
@@ -374,7 +374,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.True);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.IsCanceled, Is.False);
+            Assert.That(updatedOrder!.IsCanceled, Is.False);
             Assert.That(updatedOrder.Status, Is.EqualTo(OrderStatus.Pending));
         }
 
@@ -469,7 +469,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.True);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.DeliveryAddress, Is.EqualTo("New Delivery"));
+            Assert.That(updatedOrder!.DeliveryAddress, Is.EqualTo("New Delivery"));
             Assert.That(updatedOrder.PickupAddress, Is.EqualTo("New Pickup"));
             Assert.That(updatedOrder.DeliveryInstructions, Is.EqualTo("New Instructions"));
             Assert.That(updatedOrder.LoadCapacity, Is.EqualTo(200));
@@ -533,7 +533,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.False);
             var originalOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(originalOrder.DeliveryAddress, Is.EqualTo(order.DeliveryAddress));
+            Assert.That(originalOrder!.DeliveryAddress, Is.EqualTo(order.DeliveryAddress));
         }
 
         [Test]
@@ -547,7 +547,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.False);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.DeliveryAddress, Is.EqualTo(order.DeliveryAddress));
+            Assert.That(updatedOrder!.DeliveryAddress, Is.EqualTo(order.DeliveryAddress));
         }
 
         [Test]
@@ -569,7 +569,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.True);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.UserID, Is.EqualTo(user.Id));
+            Assert.That(updatedOrder!.UserID, Is.EqualTo(user.Id));
             Assert.That(updatedOrder.DeliveryAddress, Is.EqualTo("New Admin Delivery"));
             Assert.That(updatedOrder.PickupAddress, Is.EqualTo("New Admin Pickup"));
             Assert.That(updatedOrder.DeliveryInstructions, Is.EqualTo("New Admin Instructions"));
@@ -619,7 +619,7 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(result, Is.False);
             var updatedOrder = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updatedOrder.DeliveryAddress, Is.EqualTo(order.DeliveryAddress));
+            Assert.That(updatedOrder!.DeliveryAddress, Is.EqualTo(order.DeliveryAddress));
         }
 
         [Test]
