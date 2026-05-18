@@ -113,7 +113,13 @@ namespace OrderFlow.Services.Core
 
             if (user.AccountType == AccountType.Personal)
             {
-                PersonalProfile personalProfile = await this.GetProfile<PersonalProfile>().FirstOrDefaultAsync(p => p.UserId == user.Id) ?? new PersonalProfile { UserId = user.Id };
+                PersonalProfile? personalProfile = await this.GetProfile<PersonalProfile>().FirstOrDefaultAsync(p => p.UserId == user.Id);
+
+                if (personalProfile == null)
+                {
+                    personalProfile = new PersonalProfile { UserId = user.Id };
+                    await this.AddAsync(personalProfile);
+                }
 
                 personalProfile.FirstName = model.FirstName!;
                 personalProfile.LastName = model.LastName!;
@@ -123,7 +129,13 @@ namespace OrderFlow.Services.Core
             }
             else
             {
-                CompanyProfile companyProfile = await this.GetProfile<CompanyProfile>().FirstOrDefaultAsync(c => c.UserId == user.Id) ?? new CompanyProfile { UserId = user.Id };
+                CompanyProfile? companyProfile = await this.GetProfile<CompanyProfile>().FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+                if (companyProfile == null)
+                {
+                    companyProfile = new CompanyProfile { UserId = user.Id };
+                    await this.AddAsync(companyProfile);
+                }
 
                 companyProfile.CompanyName = model.CompanyName!;
                 companyProfile.VATNumber = model.VATNumber!;
