@@ -191,6 +191,71 @@ namespace OrderFlow.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkCash(string? Id)
+        {
+            if (string.IsNullOrEmpty(Id) || !Guid.TryParse(Id, out var paymentId))
+            {
+                TempData["Error"] = "Invalid or missing Payment ID.";
+                return RedirectToAction("Index", "Order");
+            }
+
+            Guid orderId = Guid.Empty;
+            try
+            {
+                orderId = await _paymentService.GetAll()
+                                               .AsNoTracking()
+                                               .Where(p => p.PaymentID.Equals(paymentId))
+                                               .Select(p => p.OrderID)
+                                               .FirstOrDefaultAsync();
+
+                if (orderId == Guid.Empty || !await _paymentService.MarkPaymentAsCashAsync(paymentId))
+                {
+                    TempData["Error"] = "Failed to mark the payment as paid by cash.";
+                    return RedirectToAction("Detail", "Order", new { id = orderId != Guid.Empty ? orderId.ToString() : null });
+                }
+
+                TempData["Success"] = "Payment marked as paid by cash.";
+                return RedirectToAction("Detail", "Order", new { id = orderId != Guid.Empty ? orderId.ToString() : null });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while marking payment {PaymentId} as cash.", paymentId);
+                TempData["Error"] = "An unexpected error occurred while marking the payment as paid by cash.";
+                return RedirectToAction("Detail", "Order", new { id = orderId != Guid.Empty ? orderId.ToString() : null });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAllCash(string? orderId)
+        {
+            if (string.IsNullOrEmpty(orderId) || !Guid.TryParse(orderId, out var parsedOrderId))
+            {
+                TempData["Error"] = "Invalid or missing Order ID.";
+                return RedirectToAction("Index", "Order");
+            }
+
+            try
+            {
+                if (!await _paymentService.MarkOrderPaymentsAsCashAsync(parsedOrderId))
+                {
+                    TempData["Error"] = "Failed to mark the payments as paid by cash.";
+                    return RedirectToAction("Detail", "Order", new { id = parsedOrderId });
+                }
+
+                TempData["Success"] = "All payments marked as paid by cash.";
+                return RedirectToAction("Detail", "Order", new { id = parsedOrderId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while marking all payments as cash for order {OrderId}.", parsedOrderId);
+                TempData["Error"] = "An unexpected error occurred while marking payments as paid by cash.";
+                return RedirectToAction("Detail", "Order", new { id = parsedOrderId });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string? Id)
         {
             if (string.IsNullOrEmpty(Id) || !Guid.TryParse(Id, out var paymentId))
