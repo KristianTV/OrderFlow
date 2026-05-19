@@ -199,6 +199,8 @@ namespace OrderFlow.Services.Core
                     CreatedOn = payment.CreatedOn,
                     Amount = payment.Amount,
                     PaymentDescription = payment.PaymentDescription,
+                    PaymentMethod = payment.PaymentMethod.HasValue ? payment.PaymentMethod.Value.ToString() : null,
+                    PaymentDate = payment.PaymentDate,
                 }).ToList(),
                 TotalPrice = o.Payments.Sum(p => p.Amount)
             })
@@ -242,6 +244,8 @@ namespace OrderFlow.Services.Core
                     CreatedOn = payment.CreatedOn,
                     Amount = payment.Amount,
                     PaymentDescription = payment.PaymentDescription,
+                    PaymentMethod = payment.PaymentMethod.HasValue ? payment.PaymentMethod.Value.ToString() : null,
+                    PaymentDate = payment.PaymentDate,
                 }).ToList(),
                 TotalPrice = o.Payments.Sum(p => p.Amount)
             })
