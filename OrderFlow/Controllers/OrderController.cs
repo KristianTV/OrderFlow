@@ -234,7 +234,7 @@ namespace OrderFlow.Controllers
 
             try
             {
-                DetailsOrderViewModel? order = await _orderService.GetOrderDetailsAsync(orderId, userId);
+                InvoiceViewModel? order = await _orderService.GetOrderInvoiceDetailsAsync(orderId, userId);
 
                 if (order == null)
                 {

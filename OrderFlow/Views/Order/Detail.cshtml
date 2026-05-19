@@ -5,7 +5,7 @@
 }
 
 <div class="container mt-5">
-    <h2 class="mb-4 text-center">@ViewData["Title"] - <span class="text-primary">@Model.OrderID</span></h2>
+    <h2 class="mb-4 text-center">@ViewData["Title"]</h2>
     <div class="row">
         <div class="col-md-7">
             <div class="card shadow-lg mb-4 border-primary">
@@ -69,26 +69,22 @@
                     }
 
 
-                    @if (Model.TrucksLicensePlates.Any())
-                    {
-                        <div class="row mb-2">
-                            <div class="col-sm-4 text-muted">Trucks Assigned:</div>
-                            @foreach (var truckLicensePlate in Model.TrucksLicensePlates)
+                    <div class="row mt-3">
+                        <div class="col-sm-4 text-muted">Trucks Assigned:</div>
+                        <div class="col-sm-8">
+                            @if (Model.TrucksLicensePlates.Any())
                             {
-
-                                <div class="col-sm-8"><i b-ijfvsifnbj="" class="fas fa-truck me-1"></i><strong>@truckLicensePlate</strong></div>
-
+                                @foreach (var truck in Model.TrucksLicensePlates)
+                                {
+                                    <p class="me-1"><i b-ijfvsifnbj="" class="fas fa-truck me-1"></i>@truck</p>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">No trucks assigned yet.</span>
                             }
                         </div>
-                    }
-                    else
-                    {
-                        <div class="row mb-2">
-                            <div class="col-sm-12">
-                                <p class="text-muted fst-italic">No truck assigned yet.</p>
-                            </div>
-                        </div>
-                    }
+                    </div>
                 </div>
             </div>
         </div>
@@ -116,16 +112,26 @@
                                     @if (!string.IsNullOrEmpty(payment.PaymentDescription))
                                     {
                                         <p class="x-small mb-0">@payment.PaymentDescription</p>
-                                }
-                                else
-                                {
-                                    <p class="x-small mb-0">No information</p>
-                                }
+                                    }
+                                    else
+                                    {
+                                        <p class="x-small mb-0">No information</p>
+                                    }
+                                    <p class="small mb-0">
+                                        @if (payment.IsPaid)
+                                        {
+                                            <span class= "badge bg-success" > Paid by @payment.PaymentMethod at @payment.PaymentDate?.ToString("yyyy-MM-dd HH:mm")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Unpaid</span>
+                                        }
+                                    </p>
                                 </div>
                             }
                         <div class="mt-4 pt-3 border-top">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="h5 mb-0">Total Paid</span>
+                                <span class="h5 mb-0">Total Price</span>
                                 <span class="h4 fw-bold text-success mb-0">@Model.TotalPrice.ToString("C")</span>
                             </div>
                         </div>
@@ -150,9 +156,12 @@
             <a class="btn btn-outline-primary btn-lg me-2" asp-area="" asp-controller="Order" asp-action="Invoice" asp-route-id="@Model.OrderID">
                 <i class="fas fa-print me-2"></i> Invoice
             </a>
-            <a class="btn btn-success btn-lg me-2" asp-area="" asp-controller="Payment" asp-action="Card" asp-route-orderId="@Model.OrderID">
-                <i class="fas fa-credit-card me-2"></i> Pay by Card
-            </a>
+            @if (Model.Status.Equals("Completed") && !Model.isCanceled && Model.Payments!.Any(p => !p.IsPaid))
+            {
+                <a class="btn btn-success btn-lg me-2" asp-area="" asp-controller="Payment" asp-action="Card" asp-route-orderId="@Model.OrderID">
+                    <i class="fas fa-credit-card me-2"></i> Pay by Card
+                </a>
+            }
             <a class="btn btn-primary btn-lg me-2" asp-area="" asp-controller="Order" asp-action="Edit" asp-route-id="@Model.OrderID">
                 <i class="fas fa-edit me-2"></i> Edit Order
             </a>

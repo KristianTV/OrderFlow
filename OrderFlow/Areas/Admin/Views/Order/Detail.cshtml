@@ -123,9 +123,19 @@
             <div class="card shadow-lg mb-3">
                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i> Payments</h5>
-                    <a asp-area="Admin" asp-controller="Payment" asp-action="Create" asp-route-orderId="@Model.OrderID" class="btn btn-light btn-sm">
-                        <i class="fas fa-plus-circle me-1"></i> Add
-                    </a>
+                    <div class="d-flex gap-2">
+                        @if (Model.Payments != null && Model.Payments.Any(p => !p.IsPaid))
+                        {
+                            <form asp-area="Admin" asp-controller="Payment" asp-action="MarkAllCash" asp-route-orderId="@Model.OrderID" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fas fa-money-bill-wave me-1"></i> Cash All
+                                </button>
+                            </form>
+                        }
+                        <a asp-area="Admin" asp-controller="Payment" asp-action="Create" asp-route-orderId="@Model.OrderID" class="btn btn-light btn-sm">
+                            <i class="fas fa-plus-circle me-1"></i> Add
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     @if (Model.Payments != null && Model.Payments.Any())
@@ -156,6 +166,17 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow">
+                                        @if (!payment.IsPaid)
+                                        {
+                                            <li>
+                                                <form asp-area="Admin" asp-action="MarkCash" asp-controller="Payment" asp-route-id="@payment.Id" method="post">
+                                                    <button type="submit" class="dropdown-item text-success">
+                                                        <i class="fas fa-money-bill-wave me-2"></i> Mark cash
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                        }
                                         <li>
                                             <a class="dropdown-item" asp-area="Admin" asp-action="Edit" asp-controller="Payment" asp-route-id="@payment.Id" asp-route-orderId="@Model.OrderID">
                                                 <i class="fas fa-edit me-2 text-secondary"></i> Edit
@@ -170,11 +191,21 @@
                                     </ul>
                                 </div>
                                 </div>
+                                <p class="small mb-0">
+                                    @if (payment.IsPaid)
+                                    {
+                                        <span class="badge bg-success">Paid by @payment.PaymentMethod at @payment.PaymentDate?.ToString("yyyy-MM-dd HH:mm")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Unpaid</span>
+                                    }
+                                </p>
                             </div>
                         }
                         <div class="mt-4 pt-3 border-top">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="h5 mb-0">Total Paid</span>
+                                <span class="h5 mb-0">Total Price</span>
                                 <span class="h4 fw-bold text-success mb-0">@Model.TotalPrice.ToString("C")</span>
                             </div>
                         </div>
