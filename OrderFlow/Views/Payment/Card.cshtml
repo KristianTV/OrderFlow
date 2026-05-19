@@ -1,0 +1,122 @@
+@using OrderFlow.ViewModels.Payment
+@model CardPaymentViewModel
+@{
+    ViewData["Title"] = "Card Payment";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-xl-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-credit-card me-2"></i> Pay by Card</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-antiforgery="true" asp-area="" asp-controller="Payment" asp-action="Card" method="post">
+                        <input asp-for="OrderId" type="hidden" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Amount" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                                <input asp-for="Amount" class="form-control" type="number" step="0.01" readonly />
+                            </div>
+                            <span asp-validation-for="Amount" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CardholderName" class="form-label"></label>
+                            <input asp-for="CardholderName" class="form-control" autocomplete="cc-name" placeholder="Name on card" />
+                            <span asp-validation-for="CardholderName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CardNumber" class="form-label"></label>
+                            <input asp-for="CardNumber" class="form-control" inputmode="numeric" maxlength="23" autocomplete="cc-number" placeholder="0000 0000 0000 0000" id="cardNum" />
+                            <span asp-validation-for="CardNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="ExpiryDate" class="form-label"></label>
+                                <input asp-for="ExpiryDate" class="form-control" inputmode="numeric" maxlength="5" autocomplete="cc-exp" placeholder="MM/YY" />
+                                <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Cvv" class="form-label"></label>
+                                <input asp-for="Cvv" class="form-control" inputmode="numeric" maxlength="4" autocomplete="cc-csc" placeholder="123" />
+                                <span asp-validation-for="Cvv" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-check form-switch mt-4">
+                            <input asp-for="SimulatePaymentSuccess" class="form-check-input" />
+                            <label asp-for="SimulatePaymentSuccess" class="form-check-label"></label>
+                        </div>
+
+                        <div class="alert alert-info mt-4 mb-0">
+                            This is a simple demo payment. Card details are validated for format and are not stored.
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a class="btn btn-secondary" asp-area="" asp-controller="Order" asp-action="Detail" asp-route-id="@Model.OrderId">
+                                <i class="fas fa-arrow-left me-2"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-lock me-2"></i> Pay Now
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+    function ValidateCreditCardNumber() {
+
+          var cardInput = document.getElementById("cardNum");
+          var ccNum = cardInput.value.replace(/[\s-]/g, "");
+          var visaRegEx = /^(?:4[0-9]{12}(?:[0-9]{3})?)$/;
+          var mastercardRegEx = /^(?:5[1-5][0-9]{14})$/;
+          var amexpRegEx = /^(?:3[47][0-9]{13})$/;
+          var discovRegEx = /^(?:6(?:011|5[0-9][0-9])[0-9]{12})$/;
+          var isValid = false;
+
+          if (visaRegEx.test(ccNum)) {
+            isValid = true;
+          } else if(mastercardRegEx.test(ccNum)) {
+            isValid = true;
+          } else if(amexpRegEx.test(ccNum)) {
+            isValid = true;
+          } else if(discovRegEx.test(ccNum)) {
+            isValid = true;
+          }
+
+          if(isValid) {
+             cardInput.setCustomValidity("");
+          } else {
+             cardInput.setCustomValidity("Please provide a valid Card number.");
+          }
+
+          return isValid;
+        }
+
+        document.querySelector("form").addEventListener("submit", function(event) {
+            if (!ValidateCreditCardNumber()) {
+                event.preventDefault();
+                document.getElementById("cardNum").reportValidity();
+            }
+        });
+
+        document.getElementById("cardNum").addEventListener("input", ValidateCreditCardNumber);
+    </script>
+}
