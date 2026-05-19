@@ -107,7 +107,7 @@
                                     <div class="d-flex justify-content-between">
                                         <span class="text-muted small text-end">
                                             <i class="fas fa-calendar-alt me-1"></i>
-                                            @payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")
+                                        @payment.CreatedOn.ToString("yyyy-MM-dd HH:mm")
                                         </span>
                                         <span class="fs-4 fw-bold @amountClass">
                                             @payment.Amount.ToString("C")
@@ -147,6 +147,12 @@
             <i class="fas fa-arrow-left me-2"></i> Back to Orders
         </a>
         <div>
+            <a class="btn btn-outline-primary btn-lg me-2" asp-area="" asp-controller="Order" asp-action="Invoice" asp-route-id="@Model.OrderID">
+                <i class="fas fa-print me-2"></i> Invoice
+            </a>
+            <a class="btn btn-success btn-lg me-2" asp-area="" asp-controller="Payment" asp-action="Card" asp-route-orderId="@Model.OrderID">
+                <i class="fas fa-credit-card me-2"></i> Pay by Card
+            </a>
             <a class="btn btn-primary btn-lg me-2" asp-area="" asp-controller="Order" asp-action="Edit" asp-route-id="@Model.OrderID">
                 <i class="fas fa-edit me-2"></i> Edit Order
             </a>

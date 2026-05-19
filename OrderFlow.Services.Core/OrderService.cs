@@ -196,9 +196,52 @@ namespace OrderFlow.Services.Core
                 Payments = o.Payments.Select(payment => new PaymentViewModel
                 {
                     Id = payment.PaymentID,
-                    PaymentDate = payment.PaymentDate,
+                    CreatedOn = payment.CreatedOn,
                     Amount = payment.Amount,
-                    PaymentDescription = payment.PaymentDescription
+                    PaymentDescription = payment.PaymentDescription,
+                }).ToList(),
+                TotalPrice = o.Payments.Sum(p => p.Amount)
+            })
+                               .SingleOrDefaultAsync();
+        }
+        public async Task<InvoiceViewModel?> GetOrderInvoiceDetailsAsync(Guid orderId, Guid? userId = null)
+        {
+            IQueryable<Order> orders = this.GetAll()
+                                           .AsNoTracking()
+                                           .Include(o => o.User)
+                                           .Include(o => o.Payments)
+                                           .Include(o => o.CourseOrders)
+                                           .ThenInclude(co => co.TruckCourse)
+                                           .ThenInclude(tc => tc.Truck)
+                                           .Where(o => o.OrderID.Equals(orderId));
+
+            if (userId.HasValue)
+            {
+                orders = orders.Where(o => o.UserID.Equals(userId.Value));
+            }
+
+
+
+            return await orders.Select(o => new InvoiceViewModel
+            {
+                InvoiceId = "OF" + o.OrderID.ToString(),
+                Issued = o.DeliveryDate,
+                Order = new InvoiceOrderViewModel
+                {
+                    OrderID = o.OrderID,
+                    DeliveryAddress = o.DeliveryAddress,
+                    PickupAddress = o.PickupAddress,
+                    LoadCapacity = o.LoadCapacity,
+                    OrderDate = o.OrderDate,
+                    DeliveryDate = o.DeliveryDate
+                },
+                UserName = o.User!.UserName!,
+                Payments = o.Payments.Select(payment => new PaymentViewModel
+                {
+                    Id = payment.PaymentID,
+                    CreatedOn = payment.CreatedOn,
+                    Amount = payment.Amount,
+                    PaymentDescription = payment.PaymentDescription,
                 }).ToList(),
                 TotalPrice = o.Payments.Sum(p => p.Amount)
             })

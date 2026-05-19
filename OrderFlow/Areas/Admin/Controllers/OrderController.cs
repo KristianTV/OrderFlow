@@ -211,6 +211,39 @@ namespace OrderFlow.Areas.Admin.Controllers
             return View(order);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Invoice(string? id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                _logger.LogError(id, "Order ID must be provided.");
+                return NotFound();
+            }
+
+            if (!Guid.TryParse(id, out Guid orderId))
+            {
+                _logger.LogError(id, "Invalid Order ID format.");
+                return BadRequest();
+            }
+
+            try
+            {
+                InvoiceViewModel? orderInvoice = await _orderService.GetOrderInvoiceDetailsAsync(orderId);
+
+                if (orderInvoice == null)
+                {
+                    return NotFound();
+                }
+
+                return View("~/Views/Order/Invoice.cshtml", orderInvoice);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving invoice for order with ID {OrderId}.", orderId);
+                return BadRequest();
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(string? id)

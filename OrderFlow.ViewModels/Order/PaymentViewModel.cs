@@ -6,7 +6,8 @@
 
         public decimal Amount { get; set; }
 
-        public DateTime PaymentDate { get; set; }
+        public DateTime CreatedOn { get; set; }
+
         public string? PaymentDescription { get; set; }
     }
 }

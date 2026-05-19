@@ -1,0 +1,145 @@
+@using OrderFlow.ViewModels.Order
+@model InvoiceViewModel
+@{
+    ViewData["Title"] = "Invoice";
+    Layout = "_Layout";
+}
+
+<style>
+    .invoice-shell {
+        max-width: 960px;
+        margin: 2rem auto;
+        background: #fff;
+        color: #1f2937;
+    }
+
+    .invoice-box {
+        border: 1px solid #dee2e6;
+        padding: 2rem;
+    }
+
+    .invoice-title {
+        letter-spacing: .08rem;
+        text-transform: uppercase;
+    }
+
+    .invoice-table th {
+        background: #f8f9fa;
+    }
+
+    @@media print {
+        header, nav, footer, .navbar, .btn, .no-print {
+            display: none !important;
+        }
+
+        body {
+            background: #fff !important;
+        }
+
+        .container, .invoice-shell {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .invoice-box {
+            border: 0;
+            padding: 0;
+            box-shadow: none !important;
+        }
+    }
+</style>
+
+<div class="container invoice-shell">
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+        <a class="btn btn-secondary" asp-area="@ViewContext.RouteData.Values["area"]" asp-controller="Order" asp-action="Detail" asp-route-id="@Model.Order.OrderID">
+            <i class="fas fa-arrow-left me-2"></i> Back
+        </a>
+        <button type="button" class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print me-2"></i> Print Invoice
+        </button>
+    </div>
+
+    <div class="invoice-box shadow-sm">
+        <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+            <div>
+                <h1 class="invoice-title h2 mb-1">Invoice</h1>
+                <div class="text-muted">OrderFlow transport services</div>
+            </div>
+            <div class="text-end">
+                <div class="fw-bold">Invoice @Model.InvoiceId</div>
+                <div class="text-muted">Issued @DateTime.UtcNow.ToString("yyyy-MM-dd")</div>
+                <div class="text-muted">Order @Model.Order.OrderID</div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h2 class="h6 text-uppercase text-muted">Bill To</h2>
+                <div class="fw-bold">@Model.UserName</div>
+                <div>@Model.Order.DeliveryAddress</div>
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                <h2 class="h6 text-uppercase text-muted">Order Details</h2>
+                <div>Order date: @Model.Order.OrderDate.ToString("yyyy-MM-dd HH:mm")</div>
+                <div>Delivery date: @(Model.Order.DeliveryDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</div>
+            </div>
+        </div>
+
+        <table class="table table-bordered invoice-table align-middle">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Pickup</th>
+                    <th>Delivery</th>
+                    <th class="text-end">Load</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Transport of goods</td>
+                    <td>@Model.Order.PickupAddress</td>
+                    <td>@Model.Order.DeliveryAddress</td>
+                    <td class="text-end">@Model.Order.LoadCapacity</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 class="h5 mt-4">Payments</h2>
+        <table class="table table-sm table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Payments.Any())
+                {
+                    @foreach (var payment in Model.Payments)
+                    {
+                        <tr>
+                            <td>@payment.CreatedOn.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@(payment.PaymentDescription ?? "Payment")</td>
+                            <td class="text-end">@payment.Amount.ToString("C")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No payments recorded.</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="2" class="text-end">Total Paid</th>
+                    <th class="text-end">@Model.TotalPrice.ToString("C")</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
