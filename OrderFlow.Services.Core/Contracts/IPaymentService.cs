@@ -8,6 +8,10 @@ namespace OrderFlow.Services.Core.Contracts
     {
         IQueryable<Payment> GetAll();
         Task<bool> CreatePaymentAsync(CreatePaymentViewModel createPayment, Guid orderId);
+        Task<CardPaymentViewModel?> GetCardPaymentAsync(Guid orderId, Guid userId);
+        Task<bool> PayOrderByCardAsync(CardPaymentViewModel cardPayment, Guid userId);
+        Task<bool> MarkPaymentAsCashAsync(Guid paymentId);
+        Task<bool> MarkOrderPaymentsAsCashAsync(Guid orderId);
         Task<bool> DeletePaymentAsync(Guid paymentId);
         Task<bool> UpdatePaymentAsync(Guid paymentId, CreatePaymentViewModel createPayment);
     }
