@@ -29,6 +29,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ICourseOrderService, CourseOrderService>();
 builder.Services.AddScoped<ITruckCourseService, TruckCourseService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddScoped<ITruckSpendingService, TruckSpendingService>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
