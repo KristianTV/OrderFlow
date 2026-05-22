@@ -47,6 +47,12 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link @(currentController == "TruckSpending" ? "active" : "")"
+                                   asp-area="Driver" asp-controller="TruckSpending" asp-action="Index">
+                                    <i class="fas fa-receipt me-1"></i> Spendings
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link @(currentController == "Notification" ? "active" : "")"
                                    asp-area="Driver" asp-controller="Notification" asp-action="Index">
                                     <i class="fas fa-bell me-1"></i> Notifications
