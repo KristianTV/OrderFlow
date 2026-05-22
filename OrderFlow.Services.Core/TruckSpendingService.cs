@@ -203,10 +203,10 @@ namespace OrderFlow.Services.Core
             }
 
             return await courses.OrderByDescending(course => course.AssignedDate)
-                                .Select(course => new { course.TruckCourseID, course.PickupAddress, course.DeliverAddress, course.AssignedDate })
+                                .Select(course => new { course.TruckCourseID, course.PickupAddress, course.DeliverAddress, course.AssignedDate, course!.Truck!.LicensePlate })
                                 .ToDictionaryAsync(
                                     course => course.TruckCourseID,
-                                    course => course.PickupAddress + " -> " + course.DeliverAddress + " (" + course.AssignedDate.ToString("dd/MM/yyyy") + ")");
+                                    course => course.PickupAddress + " -> " + course.DeliverAddress + " driven by " + course.LicensePlate + " (" + course.AssignedDate.ToString("dd/MM/yyyy") + ")");
         }
 
         private IQueryable<TruckSpending> GetAuthorizedSpendings(Guid? driverId)
