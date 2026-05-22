@@ -1,0 +1,82 @@
+@using OrderFlow.ViewModels.TruckSpending
+@model IEnumerable<IndexTruckSpendingViewModel>
+@{
+    ViewData["Title"] = "Truck Spendings";
+    var trucks = ViewBag.Trucks as IDictionary<Guid, string> ?? new Dictionary<Guid, string>();
+    var courses = ViewBag.Courses as IDictionary<Guid, string> ?? new Dictionary<Guid, string>();
+    Guid? currentTruckId = ViewBag.CurrentTruckId as Guid?;
+    Guid? currentCourseId = ViewBag.CurrentCourseId as Guid?;
+    string currentSearch = ViewBag.CurrentSearch as string ?? string.Empty;
+    string currentSortOrder = ViewBag.CurrentSortOrder as string ?? string.Empty;
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0 text-primary">@ViewData["Title"]</h1>
+        <a class="btn btn-success btn-lg shadow-sm" asp-area="Driver" asp-controller="TruckSpending" asp-action="Create">
+            <i class="fas fa-plus-circle me-2"></i> Create Spending
+        </a>
+    </div>
+
+    <form asp-area="Driver" asp-controller="TruckSpending" asp-action="Index" method="get" class="card shadow-sm mb-4" id="spendingFilterForm">
+        <div class="card-body row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label" for="truckId">Truck</label>
+                <select class="form-select" id="truckId" name="truckId">
+                    <option value="">All trucks</option>
+                    @foreach (var truck in trucks)
+                    {
+                        <option value="@truck.Key" selected="@(currentTruckId == truck.Key)">@truck.Value</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="courseId">Course</label>
+                <select class="form-select" id="courseId" name="courseId">
+                    <option value="">All courses</option>
+                    @foreach (var course in courses)
+                    {
+                        <option value="@course.Key" selected="@(currentCourseId == course.Key)">@course.Value</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="search">Search</label>
+                <input class="form-control" id="search" name="search" value="@currentSearch" placeholder="Description" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="sortOrder">Sort</label>
+                <select class="form-select" id="sortOrder" name="sortOrder">
+                    <option value="" selected="@(string.IsNullOrEmpty(currentSortOrder))">Newest first</option>
+                    <option value="date_asc" selected="@(currentSortOrder == "date_asc")">Oldest first</option>
+                    <option value="amount_desc" selected="@(currentSortOrder == "amount_desc")">Amount high</option>
+                    <option value="amount_asc" selected="@(currentSortOrder == "amount_asc")">Amount low</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-grid">
+                <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i></button>
+            </div>
+        </div>
+    </form>
+
+    <div id="spendingResults">
+        <partial name="_SpendingList" model="Model" />
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/View/Shared/truck-spending.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            setupTruckSpendingIndex({
+                formId: "spendingFilterForm",
+                resultsId: "spendingResults",
+                truckSelectId: "truckId",
+                courseSelectId: "courseId",
+                coursesUrl: "@Url.Action("Courses", "TruckSpending", new { area = "Driver" })",
+                placeholder: "All courses",
+                disableWithoutTruck: false
+            });
+        });
+    </script>
+}

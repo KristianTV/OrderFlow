@@ -1,0 +1,52 @@
+@using OrderFlow.Data.Models.Enums
+@using OrderFlow.ViewModels.TruckSpending
+@model CreateTruckSpendingViewModel
+
+<div class="mb-3">
+    <label asp-for="TruckID" class="form-label"></label>
+    <select asp-for="TruckID" class="form-select">
+        <option value="">-- Select Truck --</option>
+        @foreach (var truck in Model.AvailableTrucks)
+        {
+            <option value="@truck.Key">@truck.Value</option>
+        }
+    </select>
+    <span asp-validation-for="TruckID" class="text-danger mt-1 d-block"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="TruckCourseID" class="form-label"></label>
+    <select asp-for="TruckCourseID" class="form-select" disabled="@(!Model.TruckID.HasValue)">
+        <option value="">@(Model.TruckID.HasValue ? "Not course related" : "Select truck first")</option>
+        @foreach (var course in Model.AvailableCourses)
+        {
+            <option value="@course.Key">@course.Value</option>
+        }
+    </select>
+    <span asp-validation-for="TruckCourseID" class="text-danger mt-1 d-block"></span>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="Amount" class="form-label"></label>
+        <input asp-for="Amount" type="number" step="0.01" min="0.01" class="form-control" />
+        <span asp-validation-for="Amount" class="text-danger mt-1 d-block"></span>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="PaymentDate" class="form-label"></label>
+        <input asp-for="PaymentDate" type="date" class="form-control" />
+        <span asp-validation-for="PaymentDate" class="text-danger mt-1 d-block"></span>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label asp-for="PaymentMethod" class="form-label"></label>
+    <select asp-for="PaymentMethod" asp-items="Html.GetEnumSelectList<PaymentMethods>()" class="form-select"></select>
+    <span asp-validation-for="PaymentMethod" class="text-danger mt-1 d-block"></span>
+</div>
+
+<div class="mb-4">
+    <label asp-for="PaymentDescription" class="form-label"></label>
+    <textarea asp-for="PaymentDescription" class="form-control" rows="3" placeholder="Fuel, repair, tolls, maintenance"></textarea>
+    <span asp-validation-for="PaymentDescription" class="text-danger mt-1 d-block"></span>
+</div>

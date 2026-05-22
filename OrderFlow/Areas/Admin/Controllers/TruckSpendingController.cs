@@ -38,6 +38,11 @@ namespace OrderFlow.Areas.Admin.Controllers
                     SortOrder = sortOrder
                 });
 
+                if (IsAjaxRequest())
+                {
+                    return PartialView("_SpendingList", spendings);
+                }
+
                 return View(spendings);
             }
             catch (Exception ex)
@@ -46,6 +51,18 @@ namespace OrderFlow.Areas.Admin.Controllers
                 TempData["Error"] = "An unexpected error occurred while loading truck spendings.";
                 return View(new List<IndexTruckSpendingViewModel>());
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Courses(Guid? truckId = null)
+        {
+            Dictionary<Guid, string> courses = await _truckSpendingService.GetCourseOptionsAsync(truckId);
+
+            return Json(courses.Select(course => new
+            {
+                id = course.Key,
+                text = course.Value
+            }));
         }
 
         [HttpGet]
@@ -208,7 +225,14 @@ namespace OrderFlow.Areas.Admin.Controllers
         private async Task PopulateOptionsAsync(CreateTruckSpendingViewModel model)
         {
             model.AvailableTrucks = await _truckSpendingService.GetTruckOptionsAsync();
-            model.AvailableCourses = await _truckSpendingService.GetCourseOptionsAsync(model.TruckID);
+            model.AvailableCourses = model.TruckID.HasValue
+                                    ? await _truckSpendingService.GetCourseOptionsAsync(model.TruckID)
+                                    : new Dictionary<Guid, string>();
+        }
+
+        private bool IsAjaxRequest()
+        {
+            return Request.Headers.XRequestedWith == "XMLHttpRequest";
         }
     }
 }

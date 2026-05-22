@@ -40,7 +40,29 @@ namespace OrderFlow.Areas.Driver.Controllers
                 SortOrder = sortOrder
             });
 
+            if (IsAjaxRequest())
+            {
+                return PartialView("_SpendingList", spendings);
+            }
+
             return View(spendings);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Courses(Guid? truckId = null)
+        {
+            if (!TryGetDriverId(out Guid driverId))
+            {
+                return BadRequest();
+            }
+
+            Dictionary<Guid, string> courses = await _truckSpendingService.GetCourseOptionsAsync(truckId, driverId);
+
+            return Json(courses.Select(course => new
+            {
+                id = course.Key,
+                text = course.Value
+            }));
         }
 
         [HttpGet]
@@ -187,7 +209,14 @@ namespace OrderFlow.Areas.Driver.Controllers
         private async Task PopulateOptionsAsync(CreateTruckSpendingViewModel model, Guid driverId)
         {
             model.AvailableTrucks = await _truckSpendingService.GetTruckOptionsAsync(driverId);
-            model.AvailableCourses = await _truckSpendingService.GetCourseOptionsAsync(model.TruckID, driverId);
+            model.AvailableCourses = model.TruckID.HasValue
+                ? await _truckSpendingService.GetCourseOptionsAsync(model.TruckID, driverId)
+                : new Dictionary<Guid, string>();
+        }
+
+        private bool IsAjaxRequest()
+        {
+            return Request.Headers.XRequestedWith == "XMLHttpRequest";
         }
     }
 }

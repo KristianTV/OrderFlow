@@ -1,0 +1,46 @@
+@using OrderFlow.ViewModels.TruckSpending
+@model DetailsTruckSpendingViewModel
+@{
+    ViewData["Title"] = "Truck Spending Details";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">@ViewData["Title"]</h3>
+            <span class="badge bg-light text-primary fs-6">@Model.Amount.ToString("C")</span>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Truck</dt>
+                <dd class="col-sm-9">@Model.TruckLicensePlate</dd>
+                <dt class="col-sm-3">Course</dt>
+                <dd class="col-sm-9">@Model.CourseDescription</dd>
+                <dt class="col-sm-3">Description</dt>
+                <dd class="col-sm-9">@Model.PaymentDescription</dd>
+                <dt class="col-sm-3">Payment Date</dt>
+                <dd class="col-sm-9">@Model.PaymentDate.ToString("dd/MM/yyyy")</dd>
+                <dt class="col-sm-3">Payment Method</dt>
+                <dd class="col-sm-9">@Model.PaymentMethod</dd>
+            </dl>
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+            <a asp-area="Admin" asp-controller="TruckSpending" asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back
+            </a>
+            <div>
+                <a asp-area="Admin" asp-controller="TruckSpending" asp-action="Edit" asp-route-id="@Model.TruckSpendingID" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i> Edit
+                </a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <form asp-area="Admin" asp-controller="TruckSpending" asp-action="Delete" asp-route-id="@Model.TruckSpendingID" method="post" class="d-inline">
+                        <button class="btn btn-danger" type="submit" onclick="return confirm('Delete this truck spending?');">
+                            <i class="fas fa-trash me-2"></i> Delete
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

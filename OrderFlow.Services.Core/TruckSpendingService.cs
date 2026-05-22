@@ -206,7 +206,7 @@ namespace OrderFlow.Services.Core
                                 .Select(course => new { course.TruckCourseID, course.PickupAddress, course.DeliverAddress, course.AssignedDate, course!.Truck!.LicensePlate })
                                 .ToDictionaryAsync(
                                     course => course.TruckCourseID,
-                                    course => course.PickupAddress + " -> " + course.DeliverAddress + " driven by " + course.LicensePlate + " (" + course.AssignedDate.ToString("dd/MM/yyyy") + ")");
+                                    course => course.PickupAddress + " -> " + course.DeliverAddress + ((!string.IsNullOrEmpty(course.LicensePlate)) ? " driven by " + course.LicensePlate : "") + " (" + course.AssignedDate.ToString("dd/MM/yyyy") + ")");
         }
 
         private IQueryable<TruckSpending> GetAuthorizedSpendings(Guid? driverId)
