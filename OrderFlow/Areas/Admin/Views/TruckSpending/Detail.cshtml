@@ -13,9 +13,16 @@
         <div class="card-body">
             <dl class="row mb-0">
                 <dt class="col-sm-3">Truck</dt>
-                <dd class="col-sm-9">@Model.TruckLicensePlate</dd>
+                <dd class="col-sm-9"><a asp-area="Admin" asp-controller="Truck" asp-action="Detail"
+                                   asp-route-id="@Model.TruckID" class="text-decoration-none">
+                                    @Model.TruckLicensePlate <i class="fa-solid fa-share-from-square"></i>
+                                </a></dd>
                 <dt class="col-sm-3">Course</dt>
-                <dd class="col-sm-9">@Model.CourseDescription</dd>
+                <dd class="col-sm-9">
+                    <a asp-area="Admin" asp-controller="Course" asp-action="Detail"
+                                   asp-route-id="@Model.TruckCourseID" class="text-decoration-none">
+                                    @Model.CourseDescription <i class="fa-solid fa-share-from-square"></i>
+                                </a></dd>
                 <dt class="col-sm-3">Description</dt>
                 <dd class="col-sm-9">@Model.PaymentDescription</dd>
                 <dt class="col-sm-3">Payment Date</dt>
