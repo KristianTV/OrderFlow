@@ -273,13 +273,15 @@ namespace OrderFlow.Services.Core
                 spendings = spendings.Where(spending => spending.PaymentDescription.Contains(query.Search));
             }
 
-            return query.SortOrder switch
+            return (query.SortOrder switch
             {
                 "date_asc" => spendings.OrderBy(spending => spending.PaymentDate),
                 "amount_desc" => spendings.OrderByDescending(spending => spending.Amount),
                 "amount_asc" => spendings.OrderBy(spending => spending.Amount),
                 _ => spendings.OrderByDescending(spending => spending.PaymentDate)
-            };
+            })
+            .Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize, 1))
+            .Take(Math.Max(query.PageSize, 1));
         }
     }
 }
