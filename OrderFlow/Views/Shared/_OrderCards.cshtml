@@ -28,7 +28,7 @@
                 </p>
             </div>
             <div class="card-footer text-end bg-light border-top-0">
-                <a class="btn btn-primary" href="@Url.Action("Detail", "Order", new { area, id = order.OrderID })">
+                <a class="btn btn-primary" asp-area="@area" asp-controller="Order" asp-action="Detail" asp-route-id="@order.OrderID">
                     <i class="fas fa-info-circle me-2"></i> View Details
                 </a>
             </div>
