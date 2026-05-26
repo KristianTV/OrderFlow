@@ -1,0 +1,51 @@
+@using OrderFlow.ViewModels.Order
+@model IEnumerable<IndexOrderViewModel>
+
+@{
+    string area = ViewData["OrderArea"]?.ToString() ?? string.Empty;
+}
+
+@foreach (var order in Model ?? Enumerable.Empty<IndexOrderViewModel>())
+{
+    <div class="col">
+        <div class="card h-100 shadow-sm border-primary">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title text-primary mb-2"><i class="fas fa-box-open me-2"></i> Order ID: @order.OrderID</h5>
+                <h6 class="card-subtitle mb-3 text-muted">
+                    <i class="far fa-calendar-alt me-1"></i> Date: @order.OrderDate.ToString("yyyy-MM-dd HH:mm")
+                </h6>
+                <p class="card-text mb-1">
+                    <strong><i class="fas fa-truck-loading me-1"></i> Delivery:</strong> @order.DeliveryAddress
+                </p>
+                <p class="card-text mb-3">
+                    <strong><i class="fas fa-map-marker-alt me-1"></i> Pickup:</strong> @order.PickupAddress
+                </p>
+                <p class="card-text mt-auto">
+                    <strong>Status:</strong>
+                    <span class="badge @GetStatusBadgeClass(order.Status) fs-6">
+                        @order.Status
+                    </span>
+                </p>
+            </div>
+            <div class="card-footer text-end bg-light border-top-0">
+                <a class="btn btn-primary" href="@Url.Action("Detail", "Order", new { area, id = order.OrderID })">
+                    <i class="fas fa-info-circle me-2"></i> View Details
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+@functions {
+    private string GetStatusBadgeClass(string status) => status switch
+    {
+        "Pending" => "bg-warning",
+        "InProgress" => "bg-primary",
+        "Completed" => "bg-success",
+        "Cancelled" => "bg-danger",
+        "OnHold" => "bg-secondary",
+        "Failed" => "bg-danger",
+        "Delayed" => "bg-danger",
+        _ => "bg-light text-dark"
+    };
+}
