@@ -30,7 +30,7 @@ namespace OrderFlow.Services.Core
                 trucks = trucks.Where(t => t.DriverID.Equals(driverId.Value));
             }
 
-            trucks = ApplyOrderQuery(trucks, query);
+            trucks = ApplyTruckQuery(trucks, query);
 
             return await ProjectToIndexOrderViewModel(trucks).ToListAsync();
 
@@ -48,7 +48,7 @@ namespace OrderFlow.Services.Core
             });
         }
 
-        private static IQueryable<Truck> ApplyOrderQuery(IQueryable<Truck> trucks, TruckQueryModel? query)
+        private static IQueryable<Truck> ApplyTruckQuery(IQueryable<Truck> trucks, TruckQueryModel? query)
         {
             query ??= new TruckQueryModel();
 
