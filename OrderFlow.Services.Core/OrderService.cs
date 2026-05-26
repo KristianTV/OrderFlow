@@ -284,12 +284,14 @@ namespace OrderFlow.Services.Core
                 orders = orders.Where(o => o.Status != OrderStatus.Completed);
             }
 
-            return query.SortOrder switch
+            return (query.SortOrder switch
             {
                 "date_desc" => orders.OrderByDescending(o => o.OrderDate),
                 "date_asc" => orders.OrderBy(o => o.OrderDate),
-                _ => orders.OrderBy(o => o.OrderDate)
-            };
+                _ => orders.OrderByDescending(o => o.OrderDate)
+            })
+            .Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize, 1))
+            .Take(Math.Max(query.PageSize, 1));
         }
 
         private static IQueryable<IndexOrderViewModel> ProjectToIndexOrderViewModel(IQueryable<Order> orders)
