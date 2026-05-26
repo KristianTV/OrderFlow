@@ -30,7 +30,36 @@ namespace OrderFlow.Services.Core
                 trucks = trucks.Where(t => t.DriverID.Equals(driverId.Value));
             }
 
-            if (!string.IsNullOrWhiteSpace(query?.Status) &&
+            trucks = ApplyOrderQuery(trucks, query);
+
+            return await ProjectToIndexOrderViewModel(trucks).ToListAsync();
+
+        }
+
+        private static IQueryable<IndexTruckViewModel> ProjectToIndexOrderViewModel(IQueryable<Truck> trucks)
+        {
+            return trucks.Select(truck => new IndexTruckViewModel
+            {
+                TruckID = truck.TruckID,
+                DriverName = truck.Driver!.UserName!,
+                LicensePlate = truck.LicensePlate,
+                Capacity = truck.Capacity,
+                Status = truck.Status.ToString(),
+            });
+        }
+
+        private static IQueryable<Truck> ApplyOrderQuery(IQueryable<Truck> trucks, TruckQueryModel? query)
+        {
+            query ??= new TruckQueryModel();
+
+            if (!string.IsNullOrWhiteSpace(query.Search))
+            {
+                string search = query.Search.Trim();
+                trucks = trucks.Where(t => t.LicensePlate.Contains(search) ||
+                                           (t.Driver != null && t.Driver.UserName != null && t.Driver.UserName.Contains(search)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.Status) &&
                 !query.Status.Equals("all", StringComparison.OrdinalIgnoreCase))
             {
                 if (!Enum.TryParse(query.Status, true, out TruckStatus truckStatus))
@@ -41,15 +70,18 @@ namespace OrderFlow.Services.Core
                 trucks = trucks.Where(t => t.Status.Equals(truckStatus));
             }
 
-            return await trucks.Select(truck => new IndexTruckViewModel
+            trucks = query.SortOrder switch
             {
-                TruckID = truck.TruckID,
-                DriverName = truck.Driver!.UserName!,
-                LicensePlate = truck.LicensePlate,
-                Capacity = truck.Capacity,
-                Status = truck.Status.ToString(),
-            })
-                               .ToListAsync();
+                "status_desc" => trucks.OrderByDescending(t => t.Status).ThenBy(t => t.LicensePlate),
+                "license_asc" => trucks.OrderBy(t => t.LicensePlate),
+                "license_desc" => trucks.OrderByDescending(t => t.LicensePlate),
+                "driver_asc" => trucks.OrderBy(t => t.Driver!.UserName).ThenBy(t => t.LicensePlate),
+                "driver_desc" => trucks.OrderByDescending(t => t.Driver!.UserName).ThenBy(t => t.LicensePlate),
+                _ => trucks.OrderBy(t => t.Status).ThenBy(t => t.LicensePlate)
+            };
+
+            return trucks.Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize, 1))
+                         .Take(Math.Max(query.PageSize, 1));
         }
 
         public async Task<CreateTruckViewModel?> GetTruckForEditAsync(Guid truckID)
