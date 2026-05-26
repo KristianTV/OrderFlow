@@ -11,6 +11,7 @@ namespace OrderFlow.Controllers
 {
     public class OrderController : BaseController
     {
+        private const int IndexPageSize = 12;
 
         private readonly UserManager<ApplicationUser> _userManager;
 
@@ -30,7 +31,7 @@ namespace OrderFlow.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(bool? hideCompleted, string? searchId = null, string? statusFilter = null, string? sortOrder = null)
+        public async Task<IActionResult> Index(bool? hideCompleted, string? searchId = null, string? statusFilter = null, string? sortOrder = null, int page = 1)
         {
             if (!Guid.TryParse(this.GetUserId(), out Guid userId))
             {
@@ -40,13 +41,27 @@ namespace OrderFlow.Controllers
 
             try
             {
-                IEnumerable<IndexOrderViewModel> indexOrders = await _orderService.GetUserOrdersAsync(userId, new OrderQueryModel
+                List<IndexOrderViewModel> indexOrders = (await _orderService.GetUserOrdersAsync(userId, new OrderQueryModel
                 {
                     HideCompleted = hideCompleted.GetValueOrDefault(),
                     SearchId = searchId,
                     StatusFilter = statusFilter,
-                    SortOrder = sortOrder
-                });
+                    SortOrder = sortOrder,
+                    Page = page,
+                    PageSize = IndexPageSize + 1
+                })).ToList();
+
+                bool hasMore = indexOrders.Count > IndexPageSize;
+                HttpContext?.Response?.Headers.TryAdd("X-Has-More", hasMore.ToString().ToLowerInvariant());
+                indexOrders = indexOrders.Take(IndexPageSize).ToList();
+
+                if (IsAjaxRequest())
+                {
+                    ViewData["OrderArea"] = string.Empty;
+                    return PartialView("~/Views/Shared/_OrderCards.cshtml", indexOrders);
+                }
+
+                ViewBag.HasMore = hasMore;
 
                 return View(indexOrders);
             }
@@ -55,6 +70,11 @@ namespace OrderFlow.Controllers
                 _logger.LogError(ex, "An error occurred while retrieving orders for user ID: {UserId}.", userId);
                 return BadRequest();
             }
+        }
+
+        private bool IsAjaxRequest()
+        {
+            return HttpContext?.Request?.Headers.XRequestedWith.ToString() == "XMLHttpRequest";
         }
 
         [HttpGet]
