@@ -29,7 +29,7 @@ namespace OrderFlow.Services.Core
         {
             IQueryable<TruckSpending> spendings = GetAuthorizedSpendings(driverId).AsNoTracking();
 
-            spendings = ApplyQuery(spendings, query);
+            spendings = ApplySpendingQuery(spendings, query);
 
             return await spendings.Select(spending => new IndexTruckSpendingViewModel
             {
@@ -254,7 +254,7 @@ namespace OrderFlow.Services.Core
             return await courses.AnyAsync();
         }
 
-        private static IQueryable<TruckSpending> ApplyQuery(IQueryable<TruckSpending> spendings, TruckSpendingQueryModel? query)
+        private static IQueryable<TruckSpending> ApplySpendingQuery(IQueryable<TruckSpending> spendings, TruckSpendingQueryModel? query)
         {
             query ??= new TruckSpendingQueryModel();
 
