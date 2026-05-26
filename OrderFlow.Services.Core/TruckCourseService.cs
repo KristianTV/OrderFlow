@@ -401,12 +401,14 @@ namespace OrderFlow.Services.Core
                 courses = courses.Where(tc => tc.Status != CourseStatus.Delivered);
             }
 
-            return query.SortOrder switch
+            return (query.SortOrder switch
             {
                 "date_desc" => courses.OrderByDescending(tc => tc.AssignedDate),
                 "date_asc" => courses.OrderBy(tc => tc.AssignedDate),
-                _ => courses.OrderBy(tc => tc.AssignedDate)
-            };
+                _ => courses.OrderByDescending(tc => tc.AssignedDate)
+            })
+            .Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize, 1))
+            .Take(Math.Max(query.PageSize, 1));
         }
     }
 }
