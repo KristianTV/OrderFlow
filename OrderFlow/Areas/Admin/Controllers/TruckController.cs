@@ -9,6 +9,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 {
     public class TruckController : BaseAdminController
     {
+        private const int IndexPageSize = 12;
         private readonly ILogger<TruckController> _logger;
         private readonly ITruckService _truckService;
         private readonly IOrderService _orderService;
@@ -29,23 +30,36 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? status = null)
+        public async Task<IActionResult> Index(string? status = null, string? search = null, string? sortOrder = null, int page = 1)
         {
             try
             {
-                var trucks = (await _truckService.GetTrucksAsync(query: new TruckQueryModel { Status = status })).ToList();
-
-                if (trucks == null || !trucks.Any())
+                List<IndexTruckViewModel> trucks = (await _truckService.GetTrucksAsync(query: new TruckQueryModel
                 {
-                    _logger.LogInformation("No trucks found .");
-                    ModelState.AddModelError("Trucks", "No trucks found .");
-                    return View(new List<IndexTruckViewModel>());
-                }
+                    Search = search,
+                    Status = status,
+                    SortOrder = sortOrder,
+                    Page = page,
+                    PageSize = IndexPageSize + 1
+                })).ToList();
+
+                bool hasMore = trucks.Count > IndexPageSize;
+                HttpContext?.Response?.Headers.TryAdd("X-Has-More", hasMore.ToString().ToLowerInvariant());
+                trucks = trucks.Take(IndexPageSize).ToList();
 
                 ViewData["CurrentStatus"] = string.IsNullOrWhiteSpace(status) || status.Equals("all", StringComparison.OrdinalIgnoreCase)
                     ? "All"
                     : status;
+                ViewData["CurrentSearch"] = search;
+                ViewData["CurrentSortOrder"] = sortOrder;
 
+                if (IsAjaxRequest())
+                {
+                    ViewData["TruckArea"] = "Admin";
+                    return PartialView("~/Views/Shared/_TruckCards.cshtml", trucks);
+                }
+
+                ViewBag.HasMore = hasMore;
 
                 return View(trucks);
             }
@@ -55,6 +69,11 @@ namespace OrderFlow.Areas.Admin.Controllers
                 TempData["Error"] = "An unexpected error occurred. Please try again later.";
                 return View(new List<IndexTruckViewModel>());
             }
+        }
+
+        private bool IsAjaxRequest()
+        {
+            return HttpContext?.Request?.Headers.XRequestedWith.ToString() == "XMLHttpRequest";
         }
 
         [HttpGet]
