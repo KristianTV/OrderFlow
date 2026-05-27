@@ -7,6 +7,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 {
     public class TruckSpendingController : BaseAdminController
     {
+        private const int IndexPageSize = 12;
         private readonly ILogger<TruckSpendingController> _logger;
         private readonly ITruckSpendingService _truckSpendingService;
 
@@ -19,7 +20,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(Guid? truckId = null, Guid? courseId = null, string? search = null, string? sortOrder = null)
+        public async Task<IActionResult> Index(Guid? truckId = null, Guid? courseId = null, string? search = null, string? sortOrder = null, int page = 1)
         {
             try
             {
@@ -30,20 +31,28 @@ namespace OrderFlow.Areas.Admin.Controllers
                 ViewBag.CurrentSearch = search;
                 ViewBag.CurrentSortOrder = sortOrder;
 
-                IEnumerable<IndexTruckSpendingViewModel> spendings = await _truckSpendingService.GetTruckSpendingsAsync(null, new TruckSpendingQueryModel
+                List<IndexTruckSpendingViewModel> indexSpendings = (await _truckSpendingService.GetTruckSpendingsAsync(null, new TruckSpendingQueryModel
                 {
                     TruckID = truckId,
                     TruckCourseID = courseId,
                     Search = search,
-                    SortOrder = sortOrder
-                });
+                    SortOrder = sortOrder,
+                    Page = page,
+                    PageSize = IndexPageSize + 1
+                })).ToList();
+
+                bool hasMore = indexSpendings.Count > IndexPageSize;
+                HttpContext?.Response?.Headers.TryAdd("X-Has-More", hasMore.ToString().ToLowerInvariant());
+                indexSpendings = indexSpendings.Take(IndexPageSize).ToList();
 
                 if (IsAjaxRequest())
                 {
-                    return PartialView("_SpendingList", spendings);
+                    return PartialView("_SpendingList", indexSpendings);
                 }
 
-                return View(spendings);
+                ViewBag.HasMore = hasMore;
+
+                return View(indexSpendings);
             }
             catch (Exception ex)
             {
@@ -232,7 +241,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
         private bool IsAjaxRequest()
         {
-            return Request.Headers.XRequestedWith == "XMLHttpRequest";
+            return HttpContext?.Request?.Headers.XRequestedWith.ToString() == "XMLHttpRequest";
         }
     }
 }
