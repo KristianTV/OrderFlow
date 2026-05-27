@@ -7,6 +7,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 {
     public class CourseController : BaseAdminController
     {
+        private const int IndexPageSize = 12;
         private readonly ILogger<CourseController> _logger;
         private readonly ITruckCourseService _truckCourseService;
         private readonly ITruckService _truckService;
@@ -21,25 +22,44 @@ namespace OrderFlow.Areas.Admin.Controllers
             _truckService = truckService;
         }
         [HttpGet]
-        public async Task<IActionResult> Index(bool? hideCompleted, string? searchId = null, string? statusFilter = null, string? sortOrder = null)
+        public async Task<IActionResult> Index(bool? hideCompleted, string? searchId = null, string? statusFilter = null, string? sortOrder = null, int page = 1)
         {
             try
             {
-                IEnumerable<IndexCourseViewModel> indexAllCourses = await _truckCourseService.GetCoursesAsync(null, new CourseQueryModel
+                List<IndexCourseViewModel> indexCourses = (await _truckCourseService.GetCoursesAsync(null, new CourseQueryModel
                 {
                     HideCompleted = hideCompleted.GetValueOrDefault(),
                     SearchId = searchId,
                     StatusFilter = statusFilter,
-                    SortOrder = sortOrder
-                });
+                    SortOrder = sortOrder,
+                    Page = page,
+                    PageSize = IndexPageSize + 1
+                })).ToList();
 
-                return View(indexAllCourses);
+                bool hasMore = indexCourses.Count > IndexPageSize;
+                HttpContext?.Response?.Headers.TryAdd("X-Has-More", hasMore.ToString().ToLowerInvariant());
+                indexCourses = indexCourses.Take(IndexPageSize).ToList();
+
+                if (IsAjaxRequest())
+                {
+                    ViewData["CourseArea"] = "Admin";
+                    return PartialView("~/Views/Shared/_CourseRows.cshtml", indexCourses);
+                }
+
+                ViewBag.HasMore = hasMore;
+
+                return View(indexCourses);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while retrieving orders.");
                 return BadRequest();
             }
+        }
+
+        private bool IsAjaxRequest()
+        {
+            return HttpContext?.Request?.Headers.XRequestedWith.ToString() == "XMLHttpRequest";
         }
 
         [HttpGet]
