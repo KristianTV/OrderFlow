@@ -1,0 +1,48 @@
+@using OrderFlow.ViewModels.Truck
+@model IEnumerable<IndexTruckViewModel>
+
+@{
+    string area = ViewData["TruckArea"]?.ToString() ?? string.Empty;
+}
+
+@foreach (var truck in Model ?? Enumerable.Empty<IndexTruckViewModel>())
+{
+    <div class="col">
+        <div class="card h-100 shadow-sm border-primary">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title text-primary mb-2"><i class="fas fa-truck me-2"></i> @truck.LicensePlate</h5>
+                <h6 class="card-subtitle mb-3 text-muted">
+                    <i class="fas fa-user-circle me-1"></i> Driver: @truck.DriverName
+                </h6>
+                <p class="card-text mb-1">
+                    <strong><i class="fas fa-weight-hanging me-1"></i> Capacity:</strong> @truck.Capacity kg
+                </p>
+                <p class="card-text mt-auto">
+                    <strong>Status:</strong>
+                    <span class="badge @GetStatusBadgeClass(truck.Status) fs-6">
+                        @truck.Status
+                    </span>
+                </p>
+            </div>
+            <div class="card-footer text-end bg-light border-top-0">
+                <a class="btn btn-primary" asp-area="@area" asp-controller="Truck" asp-action="Detail" asp-route-id="@truck.TruckID">
+                    <i class="fas fa-info-circle me-2"></i> View Details
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+@functions {
+    private string GetStatusBadgeClass(string status) => status switch
+    {
+        "Available" => "bg-success",
+        "InTransit" => "bg-primary",
+        "Maintenance" => "bg-warning text-dark",
+        "Unavailable" => "bg-secondary",
+        "UnderMaintenance" => "bg-warning text-dark",
+        "Delayed" => "bg-info",
+        "OutOfService" => "bg-danger",
+        _ => "bg-light text-dark"
+    };
+}
