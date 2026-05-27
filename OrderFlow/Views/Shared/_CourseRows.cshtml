@@ -1,0 +1,41 @@
+@using OrderFlow.Data.Models.Enums
+@using OrderFlow.ViewModels.Course
+@model IEnumerable<IndexCourseViewModel>
+
+@{
+    string area = ViewData["CourseArea"]?.ToString() ?? string.Empty;
+}
+
+@foreach (var course in Model ?? Enumerable.Empty<IndexCourseViewModel>())
+{
+    <tr>
+        <td class="text-center">@course.TruckCourseID.ToString().Substring(0, 8)</td>
+        <td class="text-center">@(course.TruckID.HasValue ? course.TruckID.ToString()!.Substring(0, 8) : "-")</td>
+        <td>@course.PickupAddress</td>
+        <td>@course.DeliverAddress</td>
+        <td class="text-center">@course.AssignedDate.ToString("yyyy-MM-dd HH:mm")</td>
+        <td class="text-center">@(course.DeliveryDate.HasValue ? course.DeliveryDate.Value.ToString("yyyy-MM-dd HH:mm") : "Not delivered")</td>
+        <td class="text-center">
+            <span class="badge @GetStatusBadgeClass(course.Status)">@course.Status</span>
+        </td>
+        <td class="text-end fw-bold">@course.Income.ToString("C")</td>
+        <td class="text-end fw-bold">
+            <a asp-area="@area" asp-controller="Course" asp-action="Detail" asp-route-id="@course.TruckCourseID" class="btn btn-sm btn-outline-primary">
+                <i class="fa-solid fa-angle-right"></i>
+            </a>
+        </td>
+    </tr>
+}
+
+@functions {
+    private string GetStatusBadgeClass(CourseStatus status) => status switch
+    {
+        CourseStatus.Pending => "bg-primary",
+        CourseStatus.Assigned => "bg-warning",
+        CourseStatus.Loaded => "bg-secondary",
+        CourseStatus.Delivered => "bg-success",
+        CourseStatus.Cancelled => "bg-danger",
+        CourseStatus.Delayed => "bg-info",
+        _ => "bg-light text-dark"
+    };
+}
