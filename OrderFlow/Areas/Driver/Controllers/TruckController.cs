@@ -6,6 +6,7 @@ namespace OrderFlow.Areas.Driver.Controllers
 {
     public class TruckController : BaseDriverController
     {
+        private const int IndexPageSize = 12;
         private readonly ILogger<TruckController> _logger;
         private readonly ITruckService _truckService;
         private readonly IOrderService _orderService;
@@ -23,7 +24,7 @@ namespace OrderFlow.Areas.Driver.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? status = null)
+        public async Task<IActionResult> Index(string? status = null, string? search = null, string? sortOrder = null, int page = 1)
         {
             if (!Guid.TryParse(this.GetUserId(), out Guid driverId))
             {
@@ -34,27 +35,45 @@ namespace OrderFlow.Areas.Driver.Controllers
 
             try
             {
-                var trucks = (await _truckService.GetTrucksAsync(driverId, new TruckQueryModel { Status = status })).ToList();
-
-
-                if (trucks == null || !trucks.Any())
+                List<IndexTruckViewModel> indexTrucks = (await _truckService.GetTrucksAsync(driverId, new TruckQueryModel
                 {
-                    _logger.LogInformation("No trucks found for driver with ID: {DriverId}", driverId);
-                    ModelState.AddModelError("Trucks", "No trucks found for this driver.");
-                    return View(new List<IndexTruckViewModel>());
-                }
+                    Search = search,
+                    Status = status,
+                    SortOrder = sortOrder,
+                    Page = page,
+                    PageSize = IndexPageSize + 1
+                })).ToList();
+
+                bool hasMore = indexTrucks.Count > IndexPageSize;
+                HttpContext?.Response?.Headers.TryAdd("X-Has-More", hasMore.ToString().ToLowerInvariant());
+                indexTrucks = indexTrucks.Take(IndexPageSize).ToList();
 
                 ViewData["CurrentStatus"] = string.IsNullOrWhiteSpace(status) || status.Equals("all", StringComparison.OrdinalIgnoreCase)
                     ? "All"
                     : status;
+                ViewData["CurrentSearch"] = search;
+                ViewData["CurrentSortOrder"] = sortOrder;
 
-                return View(trucks);
+                if (IsAjaxRequest())
+                {
+                    ViewData["TruckArea"] = "Driver";
+                    return PartialView("~/Views/Shared/_TruckCards.cshtml", indexTrucks);
+                }
+
+                ViewBag.HasMore = hasMore;
+
+                return View(indexTrucks);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while retrieving trucks for driver {DriverId}.", driverId);
                 return BadRequest();
             }
+        }
+
+        private bool IsAjaxRequest()
+        {
+            return HttpContext?.Request?.Headers.XRequestedWith.ToString() == "XMLHttpRequest";
         }
 
         [HttpGet]
