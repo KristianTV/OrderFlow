@@ -623,27 +623,27 @@ namespace OrderFlow.Tests.Services
         }
 
         [Test]
-        public void CompleteOrderAsync_ShouldThrowArgumentNullException_WhenOrderIdIsEmpty()
+        public void CompleteOrderAsync_ShouldThrowArgumentException_WhenOrderIdIsEmpty()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(() => _orderService.CompleteOrderAsync(Guid.Empty, _mockTruckOrderService.Object, _mockTruckService.Object));
+            Assert.ThrowsAsync<ArgumentException>(() => _orderService.CompleteOrderAsync(Guid.Empty, Guid.Empty));
         }
 
         [Test]
-        public async Task CompleteOrderAsync_ShouldThrowArgumentNullException_WhenOrderNotFound()
+        public async Task CompleteOrderAsync_ShouldThrowArgumentException_WhenOrderNotFound()
         {
-            var ex = Assert.ThrowsAsync<ArgumentNullException>(async () => await _orderService.CompleteOrderAsync(Guid.NewGuid(), _mockTruckOrderService.Object, _mockTruckService.Object));
-            Assert.That(ex.ParamName, Is.EqualTo("order"));
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () => await _orderService.CompleteOrderAsync(Guid.NewGuid(), Guid.NewGuid()));
+            Assert.That(ex.Message, Is.AtLeast("Order with ID"));
         }
 
 
         [Test]
-        public async Task CompleteOrderAsync_ShouldThrowArgumentNullException_WhenNoAssignedTruckOrders()
+        public async Task CompleteOrderAsync_ShouldThrowInvalidOperationException_WhenNoAssignedTruckOrders()
         {
             var user = await AddUser("User");
             var order = await AddOrder(user.Id, OrderStatus.InProgress);
 
-            var ex = Assert.ThrowsAsync<ArgumentNullException>(() => _orderService.CompleteOrderAsync(order.OrderID, _mockTruckOrderService.Object, _mockTruckService.Object));
-            Assert.That(ex.ParamName, Is.EqualTo("OrderTrucks"));
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _orderService.CompleteOrderAsync(order.OrderID, Guid.NewGuid()));
+            Assert.That(ex.Message, Is.AtLeast("The course"));
         }
 
         //[Test]

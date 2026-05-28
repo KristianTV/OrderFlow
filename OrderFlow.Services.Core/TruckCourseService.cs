@@ -211,65 +211,11 @@ namespace OrderFlow.Services.Core
             return await SaveChangesAsync();
         }
 
-        public async Task<bool> RemoveOrderFromCourseAsync(Guid courseID, Guid orderID)
-        {
-            throw new NotImplementedException();
-            //    if (truckID == Guid.Empty || orderID == Guid.Empty)
-            //    {
-            //        throw new ArgumentException("Truck ID and Order ID cannot be empty.");
-            //    }
-
-            //    var truckOrder = await GetAll()
-            //                               .Where(to => to.OrderID.Equals(orderID) &&
-            //                                            to.TruckID.Equals(truckID) &&
-            //                                            to.Status.Equals(CourseStatus.Assigned)).SingleOrDefaultAsync();
-
-            //    if (truckOrder != null)
-            //    {
-            //        await _orderService.ChangeOrderStatusAsync(orderID, OrderStatus.Pending.ToString());
-
-            //        await _notificationService.AddAsync(new Notification
-            //        {
-            //            Title = "Order Remove",
-            //            Message = $"Order {orderID} have been remove from truck {truckID}.",
-            //            OrderID = orderID,
-            //            CreatedAt = DateTime.UtcNow,
-            //            ReceiverID = GetAll()
-            //                             .AsNoTracking()
-            //                             .Include(to => to.Truck)
-            //                             .ThenInclude(t => t.Driver)
-            //                             .Where(to => to.TruckID.Equals(truckID) &&
-            //                                          to.Status.Equals(CourseStatus.Assigned))
-            //                             .OrderByDescending(to => to.AssignedDate)
-            //                             .Select(to => to.Truck.Driver.Id)
-            //                             .FirstOrDefault(),
-            //            TruckID = truckID,
-            //        });
-
-            //        Delete(truckOrder);
-
-            //        await SaveChangesAsync();
-
-            //        if (!GetAll().Any(t => t.TruckID.Equals(truckID) && t.Status.Equals(CourseStatus.Assigned)))
-            //        {
-            //            if (!_truckService.GetTruckStatus(truckID).Equals(TruckStatus.Available.ToString()))
-            //            {
-            //                _truckService.ChangeTruckStatus(truckID, TruckStatus.Available.ToString());
-            //                await SaveChangesAsync();
-            //            }
-            //        }
-
-            //        return true;
-            //    }
-            //    return false;
-        }
-
         public async Task<bool> CompleteCourseAsync(Guid courseID, bool save = true)
         {
             TruckCourse? course = await this.GetAll()
                                             .Include(tc => tc.Truck)
                                             .Include(tc => tc.CourseOrders)
-                                            .ThenInclude(co => co.Order)
                                             .Where(tc => tc.TruckCourseID.Equals(courseID))
                                             .SingleOrDefaultAsync();
 
@@ -279,21 +225,18 @@ namespace OrderFlow.Services.Core
             if (course.Status == CourseStatus.Delivered)
                 return false;
 
-            course.Status = CourseStatus.Delivered;
-            course.DeliveryDate = DateTime.UtcNow;
-
             if (course.Truck == null || course.Truck?.DriverID == Guid.Empty)
                 return false;
 
-            foreach (var courseOrder in course.CourseOrders)
-            {
-                if (courseOrder.Order.DeliveryAddress.Equals(course.DeliverAddress))
-                    courseOrder.Order.Status = OrderStatus.Completed;
-                else
-                    courseOrder.Order.Status = OrderStatus.Pending;
-            }
+            if (course.CourseOrders == null || !course.CourseOrders.Any())
+                return false;
 
-            await _notificationService.SendSystemNotificationAsync(course.ToNotification($"Course {courseID} has been completed!", $"Course {courseID} has been completed!"));
+            course.Status = CourseStatus.Delivered;
+            course.DeliveryDate = DateTime.UtcNow;
+
+            await _orderService.CompleteMultipleOrdersAsync(course.CourseOrders.Select(co => co.OrderID), course.TruckCourseID, false);
+
+            await _notificationService.SendSystemNotificationAsync(course.ToNotification($"Course {courseID} has been completed!", $"Course {courseID} has been completed!"), false);
 
             if (save)
             {

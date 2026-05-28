@@ -37,8 +37,6 @@ namespace OrderFlow.Services.Core
                 order.IsCanceled = true;
                 order.Status = OrderStatus.Cancelled;
 
-                //Todo remove orders from courses
-
                 await _notificationService.SendSystemNotificationAsync(order.ToNotification($"Order {orderId} has been Cancelled",
                                                                                             $"Order {orderId} has been Cancelled"),
                                                                                             false);
@@ -427,13 +425,16 @@ namespace OrderFlow.Services.Core
             return false;
         }
 
-        //Todo complete orders 
-        public async Task CompleteOrderAsync(Guid orderID, ICourseOrderService _courseOrderService, ITruckService _truckService, bool save = true)
+        public async Task CompleteOrderAsync(Guid orderID, Guid courseID, bool save = true)
         {
             if (orderID == Guid.Empty)
-                throw new ArgumentNullException(nameof(orderID));
+                throw new ArgumentException("Order ID cannot be empty.", nameof(orderID));
+
+            if (courseID == Guid.Empty)
+                throw new ArgumentException("Course ID cannot be empty.", nameof(courseID));
 
             Order? order = await this.GetAll()
+                                     .AsNoTracking()
                                      .Include(o => o.CourseOrders)
                                      .ThenInclude(co => co.TruckCourse)
                                      .Where(x => x.OrderID.Equals(orderID))
@@ -441,54 +442,73 @@ namespace OrderFlow.Services.Core
 
             if (order == null)
             {
-                throw new ArgumentNullException(nameof(order));
+                throw new KeyNotFoundException($"Order with ID {orderID} was not found.");
             }
 
-            if (order.CourseOrders == null || !order.CourseOrders.Any(co => co.TruckCourse.Status.Equals(CourseStatus.Assigned)))
+            await ProcessOrderCompletionAsync(order, courseID);
+
+            if (save)
             {
-                throw new ArgumentNullException("OrderTrucks");
+                await this.SaveChangesAsync();
             }
 
-            //if (order != null)
-            //{
-            //    if (order.CourseOrders == null || !order.CourseOrders.Any(to => to..Equals(CourseStatus.Assigned)))
-            //        throw new ArgumentNullException(nameof(order.CourseOrders));
+        }
 
-            //    Guid truckID = order.OrderTrucks.Where(to => to.Status.Equals(CourseStatus.Assigned))
-            //                                                             .Select(to => to.TruckID)
-            //                                                             .FirstOrDefault();
+        public async Task CompleteMultipleOrdersAsync(IEnumerable<Guid> orderIDs, Guid courseID, bool save = true)
+        {
+            if (orderIDs == null || !orderIDs.Any())
+                return;
 
-            //    if (order.DeliveryAddress.Equals(
-            //                order.OrderTrucks.Where(to => to.Status.Equals(CourseStatus.Assigned))
-            //                                 .Select(to => to.DeliverAddress).FirstOrDefault()))
-            //    {
-            //        await this.ChangeStatusToCompletedAsync(orderID);
-            //        await _truckOrderService.CompleteTruckOrderAsync(orderID);
-            //    }
-            //    else
-            //    {
-            //        await this.ChangeOrderStatusAsync(orderID, OrderStatus.OnHold.ToString());
-            //        await _truckOrderService.CompleteTruckOrderAsync(orderID);
-            //    }
+            if (courseID == Guid.Empty)
+                throw new ArgumentException("Course ID cannot be empty.", nameof(courseID));
 
-            //    if (!_truckService.GetAll()
-            //                      .AsNoTracking()
-            //                      .Include(t => t.TruckOrders)
-            //                      .Any(t => t.TruckID.Equals(truckID) &&
-            //                                t.TruckOrders.Any(to => to.Status.Equals(CourseStatus.Assigned))))
-            //    {
-            //        if (!_truckService.GetTruckStatus(truckID).Equals(TruckStatus.Available.ToString()))
-            //        {
-            //            _truckService.ChangeTruckStatus(truckID, TruckStatus.Available.ToString());
-            //            await this.SaveChangesAsync();
-            //        }
-            //    }
-            //}
-            //else
-            //{
-            //    throw new ArgumentNullException(nameof(order));
-            //}
+            List<Order> orders = await this.GetAll()
+                                           .AsNoTracking()
+                                           .Include(o => o.CourseOrders)
+                                           .ThenInclude(co => co.TruckCourse)
+                                           .Where(o => orderIDs.Contains(o.OrderID))
+                                           .ToListAsync();
 
+            foreach (var order in orders)
+            {
+                if (order == null || order.Equals(Guid.Empty))
+                {
+                    continue;
+                }
+                await ProcessOrderCompletionAsync(order, courseID);
+            }
+
+            if (save)
+            {
+                await this.SaveChangesAsync();
+            }
+        }
+
+        private async Task ProcessOrderCompletionAsync(Order order, Guid courseID)
+        {
+
+            if (order.Status == OrderStatus.Completed || order.Status == OrderStatus.Cancelled || order.Status == OrderStatus.Failed)
+            {
+                return;
+            }
+
+            var currentCourse = order.CourseOrders?
+                                     .Select(co => co.TruckCourse)
+                                     .FirstOrDefault(tc => tc != null && tc.TruckCourseID == courseID);
+
+            if (currentCourse == null)
+            {
+                throw new InvalidOperationException($"The course {courseID} is not associated with order {order.OrderID}.");
+            }
+
+            if (order.DeliveryAddress != null && order.DeliveryAddress.Equals(currentCourse.DeliverAddress))
+            {
+                await this.ChangeStatusToCompletedAsync(order.OrderID, false);
+            }
+            else
+            {
+                await this.ChangeOrderStatusAsync(order.OrderID, OrderStatus.OnHold.ToString(), false);
+            }
         }
 
     }

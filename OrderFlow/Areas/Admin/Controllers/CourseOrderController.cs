@@ -79,8 +79,10 @@ namespace OrderFlow.Areas.Admin.Controllers
                 Capacity = maxCapacity,
                 Orders = await _orderService.GetAll()
                                             .Where(o => (o.Status.Equals(OrderStatus.Pending) ||
-                                                        o.Status.Equals(OrderStatus.Delayed)) &&
-                                                        o.LoadCapacity <= maxCapacity)
+                                                          o.Status.Equals(OrderStatus.OnHold) ||
+                                                          o.Status.Equals(OrderStatus.InProgress) ||
+                                                          o.Status.Equals(OrderStatus.Delayed)) &&
+                                                          o.LoadCapacity <= maxCapacity)
                                             .Select(o => new OrderViewModel
                                             {
                                                 OrderID = o.OrderID,
@@ -140,7 +142,9 @@ namespace OrderFlow.Areas.Admin.Controllers
 
                 assignOrders.Orders = await _orderService.GetAll()
                                                          .Where(o => (o.Status.Equals(OrderStatus.Pending) ||
-                                                                     o.Status.Equals(OrderStatus.Delayed)) &&
+                                                                     o.Status.Equals(OrderStatus.Delayed) ||
+                                                                     o.Status.Equals(OrderStatus.OnHold) ||
+                                                                     o.Status.Equals(OrderStatus.InProgress)) &&
                                                                      o.LoadCapacity <= maxCapacity)
                                                          .Select(o => new OrderViewModel
                                                          {
@@ -199,11 +203,3 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
     }
 }
-
-/*
- * ToDo :
- * 
- * 1. Implement error handling for database operations.
- * 2. Fix loading capacity calcolator to consider the truck's capacity.
- * 
- */

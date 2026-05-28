@@ -24,6 +24,7 @@ namespace OrderFlow.Services.Core.Contracts
         Task<bool> ReactivateOrderAsync(Guid orderId, bool save = true);
         Task<bool> CreateOrderAsync(CreateOrderViewModel createOrderViewModel, Guid? userId, bool save = true);
         Task<bool> UpdateOrderAsync(CreateOrderViewModel createOrder, Guid? orderId, Guid? userId, bool save = true);
-        Task CompleteOrderAsync(Guid orderID, ICourseOrderService truckOrderService, ITruckService _truckService, bool save = true);
+        Task CompleteOrderAsync(Guid orderID, Guid courseID, bool save = true);
+        Task CompleteMultipleOrdersAsync(IEnumerable<Guid> orderIDs, Guid courseID, bool save = true);
     }
 }

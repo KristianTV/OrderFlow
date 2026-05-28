@@ -10,7 +10,5 @@ namespace OrderFlow.Services.Core.Contracts
         Task<IEnumerable<CourseOrder>> GetByCourseIdAsync(Guid courseID);
         Task<bool> AddOrderToCourseAsync(Guid orderID, Guid courseID, bool save = true);
         Task<bool> RemoveOrderFromCourseAsync(Guid orderID, Guid courseID, bool save = true);
-
-        //Task<bool> CreateOrderAsync(CreateOrderViewModel createOrderViewModel, Guid courseID, Guid? userId, bool save = true);
     }
 }

@@ -14,7 +14,6 @@ namespace OrderFlow.Services.Core.Contracts
         Task<CreateCourseViewModel?> GetCourseForEditAsync(Guid courseId);
         Task<DetailsCourseViewModel?> GetCourseDetailsAsync(Guid courseId, Guid? driverId = null);
         Task<int> AssignOrdersToCourseAsync(IEnumerable<OrderViewModel> ordersToAssign, Guid courseID);
-        Task<bool> RemoveOrderFromCourseAsync(Guid courseID, Guid orderID);
         Task<bool> CompleteCourseAsync(Guid courseID, bool save = true);
         Task<bool> CreateCourseAsync(CreateCourseViewModel createCourseViewModel, bool save = true);
         Task<bool> UpdateCourseAsync(CreateCourseViewModel createCourseViewModel, Guid courseId, bool save = true);
