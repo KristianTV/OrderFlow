@@ -18,7 +18,8 @@ function fillCourseOptions(select, courses, placeholder, selectedValue, disableW
 }
 
 async function loadTruckCourses(select, url, truckId, placeholder, selectedValue, disableWhenEmpty) {
-    const response = await fetch(`${url}?truckId=${encodeURIComponent(truckId || "")}`, {
+    const requestUrl = truckId ? `${url}?truckId=${encodeURIComponent(truckId)}` : url;
+    const response = await fetch(requestUrl, {
         headers: { "X-Requested-With": "XMLHttpRequest" }
     });
 
@@ -73,10 +74,28 @@ function setupTruckSpendingIndex(options) {
 
     setupTruckCourseFilter(options);
 
+    if (typeof setupEndlessIndex === "function" && options.sentinelId) {
+        setupEndlessIndex({
+            formId: options.formId,
+            listId: options.resultsId,
+            sentinelId: options.sentinelId,
+            emptyId: options.emptyId
+        });
+        return;
+    }
+
     form.addEventListener("submit", async event => {
         event.preventDefault();
 
-        const url = `${form.action}?${new URLSearchParams(new FormData(form)).toString()}`;
+        const params = new URLSearchParams(new FormData(form));
+        for (const [key, value] of Array.from(params.entries())) {
+            if (value === null || value.trim() === "") {
+                params.delete(key);
+            }
+        }
+
+        const query = params.toString();
+        const url = query ? `${form.action}?${query}` : form.action;
         const response = await fetch(url, {
             headers: { "X-Requested-With": "XMLHttpRequest" }
         });
