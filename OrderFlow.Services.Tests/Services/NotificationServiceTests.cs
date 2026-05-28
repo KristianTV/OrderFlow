@@ -143,7 +143,7 @@ namespace OrderFlow.Tests.Services
             );
             await _context.SaveChangesAsync();
 
-            var notifications = await _service.GetAllNotificationsAsync(driver.Id);
+            var notifications = await _service.GetAllNotificationsAsync(driver.Id, new NotificationQueryModel());
 
             Assert.That(notifications, Is.Not.Null);
             var notificationList = notifications.ToList();
@@ -174,7 +174,7 @@ namespace OrderFlow.Tests.Services
         {
             var driverId = Guid.NewGuid();
 
-            var notifications = await _service.GetAllNotificationsAsync(driverId);
+            var notifications = await _service.GetAllNotificationsAsync(driverId, new NotificationQueryModel());
 
             Assert.That(notifications, Is.Not.Null);
             Assert.That(notifications, Is.Empty);
