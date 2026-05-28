@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
@@ -11,6 +11,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 {
     public class NotificationController : BaseAdminController
     {
+        private const int IndexPageSize = 12;
         private readonly ILogger<NotificationController> _logger;
         private readonly INotificationService _notificationService;
         private readonly IOrderService _orderService;
@@ -38,7 +39,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? sortBy = null, bool hideSystemNotifications = false)
+        public async Task<IActionResult> Index(string? sortBy = "all", bool hideSystemNotifications = false, int page = 1)
         {
             try
             {
@@ -48,49 +49,33 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return BadRequest();
                 }
 
-                var notifications = await _notificationService.GetAllNotificationsAsync(userId);
-
-                if (notifications == null || !notifications.Any())
+                var queryModel = new NotificationQueryModel
                 {
-                    _logger.LogInformation("No notifications found for user with ID: {UserId}", userId);
-                    return View(new List<DriverIndexNotificationViewModel>());
-                }
+                    SortBy = sortBy,
+                    HideSystemNotifications = hideSystemNotifications,
+                    Page = page,
+                    PageSize = IndexPageSize
+                };
+
+                var notificationsList = (await _notificationService.GetAllNotificationsAsync(userId, queryModel))?.ToList()
+                    ?? new List<DriverIndexNotificationViewModel>();
+
+                bool hasMore = notificationsList.Count > queryModel.PageSize;
+                HttpContext?.Response?.Headers.TryAdd("X-Has-More", hasMore.ToString().ToLowerInvariant());
+                notificationsList = notificationsList.Take(queryModel.PageSize).ToList();
 
                 ViewData["hideSystemNotifications"] = hideSystemNotifications;
-                if (hideSystemNotifications)
+                ViewData["CurrentSort"] = string.IsNullOrEmpty(sortBy) ? "All" : char.ToUpper(sortBy[0]) + sortBy.Substring(1).ToLower();
+
+                if (IsAjaxRequest())
                 {
-                    notifications = notifications?.Where(n => !string.IsNullOrEmpty(n.SenderName)).ToList();
+                    ViewData["NotificationArea"] = "Admin";
+                    return PartialView("~/Views/Shared/_NotificationCards.cshtml", notificationsList);
                 }
 
-                if (sortBy != null)
-                {
-                    switch (sortBy.ToLower())
-                    {
-                        case "all":
-                            notifications = notifications?.OrderBy(n => n.IsRead).ToList();
-                            ViewData["CurrentSort"] = "All";
-                            break;
-                        case "unread":
-                            notifications = notifications?.Where(n => !n.IsRead).ToList();
-                            ViewData["CurrentSort"] = "Unread";
-                            break;
-                        case "read":
-                            notifications = notifications?.Where(n => n.IsRead).ToList();
-                            ViewData["CurrentSort"] = "Read";
-                            break;
-                        default:
-                            _logger.LogWarning("Invalid status filter provided: {0}", sortBy);
-                            ModelState.AddModelError(nameof(sortBy), string.Join("Invalid status filter provided: {0}", sortBy));
-                            return BadRequest();
-                    }
-                }
+                ViewBag.HasMore = hasMore;
 
-                if (notifications == null)
-                {
-                    return View(new List<object>());
-                }
-
-                return View(notifications);
+                return View(notificationsList);
             }
             catch (Exception ex)
             {
@@ -98,6 +83,12 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest();
             }
         }
+
+        private bool IsAjaxRequest()
+        {
+            return HttpContext?.Request?.Headers.XRequestedWith.ToString() == "XMLHttpRequest";
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> Create(string? orderId)
