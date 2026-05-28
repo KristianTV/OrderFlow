@@ -8,6 +8,7 @@
     Guid? currentCourseId = ViewBag.CurrentCourseId as Guid?;
     string currentSearch = ViewBag.CurrentSearch as string ?? string.Empty;
     string currentSortOrder = ViewBag.CurrentSortOrder as string ?? string.Empty;
+    bool hasMore = ViewBag.HasMore as bool? ?? false;
 }
 
 <div class="container mt-5">
@@ -19,7 +20,7 @@
     </div>
 
     <form asp-area="Admin" asp-controller="TruckSpending" asp-action="Index" method="get" class="card shadow-sm mb-4" id="spendingFilterForm">
-        <div class="card-body row g-3 align-items-end">
+        <div class="card-body bg-light border rounded shadow-sm row g-3 align-items-end">
             <div class="col-md-3">
                 <label class="form-label" for="truckId">Truck</label>
                 <select class="form-select" id="truckId" name="truckId">
@@ -53,18 +54,41 @@
                     <option value="amount_asc" selected="@(currentSortOrder == "amount_asc")">Amount low</option>
                 </select>
             </div>
-            <div class="col-md-1 d-grid">
-                <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i></button>
-            </div>
         </div>
     </form>
 
-    <div id="spendingResults">
-        <partial name="_SpendingList" model="Model" />
+    <div class="table-responsive shadow-sm">
+        @if (Model != null && Model.Any())
+        {
+            
+        <table class="table table-striped table-hover align-middle mb-0">
+            <thead class="table-primary">
+                <tr>
+                    <th>Truck</th>
+                    <th>Course</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                    <th>Method</th>
+                    <th class="text-end">Amount</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="spendingResults">
+                <partial name="_SpendingList" model="Model" />
+            </tbody>
+        </table>
+        }
+    </div>
+
+    <div id="spendingEmpty" class="alert alert-info shadow-sm mt-3 @(Model != null && Model.Any() ? "d-none" : "")">No truck spendings found.</div>
+
+    <div id="spendingSentinel" class="text-center text-muted py-4 @(hasMore ? "" : "d-none")" data-page="1" data-has-more="@hasMore.ToString().ToLowerInvariant()">
+        <span class="spinner-border spinner-border-sm me-2"></span>Loading more spendings...
     </div>
 </div>
 
 @section Scripts {
+    <script src="~/js/View/Shared/endless-scroll.js" asp-append-version="true"></script>
     <script src="~/js/View/Shared/truck-spending.js" asp-append-version="true"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -73,6 +97,8 @@
                 resultsId: "spendingResults",
                 truckSelectId: "truckId",
                 courseSelectId: "courseId",
+                sentinelId: "spendingSentinel",
+                emptyId: "spendingEmpty",
                 coursesUrl: "@Url.Action("Courses", "TruckSpending", new { area = "Admin" })",
                 placeholder: "All courses",
                 disableWithoutTruck: false
