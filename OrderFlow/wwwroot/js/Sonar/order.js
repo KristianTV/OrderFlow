@@ -4,45 +4,53 @@
     .build();
 
 connection.on("ReceiveOrderUpdate", (indexOrder) => {
-    var noOrdersMessage = document.getElementById("noOrdersMessage");
+    var noOrdersMessage = document.getElementById("ordersEmpty");
     if (noOrdersMessage) {
-        noOrdersMessage.remove();
+        noOrdersMessage.classList.add("d-none");
     }
 
-    var orderCard = `
-         <div class="col">
-                    <div class="card h-100 shadow-sm border-primary">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title text-primary mb-2"><i class="fas fa-box-open me-2"></i> Order ID: ${indexOrder.orderID}</h5>
-                            <h6 class="card-subtitle mb-3 text-muted">
-                                <i class="far fa-calendar-alt me-1"></i> Date: ${indexOrder.orderDate.ToString("yyyy-MM-dd HH:mm")}
-                            </h6>
-                            <p class="card-text mb-1">
-                                <strong><i class="fas fa-truck-loading me-1"></i> Delivery:</strong>  ${indexOrder.deliveryAddress}
-                            </p>
-                            <p class="card-text mb-3">
-                                <strong><i class="fas fa-map-marker-alt me-1"></i> Pickup:</strong>  ${indexOrder.pickupAddress}
-                            </p>
-                            <p class="card-text mt-auto">
-                                <strong>Status:</strong>
-                                <span class="badge ${GetStatusBadgeClass(order.Status)} fs-6">
-                                    ${indexOrder.status}
-                                </span>
-                            </p>
-                        </div>
-                        <div class="card-footer text-end bg-light border-top-0">
-                             <a class="btn btn-primary" href="/Admin/Order/Detail/${indexOrder.orderID}">
-                                <i class="fas fa-info-circle me-2"></i> View Details
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+    const container = document.getElementById("ordersList");
 
-    document
-        .getElementById("ordersList")
-        .insertAdjacentHTML("beforeend", orderCard);
+    const col = createElement('div', { className: 'col' }, container);
+
+    const card = createElement('div', { className: 'card h-100 shadow-sm border-primary' }, col);
+
+    const cardBody = createElement('div', { className: 'card-body d-flex flex-column' }, card);
+
+    createElement('h5', {
+        className: 'card-title text-primary mb-2',
+        innerHTML: `<i class="fas fa-box-open me-2"></i> Order ID: ${indexOrder.orderID}`
+    }, cardBody);
+
+    createElement('h6', {
+        className: 'card-subtitle mb-3 text-muted',
+        innerHTML: `<i class="far fa-calendar-alt me-1"></i> Date: ${indexOrder.orderDate}`
+    }, cardBody);
+
+    createElement('p', {
+        className: 'card-text mb-1',
+        innerHTML: `<strong><i class="fas fa-truck-loading me-1"></i> Delivery:</strong> ${indexOrder.deliveryAddress}`
+    }, cardBody);
+
+    createElement('p', {
+        className: 'card-text mb-3',
+        innerHTML: `<strong><i class="fas fa-map-marker-alt me-1"></i> Pickup:</strong> ${indexOrder.pickupAddress}`
+    }, cardBody);
+
+    const statusPara = createElement('p', { className: 'card-text mt-auto' }, cardBody);
+    createElement('strong', { textContent: 'Status: ' }, statusPara);
+    createElement('span', {
+        className: `badge ${GetStatusBadgeClass(indexOrder.status)} fs-6`,
+        textContent: indexOrder.status
+    }, statusPara);
+
+    const cardFooter = createElement('div', { className: 'card-footer text-end bg-light border-top-0' }, card);
+
+    createElement('a', {
+        className: 'btn btn-primary',
+        href: `/Admin/Order/Detail/${indexOrder.orderID}`,
+        innerHTML: `<i class="fas fa-info-circle me-2"></i> View Details`
+    }, cardFooter);
 });
 
 connection.start()

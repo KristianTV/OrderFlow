@@ -280,7 +280,7 @@ namespace OrderFlow.Services.Core
                 "amount_asc" => spendings.OrderBy(spending => spending.Amount),
                 _ => spendings.OrderByDescending(spending => spending.PaymentDate)
             })
-            .Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize, 1))
+            .Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize - 1, 1))
             .Take(Math.Max(query.PageSize, 1));
         }
     }

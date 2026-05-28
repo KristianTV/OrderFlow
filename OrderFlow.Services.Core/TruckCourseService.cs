@@ -350,7 +350,7 @@ namespace OrderFlow.Services.Core
                 "date_asc" => courses.OrderBy(tc => tc.AssignedDate),
                 _ => courses.OrderByDescending(tc => tc.AssignedDate)
             })
-            .Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize, 1))
+            .Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize - 1, 1))
             .Take(Math.Max(query.PageSize, 1));
         }
     }

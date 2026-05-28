@@ -80,7 +80,7 @@ namespace OrderFlow.Services.Core
                 _ => trucks.OrderBy(t => t.Status).ThenBy(t => t.LicensePlate)
             };
 
-            return trucks.Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize, 1))
+            return trucks.Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize - 1, 1))
                          .Take(Math.Max(query.PageSize, 1));
         }
 

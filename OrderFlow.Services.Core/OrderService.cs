@@ -118,8 +118,10 @@ namespace OrderFlow.Services.Core
 
         public async Task<IEnumerable<IndexOrderViewModel>> GetUserOrdersAsync(Guid userId, OrderQueryModel query)
         {
-            IQueryable<Order> orders = ApplyOrderQuery(this.GetAll().AsNoTracking(), query)
-                .Where(o => o.UserID.Equals(userId));
+            IQueryable<Order> orders = ApplyOrderQuery(this.GetAll()
+                                                           .AsNoTracking()
+                                                           .Where(o => o.UserID.Equals(userId)),
+                                                            query);
 
             return await ProjectToIndexOrderViewModel(orders).ToListAsync();
         }
@@ -288,7 +290,7 @@ namespace OrderFlow.Services.Core
                 "date_asc" => orders.OrderBy(o => o.OrderDate),
                 _ => orders.OrderByDescending(o => o.OrderDate)
             })
-            .Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize, 1))
+            .Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize - 1, 1))
             .Take(Math.Max(query.PageSize, 1));
         }
 

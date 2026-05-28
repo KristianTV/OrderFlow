@@ -302,7 +302,7 @@ namespace OrderFlow.Services.Core
             notification = notification.OrderBy(n => n.IsRead)
                                        .ThenByDescending(n => n.CreatedAt);
 
-            return notification.Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize, 1))
+            return notification.Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize - 1, 1))
                                .Take(Math.Max(query.PageSize, 1));
 
         }
