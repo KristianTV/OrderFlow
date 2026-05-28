@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Message;
@@ -8,6 +8,7 @@ namespace OrderFlow.Controllers
 {
     public class NotificationController : BaseController
     {
+        private const int IndexPageSize = 12;
         private readonly ILogger<NotificationController> _logger;
         private readonly INotificationService _notificationService;
 
@@ -18,7 +19,7 @@ namespace OrderFlow.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? sortBy = null, bool hideSystemNotifications = false)
+        public async Task<IActionResult> Index(string? sortBy = "all", bool hideSystemNotifications = false, int page = 1)
         {
             if (!Guid.TryParse(this.GetUserId(), out var userId))
             {
@@ -28,53 +29,44 @@ namespace OrderFlow.Controllers
 
             try
             {
-                var notifications = await _notificationService.GetAllNotificationsForUserAsync(userId);
-
-                if (notifications == null || !notifications.Any())
+                var queryModel = new NotificationQueryModel
                 {
-                    _logger.LogInformation("No notifications found for user with ID: {UserId}", userId);
-                    return View(new List<IndexNotificationViewModel>());
-                }
+                    SortBy = sortBy,
+                    HideSystemNotifications = hideSystemNotifications,
+                    Page = page,
+                    PageSize = IndexPageSize
+                };
+
+                var notificationsList = (await _notificationService.GetAllNotificationsForUserAsync(userId, queryModel))?.ToList()
+                    ?? new List<IndexNotificationViewModel>();
+
+                bool hasMore = notificationsList.Count > queryModel.PageSize;
+                HttpContext?.Response?.Headers.TryAdd("X-Has-More", hasMore.ToString().ToLowerInvariant());
+                notificationsList = notificationsList.Take(queryModel.PageSize).ToList();
 
                 ViewData["hideSystemNotifications"] = hideSystemNotifications;
-                if (hideSystemNotifications)
+                ViewData["CurrentSort"] = string.IsNullOrEmpty(sortBy) ? "All" : char.ToUpper(sortBy[0]) + sortBy.Substring(1).ToLower();
+
+                if (IsAjaxRequest())
                 {
-                    notifications = notifications.Where(n => !string.IsNullOrEmpty(n.SenderName)).ToList();
+                    ViewData["NotificationArea"] = string.Empty;
+                    return PartialView("~/Views/Shared/_NotificationCards.cshtml", notificationsList);
                 }
 
-                if (!string.IsNullOrEmpty(sortBy))
-                {
-                    switch (sortBy.ToLower())
-                    {
-                        case "all":
-                            notifications = notifications.OrderBy(n => n.IsRead).ToList();
-                            ViewData["CurrentSort"] = "All";
-                            break;
-                        case "unread":
-                            notifications = notifications.Where(n => !n.IsRead).ToList();
-                            ViewData["CurrentSort"] = "Unread";
-                            break;
-                        case "read":
-                            notifications = notifications.Where(n => n.IsRead).ToList();
-                            ViewData["CurrentSort"] = "Read";
-                            break;
-                        default:
-                            _logger.LogWarning("Invalid status filter provided: {Status} for user: {UserId}", sortBy, userId);
-                            return BadRequest();
-                    }
-                }
-                else
-                {
-                    ViewData["CurrentSort"] = "All";
-                }
+                ViewBag.HasMore = hasMore;
 
-                return View(notifications);
+                return View(notificationsList);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while retrieving notifications for user ID: {UserId}.", userId);
                 return BadRequest();
             }
+        }
+
+        private bool IsAjaxRequest()
+        {
+            return HttpContext?.Request?.Headers.XRequestedWith.ToString() == "XMLHttpRequest";
         }
 
         [HttpGet]
