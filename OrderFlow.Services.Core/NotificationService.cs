@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Repository;
@@ -47,47 +47,26 @@ namespace OrderFlow.Services.Core
             await this.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<DriverIndexNotificationViewModel>?> GetAllNotificationsAsync(Guid userId)
+        public async Task<IEnumerable<DriverIndexNotificationViewModel>?> GetAllNotificationsAsync(Guid userId, NotificationQueryModel queryModel)
         {
-            var notification = await this.GetAll()
-                                          .OrderBy(n => n.IsRead)
-                                          .ThenByDescending(n => n.CreatedAt)
-                                          .Select(notification => new DriverIndexNotificationViewModel
-                                          {
-                                              NotificationID = notification.NotificationID,
-                                              Title = notification.Title,
-                                              CreatedAt = notification.CreatedAt,
-                                              IsRead = notification.IsRead,
-                                              OrderId = notification.OrderID,
-                                              TruckId = notification.TruckID,
-                                              SenderName = notification.Sender!.UserName,
-                                              isMarkable = notification.ReceiverID.Equals(userId)
+            var notifications = this.GetAll()
+                                    .Include(n => n.Sender)
+                                    .AsQueryable();
 
-                                          })
-                                          .ToListAsync();
+            notifications = ApplyOrderQuery(notifications, queryModel);
 
-            return notification;
+            return await ProjectToDriverIndexNotificationViewModel(userId, notifications).ToListAsync();
         }
 
-        public async Task<IEnumerable<IndexNotificationViewModel>?> GetAllNotificationsForUserAsync(Guid userId)
+        public async Task<IEnumerable<IndexNotificationViewModel>?> GetAllNotificationsForUserAsync(Guid userId, NotificationQueryModel queryModel)
         {
-            var notification = await this.GetAll()
-                                         .Include(n => n.Sender)
-                                         .Where(n => n.ReceiverID.Equals(userId))
-                                         .OrderBy(n => n.IsRead)
-                                         .ThenByDescending(n => n.CreatedAt)
-                                         .Select(notification => new IndexNotificationViewModel
-                                         {
-                                             NotificationID = notification.NotificationID,
-                                             Title = notification.Title,
-                                             CreatedAt = notification.CreatedAt,
-                                             IsRead = notification.IsRead,
-                                             OrderId = notification.OrderID,
-                                             SenderName = notification.Sender!.UserName
-                                         })
-                                         .ToListAsync();
+            var notifications = this.GetAll()
+                                    .Include(n => n.Sender)
+                                    .Where(n => n.ReceiverID.Equals(userId));
 
-            return notification;
+            notifications = ApplyOrderQuery(notifications, queryModel);
+
+            return await ProjectToIndexNotificationViewModel(notifications).ToListAsync();
         }
 
         public async Task ReadAsync(Guid i)
@@ -284,26 +263,77 @@ namespace OrderFlow.Services.Core
             return true;
         }
 
-        public async Task<IEnumerable<DriverIndexNotificationViewModel>?> GetAllNotificationsForDriverAsync(Guid userId)
+        public async Task<IEnumerable<DriverIndexNotificationViewModel>?> GetAllNotificationsForDriverAsync(Guid userId, NotificationQueryModel queryModel)
         {
-            var notification = await this.GetAll()
-                                         .Include(n => n.Sender)
-                                         .Where(n => n.ReceiverID.Equals(userId))
-                                         .OrderBy(n => n.IsRead)
-                                         .ThenByDescending(n => n.CreatedAt)
-                                         .Select(notification => new DriverIndexNotificationViewModel
-                                         {
-                                             NotificationID = notification.NotificationID,
-                                             Title = notification.Title,
-                                             CreatedAt = notification.CreatedAt,
-                                             IsRead = notification.IsRead,
-                                             OrderId = notification.OrderID,
-                                             TruckId = notification.TruckID,
-                                             SenderName = notification.Sender!.UserName
-                                         })
-                                         .ToListAsync();
+            var notifications = this.GetAll()
+                                    .Include(n => n.Sender)
+                                    .Where(n => n.ReceiverID.Equals(userId));
 
-            return notification;
+            notifications = ApplyOrderQuery(notifications, queryModel);
+
+            return await ProjectToDriverIndexNotificationViewModel(userId, notifications).ToListAsync();
+        }
+
+        private static IQueryable<Notification> ApplyOrderQuery(IQueryable<Notification> notification, NotificationQueryModel? query)
+        {
+            if (query == null)
+            {
+                return notification.OrderByDescending(n => n.CreatedAt);
+            }
+
+            if (query!.HideSystemNotifications)
+            {
+                notification = notification.Where(n => n.SenderID != null);
+            }
+
+            if (!string.IsNullOrEmpty(query.SortBy))
+            {
+                switch (query.SortBy.ToLower())
+                {
+                    case "unread":
+                        notification = notification.Where(n => !n.IsRead);
+                        break;
+                    case "read":
+                        notification = notification.Where(n => n.IsRead);
+                        break;
+                }
+            }
+
+            notification = notification.OrderBy(n => n.IsRead)
+                                       .ThenByDescending(n => n.CreatedAt);
+
+            return notification.Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize, 1))
+                               .Take(Math.Max(query.PageSize, 1));
+
+        }
+        private static IQueryable<IndexNotificationViewModel> ProjectToIndexNotificationViewModel(IQueryable<Notification> notification)
+        {
+            return notification.Select(notification => new IndexNotificationViewModel
+            {
+                NotificationID = notification.NotificationID,
+                Title = notification.Title,
+                CreatedAt = notification.CreatedAt,
+                IsRead = notification.IsRead,
+                OrderId = notification.OrderID,
+                SenderName = notification.Sender != null ? notification.Sender.UserName : null,
+                isMarkable = true
+            });
+
+        }
+        private static IQueryable<DriverIndexNotificationViewModel> ProjectToDriverIndexNotificationViewModel(Guid userId, IQueryable<Notification> notifications)
+        {
+            return notifications.Select(notification => new DriverIndexNotificationViewModel
+            {
+                NotificationID = notification.NotificationID,
+                Title = notification.Title,
+                CreatedAt = notification.CreatedAt,
+                IsRead = notification.IsRead,
+                OrderId = notification.OrderID,
+                TruckId = notification.TruckID,
+                SenderName = notification.Sender != null ? notification.Sender.UserName : null,
+                isMarkable = notification.ReceiverID.Equals(userId)
+            });
+
         }
 
         public async Task<bool> SendSystemNotificationAsync(NotificationCommand notification, bool save = true)
