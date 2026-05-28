@@ -34,15 +34,15 @@ namespace OrderFlow.Controllers
                     SortBy = sortBy,
                     HideSystemNotifications = hideSystemNotifications,
                     Page = page,
-                    PageSize = IndexPageSize
+                    PageSize = IndexPageSize + 1
                 };
 
                 var notificationsList = (await _notificationService.GetAllNotificationsForUserAsync(userId, queryModel))?.ToList()
                     ?? new List<IndexNotificationViewModel>();
 
-                bool hasMore = notificationsList.Count > queryModel.PageSize;
+                bool hasMore = notificationsList.Count > IndexPageSize;
                 HttpContext?.Response?.Headers.TryAdd("X-Has-More", hasMore.ToString().ToLowerInvariant());
-                notificationsList = notificationsList.Take(queryModel.PageSize).ToList();
+                notificationsList = notificationsList.Take(IndexPageSize).ToList();
 
                 ViewData["hideSystemNotifications"] = hideSystemNotifications;
                 ViewData["CurrentSort"] = string.IsNullOrEmpty(sortBy) ? "All" : char.ToUpper(sortBy[0]) + sortBy.Substring(1).ToLower();
