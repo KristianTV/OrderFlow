@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Message;
 using OrderFlow.ViewModels.Notification;
@@ -17,17 +18,20 @@ namespace OrderFlow.Areas.Admin.Controllers
         private readonly IOrderService _orderService;
         private readonly ITruckService _truckService;
         private readonly ITruckCourseService _truckCourseService;
+        private readonly ITruckSpendingService _truckSpendingService;
         private readonly IPaymentService _paymentService;
-        // private readonly itru _truckService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IRealtimeNotifier _realtimeNotifier;
 
         public NotificationController(ILogger<NotificationController> logger,
                                         INotificationService notificationService,
                                         IOrderService orderService,
                                         ITruckService truckService,
                                         ITruckCourseService truckCourseService,
+                                        ITruckSpendingService truckSpendingService,
                                         IPaymentService paymentService,
-                                        UserManager<ApplicationUser> userManager)
+                                        UserManager<ApplicationUser> userManager,
+                                        IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _notificationService = notificationService;
@@ -35,7 +39,9 @@ namespace OrderFlow.Areas.Admin.Controllers
             _userManager = userManager;
             _truckService = truckService;
             _truckCourseService = truckCourseService;
+            _truckSpendingService = truckSpendingService;
             _paymentService = paymentService;
+            _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
         [HttpGet]
@@ -157,6 +163,16 @@ namespace OrderFlow.Areas.Admin.Controllers
 
                 await _notificationService.CreateNotificationAsync(createNotification, senderId);
 
+                await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+                {
+                    Entity = "Notification",
+                    Action = "Created",
+                    UserIds = new[] { createNotification.ReceiverId },
+                    Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+                });
+
+                await _realtimeNotifier.NotificationCountChangedAsync(createNotification.ReceiverId);
+
                 return RedirectToAction(nameof(Index), "Notification");
             }
             catch (Exception ex)
@@ -273,6 +289,17 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return NotFound();
                 }
 
+                await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+                {
+                    Entity = "Notification",
+                    Action = "Updated",
+                    Id = notificationId,
+                    UserIds = new[] { createNotification.ReceiverId },
+                    Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+                });
+
+                await _realtimeNotifier.NotificationCountChangedAsync(createNotification.ReceiverId);
+
                 return RedirectToAction(nameof(Detail), "Notification", new { id = id });
             }
             catch (Exception ex)
@@ -354,6 +381,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     await _notificationService.ReadAsync(notificationID);
                     notificationViewModel.IsRead = true;
+                    await _realtimeNotifier.NotificationCountChangedAsync(userId);
                 }
 
                 ViewBag.NotificationID = notificationID;
@@ -401,6 +429,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 }
 
                 await _notificationService.UnreadAsync(notificationId);
+                await _realtimeNotifier.NotificationCountChangedAsync(userId);
 
                 return RedirectToAction(nameof(Index), "Notification");
             }
@@ -447,6 +476,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 }
 
                 await _notificationService.ReadAsync(notificationId);
+                await _realtimeNotifier.NotificationCountChangedAsync(userId);
 
                 return RedirectToAction(nameof(Index), "Notification");
             }
@@ -484,6 +514,13 @@ namespace OrderFlow.Areas.Admin.Controllers
                 }
 
                 await _notificationService.SoftDelete(notificationId);
+                await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+                {
+                    Entity = "Notification",
+                    Action = "Deleted",
+                    Id = notificationId,
+                    Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+                });
 
                 return RedirectToAction(nameof(Index), "Notification");
             }
@@ -530,7 +567,12 @@ namespace OrderFlow.Areas.Admin.Controllers
         private async Task<IDictionary<Guid, string>> GetTruckSpendings()
         {
 
-            return new Dictionary<Guid, string>();
+            return await _truckSpendingService.GetAll()
+                                              .Include(t => t.Truck)
+                                              .ToDictionaryAsync(
+                                                           t => t.TruckSpendingID,
+                                                           t => t.TruckSpendingID.ToString() + " - " + (t.Truck?.LicensePlate ?? "Not Assigned")
+                                                         );
         }
 
         private async Task<IDictionary<Guid, string>> GetPayments()
