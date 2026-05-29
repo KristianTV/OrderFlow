@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Truck;
 
@@ -15,18 +16,21 @@ namespace OrderFlow.Areas.Admin.Controllers
         private readonly IOrderService _orderService;
         private readonly ICourseOrderService _truckOrderService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IRealtimeNotifier _realtimeNotifier;
 
         public TruckController(ILogger<TruckController> logger,
                                 ITruckService truckService,
                                 UserManager<ApplicationUser> userManager,
                                 IOrderService orderService,
-                                ICourseOrderService truckOrderService)
+                                ICourseOrderService truckOrderService,
+                                IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _truckService = truckService;
             _userManager = userManager;
             _orderService = orderService;
             _truckOrderService = truckOrderService;
+            _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
         [HttpGet]
@@ -120,6 +124,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 if (await _truckService.CreateTruckAsync(createTruckViewModel))
                 {
                     TempData["Success"] = "Truck created successfully.";
+                    await NotifyTruckChangedAsync("Created", null, createTruckViewModel.DriverID);
                     return RedirectToAction(nameof(Index), "Truck");
                 }
                 else
@@ -197,6 +202,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 if (await _truckService.UpdateTruckAsync(createTruckViewModel, truckId))
                 {
                     TempData["Success"] = "Truck updated successfully.";
+                    await NotifyTruckChangedAsync("Updated", truckId, createTruckViewModel.DriverID);
                     return RedirectToAction(nameof(Detail), "Truck", new { id = id });
                 }
                 else
@@ -266,6 +272,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     TempData["Success"] = "Truck successfully deleted.";
                     _logger.LogInformation("Truck ID: {TruckId} soft deleted.", truckID);
+                    await NotifyTruckChangedAsync("Deleted", truckID);
                 }
                 else
                 {
@@ -295,6 +302,18 @@ namespace OrderFlow.Areas.Admin.Controllers
                 _logger.LogError(ex, "Failed to retrieve users in role '{RoleName}'.", roleName);
                 return new Dictionary<Guid, string>();
             }
+        }
+
+        private async Task NotifyTruckChangedAsync(string action, Guid? truckId = null, Guid? driverId = null)
+        {
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Truck",
+                Action = action,
+                Id = truckId,
+                UserIds = driverId.HasValue ? new[] { driverId.Value } : Enumerable.Empty<Guid>(),
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString(), UserRoles.Driver.ToString() }
+            });
         }
     }
 }
