@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OrderFlow.Data.Models;
+using OrderFlow.Data.Models.Enums;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Course;
 
@@ -11,15 +13,18 @@ namespace OrderFlow.Areas.Admin.Controllers
         private readonly ILogger<CourseController> _logger;
         private readonly ITruckCourseService _truckCourseService;
         private readonly ITruckService _truckService;
+        private readonly IRealtimeNotifier _realtimeNotifier;
 
 
         public CourseController(ILogger<CourseController> logger,
                                     ITruckCourseService truckCourseService,
-                                    ITruckService truckService)
+                                    ITruckService truckService,
+                                    IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _truckCourseService = truckCourseService;
             _truckService = truckService;
+            _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
         [HttpGet]
         public async Task<IActionResult> Index(bool? hideCompleted, string? searchId = null, string? statusFilter = null, string? sortOrder = null, int page = 1)
@@ -100,6 +105,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return View(createCourseViewModel);
             }
 
+            await NotifyCourseChangedAsync("Created");
             return RedirectToAction(nameof(Index), "Course");
         }
 
@@ -191,6 +197,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return View(createCourseViewModel);
             }
 
+            await NotifyCourseChangedAsync("Updated", courseId);
             return RedirectToAction(nameof(Detail), "Course", new { id = id });
         }
 
@@ -248,6 +255,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     TempData["Success"] = "Course successfully deleted.";
                     _logger.LogInformation("Course ID: {CourseId} soft deleted.", courseID);
+                    await NotifyCourseChangedAsync("Deleted", courseID);
                 }
                 else
                 {
@@ -263,6 +271,17 @@ namespace OrderFlow.Areas.Admin.Controllers
                 TempData["Error"] = "An unexpected error occurred while deleting the course. Please try again.";
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        private async Task NotifyCourseChangedAsync(string action, Guid? courseId = null)
+        {
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Course",
+                Action = action,
+                Id = courseId,
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString(), UserRoles.Driver.ToString() }
+            });
         }
     }
 }
