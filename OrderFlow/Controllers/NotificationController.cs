@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Message;
 using OrderFlow.ViewModels.Notification;
@@ -11,11 +12,13 @@ namespace OrderFlow.Controllers
         private const int IndexPageSize = 12;
         private readonly ILogger<NotificationController> _logger;
         private readonly INotificationService _notificationService;
+        private readonly IRealtimeNotifier _realtimeNotifier;
 
-        public NotificationController(ILogger<NotificationController> logger, INotificationService notificationService)
+        public NotificationController(ILogger<NotificationController> logger, INotificationService notificationService, IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _notificationService = notificationService;
+            _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
         [HttpGet]
@@ -124,6 +127,7 @@ namespace OrderFlow.Controllers
                 {
                     await _notificationService.ReadAsync(notificationID);
                     notificationViewModel.IsRead = true;
+                    await _realtimeNotifier.NotificationCountChangedAsync(userId);
                 }
                 ViewBag.NotificationId = notificationID;
                 ViewBag.CurrentUserId = userId;
@@ -164,6 +168,7 @@ namespace OrderFlow.Controllers
                 }
 
                 await _notificationService.UnreadAsync(notificationId);
+                await _realtimeNotifier.NotificationCountChangedAsync(userId);
             }
             catch (Exception ex)
             {
@@ -202,6 +207,7 @@ namespace OrderFlow.Controllers
                 }
 
                 await _notificationService.ReadAsync(notificationId);
+                await _realtimeNotifier.NotificationCountChangedAsync(userId);
             }
             catch (Exception ex)
             {
