@@ -361,5 +361,13 @@ namespace OrderFlow.Services.Core
             }
             return true;
         }
+
+        public async Task<int> GetUnreadCountAsync(Guid userId)
+        {
+            return await this.GetAll()
+                             .AsNoTracking()
+                             .Where(n => n.ReceiverID.Equals(userId) && !n.IsRead && !n.IsDeleted)
+                             .CountAsync();
+        }
     }
 }
