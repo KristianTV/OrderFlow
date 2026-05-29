@@ -1,10 +1,17 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using OrderFlow.Data.Models
+@using OrderFlow.Services.Core.Contracts
 @inject SignInManager<ApplicationUser> SignInManager
+@inject INotificationService NotificationService
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var currentArea = ViewContext.RouteData.Values["area"]?.ToString();
+    var unreadNotifications = 0;
+    if (SignInManager.IsSignedIn(User) && Guid.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var currentUserId))
+    {
+        unreadNotifications = await NotificationService.GetUnreadCountAsync(currentUserId);
+    }
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -60,6 +67,9 @@
                                 <a class="nav-link @(currentController == "Notification" && currentArea == "Admin" ? "active" : "")"
                                    asp-area="Admin" asp-controller="Notification" asp-action="Index">
                                     <i class="fas fa-bell me-1"></i> Notifications
+                                    <span class="badge rounded-pill bg-danger ms-1 @(unreadNotifications == 0 ? "d-none" : "")" data-notification-badge>
+                                        @(unreadNotifications > 99 ? "99+" : unreadNotifications)
+                                    </span>
                                 </a>
                             </li>
                             @if (User.IsInRole("Admin"))
@@ -96,6 +106,10 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <script src="~/js/Signalr/app-realtime.js" asp-append-version="true"></script>
+    }
     
     @await RenderSectionAsync("Scripts", required: false)
 </body>
