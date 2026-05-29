@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using OrderFlow.Data.Models;
 using OrderFlow.Hubs;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Message;
 
@@ -14,16 +15,19 @@ namespace OrderFlow.Controllers
         private readonly IHubContext<MessageHub> _hubContext;
         private readonly ILogger<MessageController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IRealtimeNotifier _realtimeNotifier;
 
         public MessageController(IMessageService messageService,
                                  IHubContext<MessageHub> hubContext,
                                  ILogger<MessageController> logger,
-                                 UserManager<ApplicationUser> userManager)
+                                 UserManager<ApplicationUser> userManager,
+                                 IRealtimeNotifier? realtimeNotifier = null)
         {
             _messageService = messageService;
             _hubContext = hubContext;
             _logger = logger;
             _userManager = userManager;
+            _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
         [HttpPost]
@@ -57,6 +61,16 @@ namespace OrderFlow.Controllers
                         SentAt = newMessage.SentAt,
                         IsRead = newMessage.IsRead,
                     });
+                await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+                {
+                    Entity = "Notification",
+                    Action = "MessageAdded",
+                    Id = model.NotificationID
+                });
+                if (model.ReceiverID.HasValue)
+                {
+                    await _realtimeNotifier.NotificationCountChangedAsync(model.ReceiverID.Value);
+                }
 
                 return Ok();
             }
