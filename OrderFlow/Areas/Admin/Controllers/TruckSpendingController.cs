@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrderFlow.Data.Models.Enums;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.TruckSpending;
 
@@ -10,13 +12,16 @@ namespace OrderFlow.Areas.Admin.Controllers
         private const int IndexPageSize = 12;
         private readonly ILogger<TruckSpendingController> _logger;
         private readonly ITruckSpendingService _truckSpendingService;
+        private readonly IRealtimeNotifier _realtimeNotifier;
 
         public TruckSpendingController(
             ILogger<TruckSpendingController> logger,
-            ITruckSpendingService truckSpendingService)
+            ITruckSpendingService truckSpendingService,
+            IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _truckSpendingService = truckSpendingService;
+            _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
         [HttpGet]
@@ -103,6 +108,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 if (await _truckSpendingService.CreateTruckSpendingAsync(model))
                 {
                     TempData["Success"] = "Truck spending created successfully.";
+                    await NotifyTruckSpendingChangedAsync("Created");
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -163,6 +169,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 if (await _truckSpendingService.UpdateTruckSpendingAsync(spendingId, model))
                 {
                     TempData["Success"] = "Truck spending updated successfully.";
+                    await NotifyTruckSpendingChangedAsync("Updated", spendingId);
                     return RedirectToAction(nameof(Detail), new { id = spendingId });
                 }
 
@@ -216,6 +223,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 if (await _truckSpendingService.DeleteTruckSpendingAsync(spendingId))
                 {
                     TempData["Success"] = "Truck spending deleted successfully.";
+                    await NotifyTruckSpendingChangedAsync("Deleted", spendingId);
                 }
                 else
                 {
@@ -242,6 +250,17 @@ namespace OrderFlow.Areas.Admin.Controllers
         private bool IsAjaxRequest()
         {
             return HttpContext?.Request?.Headers.XRequestedWith.ToString() == "XMLHttpRequest";
+        }
+
+        private async Task NotifyTruckSpendingChangedAsync(string action, Guid? spendingId = null)
+        {
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "TruckSpending",
+                Action = action,
+                Id = spendingId,
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString(), UserRoles.Driver.ToString() }
+            });
         }
     }
 }
