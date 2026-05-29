@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Hubs;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Order;
 
@@ -18,15 +19,18 @@ namespace OrderFlow.Controllers
         private readonly ILogger<OrderController> _logger;
         private readonly IOrderService _orderService;
         private readonly IHubContext<OrderHub> _hubContext;
+        private readonly IRealtimeNotifier _realtimeNotifier;
 
         public OrderController(ILogger<OrderController> logger,
                                IOrderService orderService,
                                UserManager<ApplicationUser> userManager,
-                               IHubContext<OrderHub> hubContext)
+                               IHubContext<OrderHub> hubContext,
+                               IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _orderService = orderService;
             _hubContext = hubContext;
+            _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
             _userManager = userManager;
         }
 
@@ -114,16 +118,28 @@ namespace OrderFlow.Controllers
             }
 
             IEnumerable<string> staff = await GetUsersByRolesAsync(UserRoles.Admin.ToString(), UserRoles.Speditor.ToString());
+            Guid orderId = _orderService.GetAll()
+                                         .Where(o => o.UserID.Equals(userId))
+                                         .OrderByDescending(o => o.OrderDate)
+                                         .Select(o => o.OrderID)
+                                         .FirstOrDefault();
 
             await _hubContext.Clients.Users(staff).SendAsync("ReceiveOrderUpdate",
             new IndexOrderViewModel
             {
-                OrderID = Guid.NewGuid(),
+                OrderID = orderId,
                 OrderDate = DateTime.UtcNow,
                 DeliveryAddress = createOrderViewModel.DeliveryAddress,
                 PickupAddress = createOrderViewModel.PickupAddress,
                 Status = OrderStatus.Pending.ToString(),
                 isCanceled = false
+            });
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Order",
+                Action = "Created",
+                Id = orderId,
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
             });
             return RedirectToAction(nameof(Index), "Order");
         }
@@ -199,6 +215,14 @@ namespace OrderFlow.Controllers
                 ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again later.");
                 return View(createOrderViewModel);
             }
+
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Order",
+                Action = "Updated",
+                Id = orderId,
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+            });
 
             return RedirectToAction(nameof(Detail), "Order", new { id });
         }
@@ -299,6 +323,15 @@ namespace OrderFlow.Controllers
                 _logger.LogError(ex, "An error occurred while canceling order {OrderId} for user ID: {UserId}.", orderId, userId);
                 return BadRequest();
             }
+
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Order",
+                Action = "Cancelled",
+                Id = orderId,
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+            });
+            await _realtimeNotifier.NotificationCountChangedAsync(userId);
 
             return RedirectToAction(nameof(Index), "Order");
         }
