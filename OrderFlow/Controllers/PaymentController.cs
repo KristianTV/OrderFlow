@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using OrderFlow.Data.Models.Enums;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Payment;
 
@@ -8,11 +10,13 @@ namespace OrderFlow.Controllers
     {
         private readonly ILogger<PaymentController> _logger;
         private readonly IPaymentService _paymentService;
+        private readonly IRealtimeNotifier _realtimeNotifier;
 
-        public PaymentController(ILogger<PaymentController> logger, IPaymentService paymentService)
+        public PaymentController(ILogger<PaymentController> logger, IPaymentService paymentService, IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _paymentService = paymentService;
+            _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
         [HttpGet]
@@ -73,6 +77,14 @@ namespace OrderFlow.Controllers
                 }
 
                 TempData["Success"] = "Card payment completed successfully.";
+                await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+                {
+                    Entity = "Payment",
+                    Action = "Paid",
+                    RelatedId = cardPayment.OrderId,
+                    UserIds = new[] { userId },
+                    Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+                });
                 return RedirectToAction("Detail", "Order", new { id = cardPayment.OrderId });
             }
             catch (Exception ex)
