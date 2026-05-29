@@ -19,5 +19,6 @@ namespace OrderFlow.Services.Core.Contracts
         Task<bool> UpdateNotificationAsync(AdminCreateNotificationViewModel createNotification, Guid notification, Guid userId);
         Task<IEnumerable<DriverIndexNotificationViewModel>?> GetAllNotificationsAsync(Guid userId, NotificationQueryModel queryModel);
         Task<bool> SendSystemNotificationAsync(NotificationCommand notification, bool save = true);
+        Task<int> GetUnreadCountAsync(Guid userId);
     }
 }
