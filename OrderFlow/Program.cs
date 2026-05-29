@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Hubs;
+using OrderFlow.Services;
 using OrderFlow.Services.Core;
 using OrderFlow.Services.Core.Contracts;
 
@@ -30,6 +31,7 @@ builder.Services.AddScoped<ICourseOrderService, CourseOrderService>();
 builder.Services.AddScoped<ITruckCourseService, TruckCourseService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<ITruckSpendingService, TruckSpendingService>();
+builder.Services.AddScoped<IRealtimeNotifier, RealtimeNotifier>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -65,6 +67,7 @@ app.UseAuthorization();
 app.MapHub<NotificationHub>("/hubs/notification");
 app.MapHub<MessageHub>("/hubs/message");
 app.MapHub<OrderHub>("/hubs/order");
+app.MapHub<AppHub>("/hubs/app");
 
 app.MapControllerRoute(
         name: "Admin",
