@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OrderFlow.Data.Models.Enums;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Payment;
 
@@ -9,11 +11,13 @@ namespace OrderFlow.Areas.Admin.Controllers
     {
         private readonly ILogger<PaymentController> _logger;
         private readonly IPaymentService _paymentService;
+        private readonly IRealtimeNotifier _realtimeNotifier;
 
-        public PaymentController(ILogger<PaymentController> logger, IPaymentService paymentService)
+        public PaymentController(ILogger<PaymentController> logger, IPaymentService paymentService, IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _paymentService = paymentService;
+            _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
         [HttpGet]
@@ -64,6 +68,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     TempData["Success"] = "Payment successfully created.";
                     _logger.LogInformation("Payment created for Order ID: {OrderId}", parsedOrderId);
+                    await NotifyPaymentChangedAsync("Created", parsedOrderId);
                     return RedirectToAction("Detail", "Order", new { id = orderId });
                 }
                 else
@@ -169,6 +174,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     TempData["Success"] = "Payment successfully updated.";
                     _logger.LogInformation("Payment ID: {PaymentId} updated for Order ID: {OrderId}", paymentId, orderId);
+                    await NotifyPaymentChangedAsync("Updated", Guid.Parse(orderId), paymentId);
                     return RedirectToAction("Detail", "Order", new { id = orderId });
                 }
                 else
@@ -215,6 +221,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 }
 
                 TempData["Success"] = "Payment marked as paid by cash.";
+                await NotifyPaymentChangedAsync("Paid", orderId, paymentId);
                 return RedirectToAction("Detail", "Order", new { id = orderId != Guid.Empty ? orderId.ToString() : null });
             }
             catch (Exception ex)
@@ -244,6 +251,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 }
 
                 TempData["Success"] = "All payments marked as paid by cash.";
+                await NotifyPaymentChangedAsync("Paid", parsedOrderId);
                 return RedirectToAction("Detail", "Order", new { id = parsedOrderId });
             }
             catch (Exception ex)
@@ -287,6 +295,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     TempData["Success"] = "Payment successfully deleted.";
                     _logger.LogInformation("Payment ID: {PaymentId} deleted from Order ID: {OrderId}", paymentId, orderId);
+                    await NotifyPaymentChangedAsync("Deleted", orderId, paymentId);
                     return RedirectToAction("Detail", "Order", new { id = orderId });
                 }
                 else
@@ -302,6 +311,25 @@ namespace OrderFlow.Areas.Admin.Controllers
                 TempData["Error"] = "An unexpected error occurred while deleting the payment. Please try again.";
                 return RedirectToAction("Detail", "Order", new { id = orderId != Guid.Empty ? orderId.ToString() : null });
             }
+        }
+
+        private async Task NotifyPaymentChangedAsync(string action, Guid orderId, Guid? paymentId = null)
+        {
+            Guid? userId = await _paymentService.GetAll()
+                                                .AsNoTracking()
+                                                .Where(p => p.OrderID.Equals(orderId))
+                                                .Select(p => (Guid?)p.Order.UserID)
+                                                .FirstOrDefaultAsync();
+
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Payment",
+                Action = action,
+                Id = paymentId,
+                RelatedId = orderId,
+                UserIds = userId.HasValue ? new[] { userId.Value } : Enumerable.Empty<Guid>(),
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+            });
         }
     }
 }
