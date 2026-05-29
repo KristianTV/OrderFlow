@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Order;
 
@@ -13,12 +14,14 @@ namespace OrderFlow.Areas.Admin.Controllers
         private readonly ILogger<OrderController> _logger;
         private readonly IOrderService _orderService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IRealtimeNotifier _realtimeNotifier;
 
-        public OrderController(ILogger<OrderController> logger, IOrderService orderService, UserManager<ApplicationUser> userManager)
+        public OrderController(ILogger<OrderController> logger, IOrderService orderService, UserManager<ApplicationUser> userManager, IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _orderService = orderService;
             _userManager = userManager;
+            _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
         [HttpGet]
@@ -99,6 +102,20 @@ namespace OrderFlow.Areas.Admin.Controllers
                 createOrderViewModel.Users = GetUsersInRole(UserRoles.User.ToString());
                 return View(createOrderViewModel);
             }
+
+            Guid createdOrderId = _orderService.GetAll()
+                                               .Where(o => o.UserID.Equals(createOrderViewModel.UsersId))
+                                               .OrderByDescending(o => o.OrderDate)
+                                               .Select(o => o.OrderID)
+                                               .FirstOrDefault();
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Order",
+                Action = "Created",
+                Id = createdOrderId,
+                UserIds = new[] { createOrderViewModel.UsersId },
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+            });
 
             return RedirectToAction(nameof(Index), "Order");
         }
@@ -192,6 +209,15 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return View(createOrderViewModel);
             }
 
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Order",
+                Action = "Updated",
+                Id = orderId,
+                UserIds = new[] { createOrderViewModel.UsersId },
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+            });
+
             return RedirectToAction(nameof(Detail), "Order", new { id = id });
         }
 
@@ -282,6 +308,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest();
             }
 
+            Guid orderUserId = Guid.Empty;
             try
             {
                 var order = await _orderService.GetOrderByIdAsync(orderId);
@@ -304,6 +331,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     ModelState.AddModelError(nameof(order), "Failed to cancel the order. It might already be in a state that cannot be canceled.");
                     return BadRequest();
                 }
+
             }
             catch (Exception ex)
             {
@@ -311,6 +339,16 @@ namespace OrderFlow.Areas.Admin.Controllers
                 ModelState.AddModelError(string.Empty, "An internal server error occurred. Please try again later.");
                 return BadRequest();
             }
+
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Order",
+                Action = "Cancelled",
+                Id = orderId,
+                UserIds = new[] { orderUserId },
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+            });
+            await _realtimeNotifier.NotificationCountChangedAsync(orderUserId);
 
             return RedirectToAction(nameof(Detail), "Order", new { id = id });
         }
@@ -349,6 +387,20 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return BadRequest();
             }
 
+            Order? reactivatedOrder = await _orderService.GetOrderByIdAsync(orderId);
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Order",
+                Action = "Reactivated",
+                Id = orderId,
+                UserIds = reactivatedOrder != null ? new[] { reactivatedOrder.UserID } : Enumerable.Empty<Guid>(),
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+            });
+            if (reactivatedOrder != null)
+            {
+                await _realtimeNotifier.NotificationCountChangedAsync(reactivatedOrder.UserID);
+            }
+
             return RedirectToAction(nameof(Detail), "Order", new { id = id });
         }
 
@@ -384,6 +436,20 @@ namespace OrderFlow.Areas.Admin.Controllers
                 _logger.LogError(ex, "An error occurred while changing status of order with ID {OrderId} to {Status}.", orderId, status);
                 ModelState.AddModelError(string.Empty, "An internal server error occurred. Please try again later.");
                 return BadRequest();
+            }
+
+            Order? changedOrder = await _orderService.GetOrderByIdAsync(orderId);
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Order",
+                Action = "StatusChanged",
+                Id = orderId,
+                UserIds = changedOrder != null ? new[] { changedOrder.UserID } : Enumerable.Empty<Guid>(),
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
+            });
+            if (changedOrder != null)
+            {
+                await _realtimeNotifier.NotificationCountChangedAsync(changedOrder.UserID);
             }
 
             return RedirectToAction(nameof(Detail), "Order", new { id = id });
