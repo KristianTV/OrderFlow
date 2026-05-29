@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OrderFlow.Data.Models.Enums;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Course;
 
@@ -10,14 +12,17 @@ namespace OrderFlow.Areas.Driver.Controllers
         private readonly ILogger<CourseController> _logger;
         private readonly ITruckCourseService _truckCourseService;
         private readonly ITruckService _truckService;
+        private readonly IRealtimeNotifier _realtimeNotifier;
 
         public CourseController(ILogger<CourseController> logger,
                                     ITruckCourseService truckCourseService,
-                                    ITruckService truckService)
+                                    ITruckService truckService,
+                                    IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _truckCourseService = truckCourseService;
             _truckService = truckService;
+            _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
         [HttpGet]
@@ -126,6 +131,13 @@ namespace OrderFlow.Areas.Driver.Controllers
             }
 
             await _truckCourseService.CompleteCourseAsync(courseId);
+            await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Course",
+                Action = "Completed",
+                Id = courseId,
+                Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString(), UserRoles.Driver.ToString() }
+            });
 
             return RedirectToAction(nameof(Detail), "Course", new { id = courseId });
         }
