@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
+using OrderFlow.Data.Models.Enums;
+using OrderFlow.Services;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.Services.Core.Extensions;
 using OrderFlow.ViewModels.Role;
@@ -16,15 +18,18 @@ namespace OrderFlow.Areas.Admin.Controllers
         private readonly ILogger<AccountController> _logger;
         private readonly UserManager<ApplicationUser> userService;
         private readonly IAccountService accountService;
+        private readonly IRealtimeNotifier realtimeNotifier;
 
         public AccountController(
             ILogger<AccountController> logger,
             UserManager<ApplicationUser> userManager,
-            IAccountService accountService)
+            IAccountService accountService,
+            IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             userService = userManager;
             this.accountService = accountService;
+            this.realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
         [HttpGet]
@@ -147,6 +152,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             if (result.Succeeded)
             {
                 TempData["SuccessMessage"] = "User data updated successfully.";
+                await NotifyAccountChangedAsync("Updated", user.Id);
                 return RedirectToAction(nameof(Detail), new { id });
             }
 
@@ -184,6 +190,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 var result = await userService.AddToRoleAsync(user, role);
                 if (result.Succeeded)
                 {
+                    await NotifyAccountChangedAsync("RoleChanged", user.Id);
                     return RedirectToAction(nameof(Index), "Account");
                 }
                 else
@@ -200,6 +207,18 @@ namespace OrderFlow.Areas.Admin.Controllers
                 ModelState.AddModelError(string.Empty, "Failed to change user role.");
                 return BadRequest("Failed to change user role.");
             }
+        }
+
+        private async Task NotifyAccountChangedAsync(string action, Guid userId)
+        {
+            await realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
+            {
+                Entity = "Account",
+                Action = action,
+                Id = userId,
+                UserIds = new[] { userId },
+                Roles = new[] { UserRoles.Admin.ToString() }
+            });
         }
     }
 }
