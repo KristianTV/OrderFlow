@@ -1,11 +1,11 @@
 ﻿@model dynamic
 
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1"
-     aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+<div class="modal fade" id="@Model.Id" tabindex="-1"
+     aria-labelledby="@(Model.Id)Label" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-danger">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="confirmDeleteModalLabel">
+                <h5 class="modal-title" id="@(Model.Id)Label">
                 <i class="fa-solid fa-trash me-3" ></i>
                     @Model.Title</h5>
                 <button type="button" class="btn-close btn-close-white"
