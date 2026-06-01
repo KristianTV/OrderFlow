@@ -13,5 +13,6 @@ namespace OrderFlow.ViewModels.User
         public string Password { get; set; } = null!;
 
         public IList<AuthenticationScheme>? ExternalLogins { get; set; }
+
     }
 }

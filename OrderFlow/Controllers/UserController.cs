@@ -67,7 +67,7 @@ namespace OrderFlow.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> Login()
+        public async Task<IActionResult> Login(string? returnUrl = null)
         {
             if (User?.Identity?.IsAuthenticated ?? false)
             {
@@ -79,13 +79,15 @@ namespace OrderFlow.Controllers
                 ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
             };
 
+            ViewBag.ReturnUrl = returnUrl;
+
             return View(model);
         }
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
         {
             if (!ModelState.IsValid)
             {
@@ -100,6 +102,14 @@ namespace OrderFlow.Controllers
 
                 if (result.Succeeded)
                 {
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    {
+                        if (CanUserAccessUrl(returnUrl, await _userManager.GetRolesAsync(user)))
+                        {
+                            return Redirect(returnUrl);
+                        }
+                    }
+
                     if (await _userManager.IsInRoleAsync(user, "Admin"))
                     {
                         return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
@@ -120,6 +130,23 @@ namespace OrderFlow.Controllers
             ModelState.AddModelError("", "Invalid login");
 
             return View(model);
+        }
+
+        private bool CanUserAccessUrl(string url, IList<string> roles)
+        {
+            var path = url.ToLower();
+
+            if (path.StartsWith("/Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                return roles.Contains("Admin") || roles.Contains("Speditor");
+            }
+
+            if (path.StartsWith("/Driver", StringComparison.OrdinalIgnoreCase))
+            {
+                return roles.Contains("Driver");
+            }
+
+            return true;
         }
 
         public async Task<IActionResult> Logout()
