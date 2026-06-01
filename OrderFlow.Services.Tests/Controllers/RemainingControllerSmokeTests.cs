@@ -169,6 +169,7 @@ namespace OrderFlow.Tests.Controllers
                 Mock.Of<IOrderService>(),
                 Mock.Of<ITruckService>(),
                 Mock.Of<ITruckCourseService>(),
+                Mock.Of<ITruckSpendingService>(),
                 Mock.Of<IPaymentService>(),
                 CreateUserManagerMock().Object);
 
