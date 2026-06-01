@@ -8,8 +8,23 @@
         .withAutomaticReconnect()
         .build();
 
+    let isPageNavigating = false;
+    let navigationTimer;
+
     connection.on("NotificationCountChanged", updateNotificationBadge);
     connection.on("EntityChanged", handleEntityChanged);
+
+    document.addEventListener("submit", () => {
+        isPageNavigating = true;
+        clearTimeout(navigationTimer);
+        navigationTimer = setTimeout(() => {
+            isPageNavigating = false;
+        }, 15000);
+    }, true);
+
+    window.addEventListener("beforeunload", () => {
+        isPageNavigating = true;
+    });
 
     connection.start().catch(err => console.error("SignalR app connection error:", err));
 
@@ -22,7 +37,7 @@
     }
 
     function handleEntityChanged(change) {
-        if (!change || !shouldRefresh(change)) {
+        if (isPageNavigating || !change || !shouldRefresh(change)) {
             return;
         }
 
