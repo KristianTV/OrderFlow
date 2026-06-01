@@ -102,6 +102,28 @@ namespace OrderFlow.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> Detail(string? id)
+        {
+            if (string.IsNullOrEmpty(id) || !Guid.TryParse(id, out var paymentId))
+            {
+                TempData["Error"] = "Invalid or missing Payment ID for detail.";
+                _logger.LogWarning("Detail Payment GET: Invalid or missing Payment ID '{PaymentId}'", id);
+                return NotFound();
+            }
+
+            Guid? orderId = _paymentService.GetAll().Where(p => p.PaymentID.Equals(paymentId)).SingleOrDefaultAsync().Result?.OrderID ?? null;
+
+            if (orderId == null || orderId.Equals(Guid.Empty))
+            {
+                TempData["Error"] = "Invalid or missing Order ID for detail.";
+                _logger.LogWarning("Detail Payment GET: Invalid or missing Order ID");
+                return NotFound();
+            }
+
+            return RedirectToAction("Detail", "Order", new { id = orderId });
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Edit(string? Id, string? orderId)
         {
             if (string.IsNullOrEmpty(Id) || !Guid.TryParse(Id, out var paymentId))
