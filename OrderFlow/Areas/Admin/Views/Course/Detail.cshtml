@@ -175,14 +175,15 @@
     </div>
     
    <partial name="_DeleteModalPartial" model='new { 
-    Title = "Confirm Deletion", 
-    Message = "Are you sure you want to delete this course? This action cannot be undone.",
-    CancelText = "No, Keep Course",
-    ConfirmText = "Yes, Delete Course",
-    Area = "Admin",
-    Controller = "Course",
-    Action = "Delete",
-    RouteId = Model.TruckCourseID 
+                 Id = "confirmDeleteModal",
+                 Title = "Confirm Deletion", 
+                 Message = "Are you sure you want to delete this course? This action cannot be undone.",
+                 CancelText = "No, Keep Course",
+                 ConfirmText = "Yes, Delete Course",
+                 Area = "Admin",
+                 Controller = "Course",
+                 Action = "Delete",
+                 RouteId = Model.TruckCourseID 
     }' />
 
 </div>
