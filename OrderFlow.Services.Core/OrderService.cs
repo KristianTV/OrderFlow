@@ -201,7 +201,7 @@ namespace OrderFlow.Services.Core
                     PaymentDescription = payment.PaymentDescription,
                     PaymentMethod = payment.PaymentMethod.HasValue ? payment.PaymentMethod.Value.ToString() : null,
                     PaymentDate = payment.PaymentDate,
-                }).ToList(),
+                }).OrderBy(p => p.CreatedOn).ToList(),
                 TotalPrice = o.Payments.Sum(p => p.Amount)
             })
                                .SingleOrDefaultAsync();
