@@ -187,8 +187,21 @@
                                             <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deletePaymentModal-@payment.Id">
                                                 <i class="fas fa-trash-alt me-2"></i> Delete
                                             </button>
-                                        </li>
-                                    </ul>
+                                            </li>
+                                        </ul>
+                                              <partial name="_DeleteModalPartial" model='new
+                                                                                     {
+                                                                                         Id = "deletePaymentModal-"+@payment.Id,
+                                                                                         Title = "Confirm Deletion",
+                                                                                         Message = "Are you sure you want to delete this payment? This action cannot be undone.",
+                                                                                         CancelText = "No, Keep Payment",
+                                                                                         ConfirmText = "Yes, Delete Payment",
+                                                                                         Area = "Admin",
+                                                                                         Controller = "Payment",
+                                                                                         Action = "Delete",
+                                                                                         RouteId = payment.Id,
+                                                                                     }' />
+                                     
                                 </div>
                                 </div>
                                 <p class="small mb-0">
