@@ -1,5 +1,4 @@
 @using OrderFlow.ViewModels.Notification
-@using OrderFlow.ViewModels.Message
 @model DriverDetailsNotificationViewModel;
 @{
     ViewData["Title"] = "Notification Details";
@@ -182,6 +181,7 @@
 </div>
 
 <partial name="_DeleteModalPartial" model='new { 
+             Id = "confirmDeleteModal",
     Title = "Confirm Deletion", 
     Message = "Are you sure you want to delete this notification? This cannot be undone.",
     CancelText = "No, Keep Notification",
@@ -201,7 +201,7 @@
         const currentUserId = '@currentUserId';
     </script>
 
-    <script src="~/js/sonar/message.js"></script>
+    <script src="~/js/Signalr/message.js"></script>
 
     <script src="~/js/View/Shared/Notification/Detail.js"></script>
 
