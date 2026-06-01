@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using OrderFlow.Data.Models;
 using OrderFlow.Hubs;
 using OrderFlow.Services;
+using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Message;
 
@@ -61,12 +62,14 @@ namespace OrderFlow.Controllers
                         SentAt = newMessage.SentAt,
                         IsRead = newMessage.IsRead,
                     });
+
                 await _realtimeNotifier.EntityChangedAsync(new RealtimeEntityChanged
                 {
                     Entity = "Notification",
                     Action = "MessageAdded",
                     Id = model.NotificationID
                 });
+
                 if (model.ReceiverID.HasValue)
                 {
                     await _realtimeNotifier.NotificationCountChangedAsync(model.ReceiverID.Value);

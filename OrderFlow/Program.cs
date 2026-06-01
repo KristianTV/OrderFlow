@@ -4,6 +4,7 @@ using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Hubs;
 using OrderFlow.Services;
+using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core;
 using OrderFlow.Services.Core.Contracts;
 

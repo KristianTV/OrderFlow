@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services;
+using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Message;
 using OrderFlow.ViewModels.Notification;

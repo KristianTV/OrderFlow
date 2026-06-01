@@ -1,3 +1,5 @@
+using OrderFlow.Services.Contracts;
+
 namespace OrderFlow.Services
 {
     public class NullRealtimeNotifier : IRealtimeNotifier

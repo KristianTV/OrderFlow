@@ -5,6 +5,7 @@ using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Hubs;
 using OrderFlow.Services;
+using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Order;
 

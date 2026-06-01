@@ -1,4 +1,4 @@
-namespace OrderFlow.Services
+namespace OrderFlow.Services.Contracts
 {
     public interface IRealtimeNotifier
     {

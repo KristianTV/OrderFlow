@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using OrderFlow.Hubs;
+using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core.Contracts;
 
 namespace OrderFlow.Services
