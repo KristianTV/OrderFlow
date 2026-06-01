@@ -14,5 +14,6 @@ namespace OrderFlow.Services.Core.Contracts
         Task<bool> MarkOrderPaymentsAsCashAsync(Guid orderId);
         Task<bool> DeletePaymentAsync(Guid paymentId);
         Task<bool> UpdatePaymentAsync(Guid paymentId, CreatePaymentViewModel createPayment);
+        Task<Guid?> GetOrderIdByPaymentIdAsync(Guid paymentId);
     }
 }

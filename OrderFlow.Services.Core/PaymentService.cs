@@ -232,5 +232,17 @@ namespace OrderFlow.Services.Core
 
             return expiresAt >= DateTime.UtcNow;
         }
+
+        public async Task<Guid?> GetOrderIdByPaymentIdAsync(Guid paymentId)
+        {
+            var payment = await this.GetAll()
+                                    .Where(p => p.PaymentID.Equals(paymentId))
+                                    .SingleOrDefaultAsync();
+
+            if (payment == null)
+                return null;
+
+            return payment.OrderID;
+        }
     }
 }

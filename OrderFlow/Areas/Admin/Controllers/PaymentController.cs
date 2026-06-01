@@ -111,7 +111,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            Guid? orderId = _paymentService.GetAll().Where(p => p.PaymentID.Equals(paymentId)).SingleOrDefaultAsync().Result?.OrderID ?? null;
+            Guid? orderId = await _paymentService.GetOrderIdByPaymentIdAsync(paymentId);
 
             if (orderId == null || orderId.Equals(Guid.Empty))
             {
