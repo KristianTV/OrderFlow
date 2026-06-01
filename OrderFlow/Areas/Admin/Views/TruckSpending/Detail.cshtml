@@ -18,11 +18,21 @@
                                     @Model.TruckLicensePlate <i class="fa-solid fa-share-from-square"></i>
                                 </a></dd>
                 <dt class="col-sm-3">Course</dt>
-                <dd class="col-sm-9">
-                    <a asp-area="Admin" asp-controller="Course" asp-action="Detail"
-                                   asp-route-id="@Model.TruckCourseID" class="text-decoration-none">
-                                    @Model.CourseDescription <i class="fa-solid fa-share-from-square"></i>
-                                </a></dd>
+                @if (Model.TruckCourseID.HasValue)
+                {
+                    <dd class="col-sm-9">
+                        <a asp-area="Admin" asp-controller="Course" asp-action="Detail"
+                                            asp-route-id="@Model.TruckCourseID" class="text-decoration-none">
+                        @Model.CourseDescription <i class="fa-solid fa-share-from-square"></i>
+                    </a>
+                    </dd>
+                }
+                else
+                {
+                    <dd class="col-sm-9">
+                        @Model.CourseDescription
+                    </dd>
+                }
                 <dt class="col-sm-3">Description</dt>
                 <dd class="col-sm-9">@Model.PaymentDescription</dd>
                 <dt class="col-sm-3">Payment Date</dt>
