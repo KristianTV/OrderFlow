@@ -71,12 +71,12 @@ namespace OrderFlow.Areas.Admin.Controllers
                 HttpContext?.Response?.Headers.TryAdd("X-Has-More", hasMore.ToString().ToLowerInvariant());
                 notificationsList = notificationsList.Take(IndexPageSize).ToList();
 
-                ViewData["hideSystemNotifications"] = hideSystemNotifications;
-                ViewData["CurrentSort"] = string.IsNullOrEmpty(sortBy) ? "All" : char.ToUpper(sortBy[0]) + sortBy.Substring(1).ToLower();
+                ViewBag.hideSystemNotifications = hideSystemNotifications;
+                ViewBag.CurrentSort = string.IsNullOrEmpty(sortBy) ? "All" : char.ToUpper(sortBy[0]) + sortBy.Substring(1).ToLower();
+                ViewBag.NotificationArea = "Admin";
 
                 if (IsAjaxRequest())
                 {
-                    ViewData["NotificationArea"] = "Admin";
                     return PartialView("~/Views/Shared/_NotificationCards.cshtml", notificationsList);
                 }
 

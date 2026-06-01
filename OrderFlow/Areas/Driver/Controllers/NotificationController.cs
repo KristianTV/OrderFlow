@@ -48,12 +48,12 @@ namespace OrderFlow.Areas.Driver.Controllers
                 HttpContext?.Response?.Headers.TryAdd("X-Has-More", hasMore.ToString().ToLowerInvariant());
                 notificationsList = notificationsList.Take(IndexPageSize).ToList();
 
-                ViewData["hideSystemNotifications"] = hideSystemNotifications;
-                ViewData["CurrentSort"] = string.IsNullOrEmpty(sortBy) ? "All" : char.ToUpper(sortBy[0]) + sortBy.Substring(1).ToLower();
+                ViewBag.hideSystemNotifications = hideSystemNotifications;
+                ViewBag.CurrentSort = string.IsNullOrEmpty(sortBy) ? "All" : char.ToUpper(sortBy[0]) + sortBy.Substring(1).ToLower();
+                ViewBag.NotificationArea = "Driver";
 
                 if (IsAjaxRequest())
                 {
-                    ViewData["NotificationArea"] = "Driver";
                     return PartialView("~/Views/Shared/_NotificationCards.cshtml", notificationsList);
                 }
 
@@ -128,6 +128,7 @@ namespace OrderFlow.Areas.Driver.Controllers
                     notificationViewModel.IsRead = true;
                     await _realtimeNotifier.NotificationCountChangedAsync(userId);
                 }
+
                 ViewBag.NotificationId = notificationId;
                 ViewBag.CurrentUserId = userId;
                 return View(notificationViewModel);

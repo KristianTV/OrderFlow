@@ -2,7 +2,7 @@
 @model IEnumerable<IndexNotificationViewModel>
 
 @{
-    string area = ViewData["NotificationArea"]?.ToString() ?? string.Empty;
+    string area = ViewBag.NotificationArea?.ToString() ?? string.Empty;
 }
 
 @foreach (var notification in Model ?? Enumerable.Empty<IndexNotificationViewModel>())
