@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Services;
+using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Payment;
 
@@ -13,7 +14,9 @@ namespace OrderFlow.Areas.Admin.Controllers
         private readonly IPaymentService _paymentService;
         private readonly IRealtimeNotifier _realtimeNotifier;
 
-        public PaymentController(ILogger<PaymentController> logger, IPaymentService paymentService, IRealtimeNotifier? realtimeNotifier = null)
+        public PaymentController(ILogger<PaymentController> logger,
+                                 IPaymentService paymentService,
+                                 IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _paymentService = paymentService;
@@ -68,8 +71,18 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     TempData["Success"] = "Payment successfully created.";
                     _logger.LogInformation("Payment created for Order ID: {OrderId}", parsedOrderId);
-                    await NotifyPaymentChangedAsync("Created", parsedOrderId);
-                    return RedirectToAction("Detail", "Order", new { id = orderId });
+
+
+                    try
+                    {
+                        await NotifyPaymentChangedAsync("Created", parsedOrderId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send background payment notification for Order ID: {OrderId}", parsedOrderId);
+                    }
+
+                    return RedirectToAction("Detail", "Order", new { id = parsedOrderId });
                 }
                 else
                 {
