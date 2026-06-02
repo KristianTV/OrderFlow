@@ -14,11 +14,16 @@ namespace OrderFlow.Controllers
         private readonly ILogger<NotificationController> _logger;
         private readonly INotificationService _notificationService;
         private readonly IRealtimeNotifier _realtimeNotifier;
+        private readonly IMessageService _messageService;
 
-        public NotificationController(ILogger<NotificationController> logger, INotificationService notificationService, IRealtimeNotifier? realtimeNotifier = null)
+        public NotificationController(ILogger<NotificationController> logger,
+                                      INotificationService notificationService,
+                                      IMessageService messageService,
+                                      IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _notificationService = notificationService;
+            _messageService = messageService;
             _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
@@ -123,6 +128,8 @@ namespace OrderFlow.Controllers
                     _logger.LogInformation("Notification with ID {NotificationId} not found or does not belong to user {UserId}.", notificationID, userId);
                     return NotFound();
                 }
+
+                await _messageService.MarkMessagesAsReadAsync(notificationID, userId);
 
                 if (!notificationViewModel.IsRead)
                 {

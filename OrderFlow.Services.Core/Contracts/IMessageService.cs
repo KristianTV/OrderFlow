@@ -13,5 +13,6 @@ namespace OrderFlow.Services.Core.Contracts
         Task<Message> UpdateMessageAsync(CreateNotificationMessageViewModel createNotificationMessageViewModel, Guid? messageId, Guid? senderId, bool save = true);
         Task<bool> DeleteMessageAsync(Guid? messageId, Guid? senderId, bool save = true);
         Task<bool> MarkMessageAsReadAsync(Guid? messageId, bool save = true);
+        Task MarkMessagesAsReadAsync(Guid notificationID, Guid userId, bool save = true);
     }
 }

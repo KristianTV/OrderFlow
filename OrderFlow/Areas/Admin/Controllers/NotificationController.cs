@@ -30,6 +30,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         private readonly IPaymentService _paymentService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IRealtimeNotifier _realtimeNotifier;
+        private readonly IMessageService _messageService;
 
         public NotificationController(ILogger<NotificationController> logger,
                                         INotificationService notificationService,
@@ -39,6 +40,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                                         ITruckSpendingService truckSpendingService,
                                         IPaymentService paymentService,
                                         UserManager<ApplicationUser> userManager,
+                                        IMessageService messageService,
                                         IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
@@ -49,6 +51,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             _truckCourseService = truckCourseService;
             _truckSpendingService = truckSpendingService;
             _paymentService = paymentService;
+            _messageService = messageService;
             _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
@@ -448,6 +451,8 @@ namespace OrderFlow.Areas.Admin.Controllers
                 {
                     return NotFound();
                 }
+
+                await _messageService.MarkMessagesAsReadAsync(notificationID, userId);
 
                 if (!notificationViewModel.IsRead && notificationViewModel.isMarkable)
                 {

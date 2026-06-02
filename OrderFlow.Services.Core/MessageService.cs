@@ -97,6 +97,23 @@ namespace OrderFlow.Services.Core
             return true;
         }
 
+        public async Task MarkMessagesAsReadAsync(Guid notificationID, Guid userId, bool save = true)
+        {
+            if (notificationID == Guid.Empty || userId == Guid.Empty)
+                throw new ArgumentException("NotificationID and UserID cannot be empty.");
+
+            var messagesToUpdate = this.GetAll()
+                                       .Where(m => m.NotificationID == notificationID && m.SenderID != userId && !m.IsRead)
+                                       .ToList();
+            foreach (var message in messagesToUpdate)
+            {
+                message.IsRead = true;
+            }
+
+            if (save || messagesToUpdate.Any())
+                await this.SaveChangesAsync();
+        }
+
         public async Task<Message> UpdateMessageAsync(CreateNotificationMessageViewModel createNotificationMessageViewModel, Guid? messageId, Guid? senderId, bool save = true)
         {
             Message? message = this.GetAll().FirstOrDefault(m => m.MessageID == messageId && m.SenderID == senderId);
