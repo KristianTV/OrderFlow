@@ -216,7 +216,16 @@ namespace OrderFlow.Controllers
                 });
             }
 
-            return Ok(user.MapProfileViewModel());
+            var updatedUser = await _accountService.GetCurrentUserWithProfilesAsync(userId);
+
+            if (updatedUser == null)
+            {
+                return NotFound();
+            }
+
+            await _signInManager.RefreshSignInAsync(updatedUser);
+
+            return Ok(updatedUser.MapProfileViewModel());
         }
 
         [HttpGet]

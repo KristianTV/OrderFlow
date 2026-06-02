@@ -8,8 +8,26 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\js\Sonar\**" />
+    <Compile Remove="wwwroot\js\View\Admin\**" />
+    <Compile Remove="wwwroot\js\View\Driver\**" />
+    <Compile Remove="wwwroot\js\View\User\**" />
+    <Content Remove="wwwroot\js\Sonar\**" />
+    <Content Remove="wwwroot\js\View\Admin\**" />
+    <Content Remove="wwwroot\js\View\Driver\**" />
+    <Content Remove="wwwroot\js\View\User\**" />
+    <EmbeddedResource Remove="wwwroot\js\Sonar\**" />
+    <EmbeddedResource Remove="wwwroot\js\View\Admin\**" />
+    <EmbeddedResource Remove="wwwroot\js\View\Driver\**" />
+    <EmbeddedResource Remove="wwwroot\js\View\User\**" />
+    <None Remove="wwwroot\js\Sonar\**" />
+    <None Remove="wwwroot\js\View\Admin\**" />
+    <None Remove="wwwroot\js\View\Driver\**" />
+    <None Remove="wwwroot\js\View\User\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="wwwroot\js\View\Shared\Notification\Detail.js" />
-    <None Include="wwwroot\js\Sonar\message.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,12 +50,6 @@
     <ProjectReference Include="..\OrderFlow.GCommon\OrderFlow.GCommon.csproj" />
     <ProjectReference Include="..\OrderFlow.Services.Core\OrderFlow.Services.Core.csproj" />
     <ProjectReference Include="..\OrderFlow.ViewModels\OrderFlow.ViewModels.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="wwwroot\js\View\Admin\" />
-    <Folder Include="wwwroot\js\View\Driver\" />
-    <Folder Include="wwwroot\js\View\User\" />
   </ItemGroup>
 
 </Project>
