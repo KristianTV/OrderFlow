@@ -17,7 +17,7 @@ namespace OrderFlow.Areas.Admin.Controllers
     public class AccountController : BaseAdminController
     {
         private readonly ILogger<AccountController> _logger;
-        private readonly UserManager<ApplicationUser> userService;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAccountService accountService;
         private readonly IRealtimeNotifier realtimeNotifier;
 
@@ -28,7 +28,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
-            userService = userManager;
+            _userManager = userManager;
             this.accountService = accountService;
             this.realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
@@ -36,7 +36,7 @@ namespace OrderFlow.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(string? sortOrder = null)
         {
-            var users = await userService.Users
+            var users = await _userManager.Users
                 .Include(user => user.PersonalProfile)
                 .Include(user => user.CompanyProfile)
                 .ToListAsync();
@@ -60,7 +60,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     DisplayName = user.PersonalProfile != null
                         ? $"{user.PersonalProfile.FirstName} {user.PersonalProfile.LastName}".Trim()
                         : user.CompanyProfile?.CompanyName ?? string.Empty,
-                    Roles = await userService.GetRolesAsync(user)
+                    Roles = await _userManager.GetRolesAsync(user)
                 });
             }
 
@@ -107,7 +107,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             ProfileViewModel model = user.MapProfileViewModel();
             ViewBag.UserId = user.Id;
-            ViewBag.Role = (await userService.GetRolesAsync(user)).FirstOrDefault();
+            ViewBag.Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
 
             return View(model);
         }
@@ -178,7 +178,7 @@ namespace OrderFlow.Areas.Admin.Controllers
 
             try
             {
-                var user = await userService.FindByIdAsync(id);
+                var user = await _userManager.FindByIdAsync(id);
 
                 if (user == null)
                 {
@@ -187,8 +187,8 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return NotFound();
                 }
 
-                await userService.RemoveFromRolesAsync(user, await userService.GetRolesAsync(user));
-                var result = await userService.AddToRoleAsync(user, role);
+                await _userManager.RemoveFromRolesAsync(user, await _userManager.GetRolesAsync(user));
+                var result = await _userManager.AddToRoleAsync(user, role);
                 if (result.Succeeded)
                 {
                     await NotifyAccountChangedAsync("RoleChanged", user.Id);

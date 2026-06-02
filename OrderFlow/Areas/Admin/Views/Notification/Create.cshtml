@@ -158,4 +158,12 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/View/Shared/Notification/admin-notification-form.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            initAdminNotificationForm({
+                optionsUrl: "@Url.Action("NotificationOptions", "Notification", new { area = "Admin" })"
+            });
+        });
+    </script>
 }

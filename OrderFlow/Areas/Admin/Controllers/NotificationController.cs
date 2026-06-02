@@ -14,6 +14,13 @@ namespace OrderFlow.Areas.Admin.Controllers
     public class NotificationController : BaseAdminController
     {
         private const int IndexPageSize = 12;
+        private static readonly OrderStatus[] ExcludedOrderStatuses =
+        {
+            OrderStatus.Completed,
+            OrderStatus.Cancelled,
+            OrderStatus.Failed
+        };
+
         private readonly ILogger<NotificationController> _logger;
         private readonly INotificationService _notificationService;
         private readonly IOrderService _orderService;
@@ -96,6 +103,97 @@ namespace OrderFlow.Areas.Admin.Controllers
             return HttpContext?.Request?.Headers.XRequestedWith.ToString() == "XMLHttpRequest";
         }
 
+        [HttpGet]
+        public async Task<IActionResult> NotificationOptions(Guid? receiverId, Guid? orderId, Guid? truckId, Guid? courseId)
+        {
+            if (!receiverId.HasValue)
+            {
+                _logger.LogWarning("Receiver ID is missing when fetching notification options.");
+                return Json(new { error = "Receiver ID is required." });
+            }
+
+            var receiverRoles = await GetUserRoles(receiverId.Value);
+            if (receiverRoles == null)
+            {
+                _logger.LogWarning("Receiver with ID {ReceiverId} not found when fetching notification options.", receiverId);
+                return Json(new { error = "Receiver not found." });
+            }
+
+            bool isStaff = receiverRoles.Contains(UserRoles.Admin.ToString()) || receiverRoles.Contains(UserRoles.Speditor.ToString());
+            bool isDriver = receiverRoles.Contains(UserRoles.Driver.ToString()) && !isStaff;
+            bool isRegularUser = receiverRoles.Contains(UserRoles.User.ToString()) && !isStaff && !isDriver;
+
+            if (!isStaff && !isDriver && !isRegularUser)
+            {
+                return Json(new { error = "Receiver must have a valid role to fetch notification options." });
+            }
+
+            List<NotificationSelectOption>? orders = null;
+            List<NotificationSelectOption>? payments = null;
+            List<NotificationSelectOption>? trucks = null;
+            List<NotificationSelectOption>? courses = null;
+            List<NotificationSelectOption>? truckSpendings = null;
+
+
+            if (isRegularUser || isStaff)
+            {
+                Guid? filterUserId = isRegularUser ? receiverId : null;
+                orders = await FetchOrdersAsync(filterUserId);
+            }
+
+
+            if (orderId.HasValue && orders != null && orders.Any(o => o.Id == orderId.Value))
+            {
+                payments = await FetchPaymentsAsync(orderId.Value);
+            }
+
+
+            if (isDriver || isStaff)
+            {
+                Guid? filterDriverId = isDriver ? receiverId : null;
+                trucks = await FetchTrucksAsync(filterDriverId);
+            }
+
+
+            if (truckId.HasValue && trucks != null && trucks.Any(t => t.Id == truckId.Value))
+            {
+                courses = await FetchCoursesAsync(truckId.Value);
+
+                Guid? filterCourseId = (courseId.HasValue && courses.Any(c => c.Id == courseId.Value)) ? courseId : null;
+                truckSpendings = await FetchTruckSpendingsAsync(truckId.Value, filterCourseId);
+            }
+
+
+            if (isRegularUser)
+            {
+                return Json(new
+                {
+                    orders = BuildOptions(orders),
+                    payments = BuildOptions(payments)
+                });
+            }
+
+            if (isDriver)
+            {
+                return Json(new
+                {
+                    trucks = BuildOptions(trucks),
+                    courses = BuildOptions(courses),
+                    truckSpendings = BuildOptions(truckSpendings)
+                });
+            }
+
+
+            return Json(new
+            {
+                orders = BuildOptions(orders),
+                payments = BuildOptions(payments),
+                trucks = BuildOptions(trucks),
+                courses = BuildOptions(courses),
+                truckSpendings = BuildOptions(truckSpendings)
+            });
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> Create(string? orderId)
@@ -104,12 +202,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 var createNotification = new AdminCreateNotificationViewModel
                 {
-                    Receivers = await GetUsers(),
-                    Orders = await GetOrders(),
-                    Trucks = await GetTrucks(),
-                    Courses = await GetCourses(),
-                    Payments = await GetPayments(),
-                    TruckSpendings = await GetTruckSpendings()
+                    Receivers = await GetUsers()
                 };
 
                 if (!string.IsNullOrEmpty(orderId))
@@ -146,12 +239,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    createNotification.Receivers = await GetUsers();
-                    createNotification.Orders = await GetOrders();
-                    createNotification.Trucks = await GetTrucks();
-                    createNotification.Courses = await GetCourses();
-                    createNotification.Payments = await GetPayments();
-                    createNotification.TruckSpendings = await GetTruckSpendings();
+                    await RepopulateViewModelListsAsync(createNotification);
                     return View(createNotification);
                 }
 
@@ -181,9 +269,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 _logger.LogError(ex, "An error occurred while creating a notification.");
                 ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
 
-                createNotification.Receivers = await GetUsers();
-                createNotification.Orders = await GetOrders();
-                createNotification.Trucks = await GetTrucks();
+                await RepopulateViewModelListsAsync(createNotification);
                 return View(createNotification);
             }
         }
@@ -229,12 +315,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                     return NotFound();
                 }
 
-                createNotification.Receivers = await GetUsers();
-                createNotification.Orders = await GetOrders();
-                createNotification.Trucks = await GetTrucks();
-                createNotification.Courses = await GetCourses();
-                createNotification.Payments = await GetPayments();
-                createNotification.TruckSpendings = await GetTruckSpendings();
+                await RepopulateViewModelListsAsync(createNotification);
 
                 ViewBag.NotificationId = notificationId;
 
@@ -267,12 +348,7 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    createNotification.Receivers = await GetUsers();
-                    createNotification.Orders = await GetOrders();
-                    createNotification.Trucks = await GetTrucks();
-                    createNotification.Courses = await GetCourses();
-                    createNotification.Payments = await GetPayments();
-                    createNotification.TruckSpendings = await GetTruckSpendings();
+                    await RepopulateViewModelListsAsync(createNotification);
                     ViewBag.NotificationId = notificationId;
                     return View(createNotification);
                 }
@@ -308,12 +384,7 @@ namespace OrderFlow.Areas.Admin.Controllers
                 _logger.LogError(ex, "An error occurred while editing notification with ID: {NotificationId}", id);
                 ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
 
-                createNotification.Receivers = await GetUsers();
-                createNotification.Orders = await GetOrders();
-                createNotification.Trucks = await GetTrucks();
-                createNotification.Courses = await GetCourses();
-                createNotification.Payments = await GetPayments();
-                createNotification.TruckSpendings = await GetTruckSpendings();
+                await RepopulateViewModelListsAsync(createNotification);
                 ViewBag.NotificationId = notificationId;
                 return View(createNotification);
             }
@@ -541,59 +612,125 @@ namespace OrderFlow.Areas.Admin.Controllers
                                                              );
         }
 
-        private async Task<Dictionary<Guid, string>> GetOrders()
+        private async Task<List<NotificationSelectOption>> FetchOrdersAsync(Guid? userId)
         {
-            return await _orderService.GetAll()
-                                      .Include(order => order.User)
-                                      .Where(order => !(new[] { OrderStatus.Completed,
-                                                               OrderStatus.Cancelled,
-                                                               OrderStatus.Failed
-                                                               }.Contains(order.Status)))
-                                      .ToDictionaryAsync(
-                                                          order => order.OrderID,
-                                                          order => order.OrderID.ToString() + " - " + order.User.UserName
-                                                         );
+            var query = _orderService.GetAll().AsNoTracking()
+                .Where(o => !ExcludedOrderStatuses.Contains(o.Status));
+
+            if (userId.HasValue)
+                query = query.Where(o => o.UserID == userId.Value);
+
+            return await query
+                .OrderByDescending(o => o.OrderDate)
+                .Select(o => new NotificationSelectOption(o.OrderID, $"{o.OrderID} - {o.User.UserName}"))
+                .ToListAsync();
         }
 
-        private async Task<Dictionary<Guid, string>> GetTrucks()
+        private async Task<List<NotificationSelectOption>> FetchPaymentsAsync(Guid orderId)
         {
-            return await _truckService.GetAll()
-                                      .Include(t => t.Driver)
-                                      .ToDictionaryAsync(
-                                                           t => t.TruckID,
-                                                           t => t.TruckID.ToString() + " - " + t.Driver.UserName
-                                                         );
+            return await _paymentService.GetAll().AsNoTracking()
+                .Where(p => p.OrderID == orderId)
+                .OrderByDescending(p => p.CreatedOn)
+                .Select(p => new NotificationSelectOption(p.PaymentID, $"{p.PaymentID} - {p.Amount.ToString("C")}"))
+                .ToListAsync();
         }
 
-        private async Task<IDictionary<Guid, string>> GetTruckSpendings()
+        private async Task<List<NotificationSelectOption>> FetchTrucksAsync(Guid? driverId)
         {
+            var query = _truckService.GetAll().AsNoTracking();
 
-            return await _truckSpendingService.GetAll()
-                                              .Include(t => t.Truck)
-                                              .ToDictionaryAsync(
-                                                           t => t.TruckSpendingID,
-                                                           t => t.TruckSpendingID.ToString() + " - " + (t.Truck?.LicensePlate ?? "Not Assigned")
-                                                         );
+            if (driverId.HasValue)
+                query = query.Where(t => t.DriverID == driverId.Value);
+
+            return await query
+                .OrderByDescending(t => t.LicensePlate)
+                .Select(t => new NotificationSelectOption(t.TruckID, $"{t.TruckID} - {t.LicensePlate}"))
+                .ToListAsync();
         }
 
-        private async Task<IDictionary<Guid, string>> GetPayments()
+        private async Task<List<NotificationSelectOption>> FetchCoursesAsync(Guid truckId)
         {
-            return await _paymentService.GetAll()
-                                        .Include(t => t.Order)
-                                        .ToDictionaryAsync(
-                                                          t => t.PaymentID,
-                                                          t => t.Order.OrderID.ToString() + " - " + t.OrderID.ToString()
-                                                        );
+            return await _truckCourseService.GetAll().AsNoTracking()
+                .Where(c => c.TruckID == truckId)
+                .OrderByDescending(c => c.AssignedDate)
+                .Select(c => new NotificationSelectOption(c.TruckCourseID, $"{c.TruckCourseID} - {c.AssignedDate.ToString("g")}"))
+                .ToListAsync();
         }
 
-        private async Task<IDictionary<Guid, string>> GetCourses()
+        private async Task<List<NotificationSelectOption>> FetchTruckSpendingsAsync(Guid truckId, Guid? courseId)
         {
-            return await _truckCourseService.GetAll()
-                                            .Include(t => t.Truck)
-                                            .ToDictionaryAsync(
-                                                           t => t.TruckCourseID,
-                                                           t => t.TruckCourseID.ToString() + " - " + (t.Truck?.LicensePlate ?? "Not Assigned")
-                                                         );
+            var query = _truckSpendingService.GetAll().AsNoTracking()
+                .Where(s => s.TruckID == truckId);
+
+            if (courseId.HasValue)
+                query = query.Where(s => s.TruckCourseID == courseId.Value);
+
+            return await query
+                .OrderByDescending(s => s.PaymentDate)
+                .Select(s => new NotificationSelectOption(s.TruckSpendingID, $"{s.TruckSpendingID} - {s.Amount.ToString("C")}"))
+                .ToListAsync();
+        }
+
+        private async Task<HashSet<string>?> GetUserRoles(Guid? userId)
+        {
+            if (!userId.HasValue)
+            {
+                return null;
+            }
+
+            ApplicationUser? user = await _userManager.FindByIdAsync(userId.Value.ToString());
+            if (user == null)
+            {
+                return null;
+            }
+
+            return (await _userManager.GetRolesAsync(user)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static object? BuildOptions(IEnumerable<NotificationSelectOption>? options)
+        {
+            if (options == null)
+                return null;
+
+            return new
+            {
+                all = options
+                    .OrderBy(o => o.Text)
+                    .Select(o => new { id = o.Id, text = o.Text })
+            };
+        }
+
+        private sealed record NotificationSelectOption(Guid Id, string Text);
+
+        private async Task RepopulateViewModelListsAsync(AdminCreateNotificationViewModel model)
+        {
+
+            model.Receivers = await GetUsers();
+
+
+            model.Orders = (await FetchOrdersAsync(userId: null)).ToDictionary(o => o.Id, o => o.Text);
+            model.Trucks = (await FetchTrucksAsync(driverId: null)).ToDictionary(t => t.Id, t => t.Text);
+
+            if (model.OrderId.HasValue)
+            {
+                model.Payments = (await FetchPaymentsAsync(model.OrderId.Value)).ToDictionary(p => p.Id, p => p.Text);
+            }
+            else
+            {
+                model.Payments = new Dictionary<Guid, string>();
+            }
+
+            if (model.TruckId.HasValue)
+            {
+                model.Courses = (await FetchCoursesAsync(model.TruckId.Value)).ToDictionary(c => c.Id, c => c.Text);
+
+                model.TruckSpendings = (await FetchTruckSpendingsAsync(model.TruckId.Value, model.CourseId)).ToDictionary(s => s.Id, s => s.Text);
+            }
+            else
+            {
+                model.Courses = new Dictionary<Guid, string>();
+                model.TruckSpendings = new Dictionary<Guid, string>();
+            }
         }
 
     }

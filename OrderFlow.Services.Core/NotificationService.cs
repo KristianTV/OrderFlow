@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
+using OrderFlow.Data.Models.Enums;
 using OrderFlow.Data.Repository;
 using OrderFlow.Services.Core.Commands;
 using OrderFlow.Services.Core.Contracts;
@@ -222,7 +224,137 @@ namespace OrderFlow.Services.Core
                 throw new InvalidOperationException("Truck Spending not found.");
             }
 
+            HashSet<string> receiverRoles = await GetReceiverRolesAsync(createNotification.ReceiverId);
+            bool isStaffReceiver = receiverRoles.Contains(UserRoles.Admin.ToString()) ||
+                                   receiverRoles.Contains(UserRoles.Speditor.ToString());
+            bool isDriverReceiver = receiverRoles.Contains(UserRoles.Driver.ToString()) && !isStaffReceiver;
+            bool isRegularUserReceiver = receiverRoles.Contains(UserRoles.User.ToString()) && !isStaffReceiver;
+
+            if (createNotification.OrderId.HasValue)
+            {
+                Guid orderOwnerId = await this.All<Order>()
+                                              .Where(order => order.OrderID == createNotification.OrderId.Value)
+                                              .Select(order => order.UserID)
+                                              .SingleAsync();
+
+                if (isRegularUserReceiver && orderOwnerId != createNotification.ReceiverId)
+                {
+                    throw new InvalidOperationException("Order does not belong to the selected user.");
+                }
+            }
+
+            if (createNotification.PaymentId.HasValue)
+            {
+                Guid paymentOrderId = await this.All<Payment>()
+                                                .Where(payment => payment.PaymentID == createNotification.PaymentId.Value)
+                                                .Select(payment => payment.OrderID)
+                                                .SingleAsync();
+
+                if (createNotification.OrderId.HasValue && paymentOrderId != createNotification.OrderId.Value)
+                {
+                    throw new InvalidOperationException("Payment does not belong to the selected order.");
+                }
+
+                if (isRegularUserReceiver)
+                {
+                    bool paymentBelongsToReceiver = await this.All<Order>()
+                                                              .AnyAsync(order => order.OrderID == paymentOrderId &&
+                                                                                 order.UserID == createNotification.ReceiverId);
+
+                    if (!paymentBelongsToReceiver)
+                    {
+                        throw new InvalidOperationException("Payment does not belong to the selected user's order.");
+                    }
+                }
+            }
+
+            if (createNotification.TruckId.HasValue)
+            {
+                Guid driverId = await this.All<Truck>()
+                                          .Where(truck => truck.TruckID == createNotification.TruckId.Value)
+                                          .Select(truck => truck.DriverID)
+                                          .SingleAsync();
+
+                if (isDriverReceiver && driverId != createNotification.ReceiverId)
+                {
+                    throw new InvalidOperationException("Truck does not belong to the selected driver.");
+                }
+            }
+
+            if (createNotification.CourseId.HasValue)
+            {
+                Guid? courseTruckId = await this.All<TruckCourse>()
+                                                .Where(course => course.TruckCourseID == createNotification.CourseId.Value)
+                                                .Select(course => course.TruckID)
+                                                .SingleAsync();
+
+                if (createNotification.TruckId.HasValue && courseTruckId != createNotification.TruckId.Value)
+                {
+                    throw new InvalidOperationException("Course does not belong to the selected truck.");
+                }
+
+                if (isDriverReceiver)
+                {
+                    bool courseBelongsToDriver = courseTruckId.HasValue &&
+                                                 await this.All<Truck>()
+                                                           .AnyAsync(truck => truck.TruckID == courseTruckId.Value &&
+                                                                              truck.DriverID == createNotification.ReceiverId);
+
+                    if (!courseBelongsToDriver)
+                    {
+                        throw new InvalidOperationException("Course does not belong to the selected driver's truck.");
+                    }
+                }
+            }
+
+            if (createNotification.TruckSpendingId.HasValue)
+            {
+                var spending = await this.All<TruckSpending>()
+                                         .Where(truckSpending => truckSpending.TruckSpendingID == createNotification.TruckSpendingId.Value)
+                                         .Select(truckSpending => new
+                                         {
+                                             truckSpending.TruckID,
+                                             truckSpending.TruckCourseID
+                                         })
+                                         .SingleAsync();
+
+                if (createNotification.TruckId.HasValue && spending.TruckID != createNotification.TruckId.Value)
+                {
+                    throw new InvalidOperationException("Truck spending does not belong to the selected truck.");
+                }
+
+                if (createNotification.CourseId.HasValue && spending.TruckCourseID != createNotification.CourseId.Value)
+                {
+                    throw new InvalidOperationException("Truck spending does not belong to the selected course.");
+                }
+
+                if (isDriverReceiver)
+                {
+                    bool spendingBelongsToDriver = spending.TruckID.HasValue &&
+                                                   await this.All<Truck>()
+                                                             .AnyAsync(truck => truck.TruckID == spending.TruckID.Value &&
+                                                                                truck.DriverID == createNotification.ReceiverId);
+
+                    if (!spendingBelongsToDriver)
+                    {
+                        throw new InvalidOperationException("Truck spending does not belong to the selected driver's truck.");
+                    }
+                }
+            }
+
             return true;
+        }
+
+        private async Task<HashSet<string>> GetReceiverRolesAsync(Guid receiverId)
+        {
+            return await this.All<IdentityUserRole<Guid>>()
+                             .Where(userRole => userRole.UserId == receiverId)
+                             .Join(
+                                 this.All<IdentityRole<Guid>>(),
+                                 userRole => userRole.RoleId,
+                                 role => role.Id,
+                                 (userRole, role) => role.Name ?? string.Empty)
+                             .ToHashSetAsync(StringComparer.OrdinalIgnoreCase);
         }
 
         public async Task<bool> UpdateNotificationAsync(AdminCreateNotificationViewModel createNotification, Guid notification, Guid userId)
