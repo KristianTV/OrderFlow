@@ -66,35 +66,37 @@
                             </tr>
                         </thead>
                         <tbody class="align-middle">
-                            @for (int i = 0; i < Model.Orders?.Count; i++)
-                            {
-                                <tr>
-                                    <td>
-                                        <div class="form-check d-flex justify-content-center">
+                                @foreach (var order in Model.Orders!)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="form-check d-flex justify-content-center">
                                             <input class="form-check-input order-checkbox fs-5"
                                                    type="checkbox"
-                                                   asp-for="Orders[i].IsSelected"
-                                                   data-load="@Model.Orders[i].LoadCapacity" />
+                                                   asp-for="@order.IsSelected"
+                                                   disabled="@(order.IsSelected)"
+                                                   data-load="@order.LoadCapacity" />
 
-                                            <input type="hidden" asp-for="Orders[i].OrderID" />
-                                            <input type="hidden" asp-for="Orders[i].LoadCapacity" />
+                                            <input type="hidden" asp-for="@order.OrderID" />
+                                            <input type="hidden" asp-for="@order.LoadCapacity" />
                                         </div>
                                     </td>
 
-                                    <td>@Model.Orders[i].PickupAddress</td>
-                                    <td>@Model.Orders[i].DeliveryAddress</td>
+                                    <td>@order.PickupAddress</td>
+                                    <td>@order.DeliveryAddress</td>
                                     <td>
                                         <span class="badge bg-info">
-                                            @Model.Orders[i].LoadCapacity
+                                            @order.LoadCapacity
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge @GetStatusBadgeClass(Model.Orders[i].OrderStatus)">
-                                            @Model.Orders[i].OrderStatus
+                                        <span class="badge @GetStatusBadgeClass(order.OrderStatus)">
+                                            @order.OrderStatus
                                         </span>
                                     </td>
                                 </tr>
                             }
+                            
                         </tbody>
                     </table>
                 
