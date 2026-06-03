@@ -7,6 +7,7 @@ using Moq;
 using OrderFlow.Areas.Admin.Controllers;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
+using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core;
 using OrderFlow.Services.Core.Contracts;
 using AdminDashboardController = OrderFlow.Areas.Admin.Controllers.DashboardController;
@@ -60,6 +61,7 @@ namespace OrderFlow.Tests.Controllers
             var controller = new UserController(
                 Mock.Of<ILogger<UserController>>(),
                 Mock.Of<IAccountService>(),
+                Mock.Of<IMailService>(),
                 CreateUserManagerMock().Object,
                 CreateSignInManagerMock().Object);
             controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
@@ -171,7 +173,8 @@ namespace OrderFlow.Tests.Controllers
                 Mock.Of<ITruckCourseService>(),
                 Mock.Of<ITruckSpendingService>(),
                 Mock.Of<IPaymentService>(),
-                CreateUserManagerMock().Object);
+                CreateUserManagerMock().Object,
+                Mock.Of<IMessageService>());
 
             var result = await controller.Detail("bad-id");
 

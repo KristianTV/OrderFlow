@@ -16,13 +16,19 @@ builder.Services.AddDbContext<OrderFlowDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = true;
+    options.User.RequireUniqueEmail = true;
+})
     .AddEntityFrameworkStores<OrderFlowDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(2));
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
+builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();

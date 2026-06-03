@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OrderFlow.Data.Models;
+using OrderFlow.Helpers;
+using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.Services.Core.Extensions;
 using OrderFlow.ViewModels.User;
@@ -12,17 +14,20 @@ namespace OrderFlow.Controllers
     {
         private readonly ILogger<UserController> _logger;
         private readonly IAccountService _accountService;
+        private readonly IMailService _mailService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
 
         public UserController(
             ILogger<UserController> logger,
             IAccountService accountService,
+            IMailService mailService,
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager)
         {
             _logger = logger;
             _accountService = accountService;
+            _mailService = mailService;
             _userManager = userManager;
             _signInManager = signInManager;
         }
@@ -287,7 +292,7 @@ namespace OrderFlow.Controllers
         }
 
         [HttpGet]
-        public IActionResult ChangePassword()
+        public async Task<IActionResult> ChangePassword()
         {
             return View();
         }
@@ -324,6 +329,118 @@ namespace OrderFlow.Controllers
 
             return RedirectToAction(nameof(Profile), "User");
         }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                return BadRequest();
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var isTokenValid = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token);
+
+            if (!isTokenValid)
+            {
+                return BadRequest();
+            }
+
+            ViewBag.Email = email;
+            ViewBag.Token = token;
+
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            if (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Token))
+            {
+                return BadRequest();
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var isTokenValid = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", model.Token);
+
+            if (!isTokenValid)
+            {
+                return BadRequest();
+            }
+
+            var resetPasswordResult = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+
+            if (!resetPasswordResult.Succeeded)
+            {
+                foreach (var error in resetPasswordResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                return View(model);
+            }
+
+            return RedirectToAction("Login", "User");
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest();
+
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                if (user is null)
+                    return BadRequest();
+
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                var callbackUrl = Url.Action("ResetPassword", "User", new { token = token, email = model.Email }, protocol: HttpContext.Request.Scheme) ?? "#";
+                var privacyPolicyUrl = Url.Action("Privacy", "", new { }, protocol: HttpContext.Request.Scheme) ?? "#";
+
+                await _mailService.SendMail(user.Email!, "Reset Password", EmailTemplates.ResetPassword(callbackUrl, privacyPolicyUrl));
+
+                return RedirectToAction("Login", "User");
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

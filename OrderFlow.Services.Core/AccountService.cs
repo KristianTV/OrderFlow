@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
@@ -160,26 +160,35 @@ namespace OrderFlow.Services.Core
 
             if (user.AccountType == AccountType.Personal)
             {
-                PersonalProfile personalProfile = await this.GetProfile<PersonalProfile>().FirstOrDefaultAsync(p => p.UserId == user.Id) ?? throw new InvalidOperationException("User profile not found.");
-
-                this.Delete(personalProfile);
+                PersonalProfile? personalProfile = await this.GetProfile<PersonalProfile>().FirstOrDefaultAsync(p => p.UserId == user.Id);
+                if (personalProfile != null)
+                {
+                    this.Delete(personalProfile);
+                }
             }
             else
             {
-                CompanyProfile companyProfile = await this.GetProfile<CompanyProfile>().FirstOrDefaultAsync(c => c.UserId == user.Id) ?? throw new InvalidOperationException("User profile not found."); ;
-
-                this.Delete(companyProfile);
+                CompanyProfile? companyProfile = await this.GetProfile<CompanyProfile>().FirstOrDefaultAsync(c => c.UserId == user.Id);
+                if (companyProfile != null)
+                {
+                    this.Delete(companyProfile);
+                }
             }
 
-            var result = await _userManager.DeleteAsync(user);
+            user.UserName = $"Deleted_{user.Id.ToString().Substring(0, 8)}";
+            user.NormalizedUserName = user.UserName.ToUpper();
+            user.Email = $"deleted_{user.Id.ToString().Substring(0, 8)}@orderflow.com";
+            user.NormalizedEmail = user.Email.ToUpper();
+            user.PhoneNumber = null;
+            user.PasswordHash = null;
+
+            await _userManager.SetLockoutEnabledAsync(user, true);
+
+            var result = await _userManager.UpdateAsync(user);
 
             if (result.Succeeded)
             {
-                var saveResult = await this.SaveChangesAsync();
-                if (saveResult <= 0)
-                {
-                    return IdentityResult.Failed(new IdentityError { Description = "Failed to delete user profile." });
-                }
+                await this.SaveChangesAsync();
             }
             return result;
         }
