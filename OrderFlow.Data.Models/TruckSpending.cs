@@ -16,6 +16,8 @@ namespace OrderFlow.Data.Models
 
         public DateTime PaymentDate { get; set; }
 
+        public TruckSpendingsType SpendingType { get; set; }
+
         public string PaymentDescription { get; set; } = string.Empty;
 
         public PaymentMethods PaymentMethod { get; set; }

@@ -23,12 +23,15 @@ namespace OrderFlow.ViewModels.TruckSpending
         [Display(Name = "Payment Date")]
         public DateTime PaymentDate { get; set; } = DateTime.UtcNow.Date;
 
+        [Display(Name = "Spending Type")]
+        [Required(ErrorMessage = ErrorMessages.PropertyIsRequired)]
+        public TruckSpendingsType SpendingType { get; set; }
+
         [StringLength(ValidationConstants.TruckSpending.PaymentDescriptionMaxLength,
                       MinimumLength = ValidationConstants.TruckSpending.PaymentDescriptionMinLength,
                       ErrorMessage = ErrorMessages.StringLengthRange)]
-        [Required(ErrorMessage = ErrorMessages.PropertyIsRequired)]
         [Display(Name = "Description")]
-        public string PaymentDescription { get; set; } = string.Empty;
+        public string? PaymentDescription { get; set; } = string.Empty;
 
         [Required(ErrorMessage = ErrorMessages.PropertyIsRequired)]
         [Display(Name = "Payment Method")]

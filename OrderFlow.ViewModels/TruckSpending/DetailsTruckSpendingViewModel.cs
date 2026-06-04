@@ -1,3 +1,5 @@
+using OrderFlow.Data.Models.Enums;
+
 namespace OrderFlow.ViewModels.TruckSpending
 {
     public class DetailsTruckSpendingViewModel
@@ -15,6 +17,8 @@ namespace OrderFlow.ViewModels.TruckSpending
         public decimal Amount { get; set; }
 
         public DateTime PaymentDate { get; set; }
+
+        public TruckSpendingsType SpendingType { get; set; }
 
         public string PaymentDescription { get; set; } = string.Empty;
 

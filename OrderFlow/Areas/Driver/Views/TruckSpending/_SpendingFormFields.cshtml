@@ -45,8 +45,14 @@
     <span asp-validation-for="PaymentMethod" class="text-danger mt-1 d-block"></span>
 </div>
 
+<div class="mb-3">
+    <label asp-for="SpendingType" class="form-label"></label>
+    <select asp-for="SpendingType" asp-items="Html.GetEnumSelectList<TruckSpendingsType>()" class="form-select"></select>
+    <span asp-validation-for="SpendingType" class="text-danger mt-1 d-block"></span>
+</div>
+
 <div class="mb-4">
     <label asp-for="PaymentDescription" class="form-label"></label>
-    <textarea asp-for="PaymentDescription" class="form-control" rows="3" placeholder="Fuel, repair, tolls, maintenance"></textarea>
+    <textarea asp-for="PaymentDescription" class="form-control" rows="3" placeholder="Enter specific details (e.g., Invoice #, gas station name, specific part replaced)..."></textarea>
     <span asp-validation-for="PaymentDescription" class="text-danger mt-1 d-block"></span>
 </div>

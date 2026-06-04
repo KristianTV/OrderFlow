@@ -18,8 +18,11 @@ namespace OrderFlow.Data.Configuration
             builder.Property(ts => ts.PaymentDate)
                    .IsRequired();
 
+            builder.Property(ts => ts.SpendingType)
+                   .IsRequired();
+
             builder.Property(ts => ts.PaymentDescription)
-                   .IsRequired()
+                   .IsRequired(false)
                    .HasMaxLength(ValidationConstants.TruckSpending.PaymentDescriptionMaxLength);
 
             builder.Property(ts => ts.PaymentMethod)

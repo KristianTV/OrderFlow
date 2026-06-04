@@ -42,7 +42,7 @@ namespace OrderFlow.Services.Core
                                                                     : "Not course related",
                 Amount = spending.Amount,
                 PaymentDate = spending.PaymentDate,
-                PaymentDescription = spending.PaymentDescription,
+                SpendingType = spending.SpendingType,
                 PaymentMethod = spending.PaymentMethod.ToString()
             }).ToListAsync();
         }
@@ -68,6 +68,7 @@ namespace OrderFlow.Services.Core
                                      : "Not course related",
                                  Amount = spending.Amount,
                                  PaymentDate = spending.PaymentDate,
+                                 SpendingType = spending.SpendingType,
                                  PaymentDescription = spending.PaymentDescription,
                                  PaymentMethod = spending.PaymentMethod.ToString()
                              })
@@ -91,6 +92,7 @@ namespace OrderFlow.Services.Core
                                  Amount = spending.Amount,
                                  PaymentDate = spending.PaymentDate,
                                  PaymentDescription = spending.PaymentDescription,
+
                                  PaymentMethod = spending.PaymentMethod
                              })
                              .SingleOrDefaultAsync();
@@ -114,6 +116,7 @@ namespace OrderFlow.Services.Core
                 TruckID = model.TruckID,
                 TruckCourseID = model.TruckCourseID,
                 Amount = model.Amount,
+                SpendingType = model.SpendingType,
                 PaymentDate = model.PaymentDate,
                 PaymentDescription = model.PaymentDescription,
                 PaymentMethod = model.PaymentMethod
@@ -144,6 +147,7 @@ namespace OrderFlow.Services.Core
             spending.TruckCourseID = model.TruckCourseID;
             spending.Amount = model.Amount;
             spending.PaymentDate = model.PaymentDate;
+            spending.SpendingType = model.SpendingType;
             spending.PaymentDescription = model.PaymentDescription;
             spending.PaymentMethod = model.PaymentMethod;
 
