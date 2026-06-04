@@ -34,7 +34,8 @@ namespace OrderFlow.Tests.Services
                 _orderService,
                 new Mock<INotificationService>().Object,
                 _truckService,
-                new Mock<ICourseOrderService>().Object);
+                new Mock<ICourseOrderService>().Object,
+                new Mock<IPaymentService>().Object);
 
             await SeedDataAsync();
         }

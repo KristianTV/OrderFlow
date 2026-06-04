@@ -97,12 +97,14 @@ namespace OrderFlow.Tests.Controllers
             var orderService = new OrderService(_context, notificationService);
             var truckService = new TruckService(_context);
             var courseOrderService = new CourseOrderService(_context, orderService);
+            var paymentService = Mock.Of<IPaymentService>();
             var truckCourseService = new TruckCourseService(
                 _context,
                 orderService,
                 notificationService,
                 truckService,
-                courseOrderService);
+                courseOrderService,
+                paymentService);
             var controller = new DriverDashboardController(
                 Mock.Of<ILogger<DriverDashboardController>>(),
                 truckCourseService,
