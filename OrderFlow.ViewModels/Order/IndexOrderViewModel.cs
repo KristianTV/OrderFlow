@@ -11,6 +11,8 @@
 
         public string Status { get; set; } = "Pending";
 
+        public double LoadCapacity { get; set; } = 0;
+
         public bool isCanceled { get; set; } = false;
     }
 }

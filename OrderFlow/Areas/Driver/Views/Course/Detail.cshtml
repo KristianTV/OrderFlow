@@ -90,6 +90,7 @@
                             <tr>
                                 <th scope="col">Order ID</th>
                                 <th scope="col">Status</th>
+                                <th scope="col">Load Capacity</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -98,6 +99,7 @@
                                 <tr>
                                     <td>@assinedOrders.OrderID</td>
                                     <td><span class="badge @GetOrderStatusBadgeClass(assinedOrders.Status.ToString()) fs-6">@assinedOrders.Status.ToString()</span></td>
+                                    <td>@assinedOrders.LoadCapacity.ToString("F2")</td>
                                 </tr>
                             }
                         </tbody>

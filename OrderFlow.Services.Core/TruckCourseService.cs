@@ -124,7 +124,8 @@ namespace OrderFlow.Services.Core
                     DeliveryAddress = co.Order.DeliveryAddress,
                     PickupAddress = co.Order.PickupAddress,
                     Status = co.Order.Status.ToString(),
-                    isCanceled = co.Order.IsCanceled
+                    isCanceled = co.Order.IsCanceled,
+                    LoadCapacity = co.Order.LoadCapacity
                 }).ToList(),
             })
                                .SingleOrDefaultAsync();
