@@ -66,32 +66,32 @@
                             </tr>
                         </thead>
                         <tbody class="align-middle">
-                                @foreach (var order in Model.Orders!)
+                            @for (int i = 0; i < Model.Orders!.Count; i++)
                                 {
                                     <tr>
                                         <td>
                                             <div class="form-check d-flex justify-content-center">
                                             <input class="form-check-input order-checkbox fs-5"
                                                    type="checkbox"
-                                                   asp-for="@order.IsSelected"
-                                                   disabled="@(order.IsSelected)"
-                                                   data-load="@order.LoadCapacity" />
+                                                   asp-for="@Model.Orders[i].IsSelected"
+                                                   disabled="@(Model.Orders[i].IsSelected)"
+                                                   data-load="@Model.Orders[i].LoadCapacity" />
 
-                                            <input type="hidden" asp-for="@order.OrderID" />
-                                            <input type="hidden" asp-for="@order.LoadCapacity" />
+                                            <input type="hidden" asp-for="@Model.Orders[i].OrderID" />
+                                            <input type="hidden" asp-for="@Model.Orders[i].LoadCapacity" />
                                         </div>
                                     </td>
 
-                                    <td>@order.PickupAddress</td>
-                                    <td>@order.DeliveryAddress</td>
+                                    <td>@Model.Orders[i].PickupAddress</td>
+                                    <td>@Model.Orders[i].DeliveryAddress</td>
                                     <td>
                                         <span class="badge bg-info">
-                                            @order.LoadCapacity
+                                            @Model.Orders[i].LoadCapacity
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge @GetStatusBadgeClass(order.OrderStatus)">
-                                            @order.OrderStatus
+                                        <span class="badge @GetStatusBadgeClass(Model.Orders[i].OrderStatus)">
+                                            @Model.Orders[i].OrderStatus
                                         </span>
                                     </td>
                                 </tr>
@@ -134,7 +134,7 @@
     const remainingElement = document.getElementById("remainingCapacity");
     const checkboxes = document.querySelectorAll(".order-checkbox");
 
-    function updateCapacity() {
+    function updateCapacity(e) {
         let total = 0;
 
         checkboxes.forEach(cb => {
@@ -145,8 +145,9 @@
 
         if (total > maxCapacity) {
             alert("Capacity exceeded! You cannot load more orders.");
-
-            event.target.checked = false;
+            if (e && e.target) {
+            e.target.checked = false;
+            }
             return;
         }
 
@@ -155,7 +156,7 @@
     }
 
     checkboxes.forEach(cb => {
-        cb.addEventListener("change", updateCapacity);
+        cb.addEventListener("change", (e) => updateCapacity(e));
 
         cb.addEventListener("change", function () {
             const row = this.closest("tr");
