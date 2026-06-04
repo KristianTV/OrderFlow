@@ -17,17 +17,20 @@ namespace OrderFlow.Services.Core
         private readonly INotificationService _notificationService;
         private readonly ITruckService _truckService;
         private readonly ICourseOrderService _courseOrderService;
+        private readonly IPaymentService _paymentService;
         public TruckCourseService(OrderFlowDbContext _context,
             IOrderService orderService,
             INotificationService notificationService,
             ITruckService truckService,
-            ICourseOrderService _courseOrderService
+            ICourseOrderService _courseOrderService,
+            IPaymentService _paymentService
             ) : base(_context)
         {
             this._orderService = orderService;
             this._notificationService = notificationService;
             this._truckService = truckService;
             this._courseOrderService = _courseOrderService;
+            this._paymentService = _paymentService;
         }
 
         public IQueryable<TruckCourse> GetAll()
@@ -236,6 +239,8 @@ namespace OrderFlow.Services.Core
             course.DeliveryDate = DateTime.UtcNow;
 
             await _orderService.CompleteMultipleOrdersAsync(course.CourseOrders.Select(co => co.OrderID), course.TruckCourseID, false);
+
+            await _paymentService.CreateCoursePayoutAsync(course.CourseOrders.Select(co => co.OrderID), course, false);
 
             await _notificationService.SendSystemNotificationAsync(course.ToNotification($"Course {courseID} has been completed!", $"Course {courseID} has been completed!"), false);
 

@@ -15,5 +15,6 @@ namespace OrderFlow.Services.Core.Contracts
         Task<bool> DeletePaymentAsync(Guid paymentId);
         Task<bool> UpdatePaymentAsync(Guid paymentId, CreatePaymentViewModel createPayment);
         Task<Guid?> GetOrderIdByPaymentIdAsync(Guid paymentId);
+        Task CreateCoursePayoutAsync(IEnumerable<Guid> orderIds, TruckCourse course, bool save);
     }
 }

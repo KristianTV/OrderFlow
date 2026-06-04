@@ -244,5 +244,26 @@ namespace OrderFlow.Services.Core
 
             return payment.OrderID;
         }
+
+        public async Task CreateCoursePayoutAsync(IEnumerable<Guid> orderIds, TruckCourse course, bool save)
+        {
+            decimal payoutAmount = course.Income / orderIds.Count();
+
+            foreach (var orderId in orderIds)
+            {
+                await this.AddAsync(new Payment
+                {
+                    Amount = payoutAmount,
+                    PaymentDescription = "Transportation payout from " + course.PickupAddress + " to " + course.DeliverAddress + " (" + course.Truck?.LicensePlate + ")",
+                    OrderID = orderId,
+                    CreatedOn = DateTime.UtcNow
+                });
+            }
+
+            if (save)
+            {
+                await this.SaveChangesAsync();
+            }
+        }
     }
 }
