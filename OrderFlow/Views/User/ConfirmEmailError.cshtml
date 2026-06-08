@@ -1,0 +1,76 @@
+﻿@{
+    ViewData["Title"] = "Email confirmation failed";
+    Layout = "_Layout";
+}
+
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background:#f4f4f4;">
+    <div class="w-100" style="max-width:560px;">
+
+        <div class="card border-0 rounded-4 overflow-hidden shadow">
+
+            <div class="px-4 py-4 d-flex justify-content-between align-items-center" style="background:#0a0a0a;">
+                <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;">
+                    <span style="color:#6C63FF;">Order</span><span style="color:#A78BFA;">Flow</span>
+                </span>
+                <span class="text-uppercase fw-semibold" style="font-size:10px;color:#555;letter-spacing:1.5px;">
+                    Email Confirmation
+                </span>
+            </div>
+
+            <div style="height:4px;background:linear-gradient(to right,#6C63FF,#A78BFA);"></div>
+
+            <div class="card-body text-center px-5 py-5">
+
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
+                     style="width:72px;height:72px;background:linear-gradient(135deg,#ef4444,#dc2626);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+                         stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </div>
+
+                <p class="fw-semibold text-uppercase mb-1" style="font-size:12px;color:#ef4444;letter-spacing:1px;">
+                    Failed
+                </p>
+                <h1 class="fw-bold mb-3" style="font-family:Georgia,serif;font-size:26px;color:#0a0a0a;line-height:1.2;">
+                    Confirmation link<br>is invalid or expired
+                </h1>
+                <p class="text-secondary mx-auto mb-4" style="font-size:15px;line-height:1.7;max-width:360px;">
+                    This link may have already been used or has expired.
+                    Please register again or contact support if the problem persists.
+                </p>
+
+                <div class="text-start rounded-3 px-4 py-3 mb-4"
+                     style="background:#fef2f2;border:1px solid #fecaca;font-size:13px;color:#991b1b;line-height:1.6;">
+                    <strong>What can I do?</strong>
+                    <ul class="mb-0 mt-2 ps-3">
+                        <li>Check that you clicked the most recent confirmation email.</li>
+                        <li>Confirmation links expire after <strong>24 hours</strong>.</li>
+                        <li>If your link expired, register again to receive a new one.</li>
+                    </ul>
+                </div>
+
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a asp-action="Register" asp-controller="User"
+                       class="btn text-white px-4 py-3 fw-semibold"
+                       style="background:linear-gradient(to right,#6C63FF,#A78BFA);border:none;border-radius:8px;font-size:15px;">
+                        Register again &rarr;
+                    </a>
+                    <a asp-action="Index" asp-controller="Home"
+                       class="btn px-4 py-3 fw-semibold"
+                       style="border:1px solid #d1d5db;border-radius:8px;font-size:15px;color:#444;">
+                        Go to homepage
+                    </a>
+                </div>
+
+            </div>
+
+            <div class="px-4 py-3 d-flex justify-content-between align-items-center" style="background:#0a0a0a;">
+                <span style="font-size:12px;color:#555;">&copy; 2026 OrderFlow. All rights reserved.</span>
+                <a asp-action="Privacy" class="text-decoration-none" style="font-size:12px;color:#555;">Privacy</a>
+            </div>
+
+        </div>
+    </div>
+</div>

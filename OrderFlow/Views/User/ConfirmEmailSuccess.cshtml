@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = "Email confirmed";
+    Layout = "_Layout";
+}
+
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background:#f4f4f4;">
+    <div class="w-100" style="max-width:560px;">
+
+        <div class="card border-0 rounded-4 overflow-hidden shadow">
+
+            <div class="px-4 py-4 d-flex justify-content-between align-items-center" style="background:#0a0a0a;">
+                <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;">
+                    <span style="color:#6C63FF;">Order</span><span style="color:#A78BFA;">Flow</span>
+                </span>
+                <span class="text-uppercase fw-semibold" style="font-size:10px;color:#555;letter-spacing:1.5px;">
+                    Email Confirmed
+                </span>
+            </div>
+
+            <div style="height:4px;background:linear-gradient(to right,#6C63FF,#A78BFA);"></div>
+
+            <div class="card-body text-center px-5 py-5">
+
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
+                     style="width:72px;height:72px;background:linear-gradient(135deg,#6C63FF,#A78BFA);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+                         stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                </div>
+
+                <p class="fw-semibold text-uppercase mb-1" style="font-size:12px;color:#6C63FF;letter-spacing:1px;">
+                    Success
+                </p>
+                <h1 class="fw-bold mb-3" style="font-family:Georgia,serif;font-size:26px;color:#0a0a0a;line-height:1.2;">
+                    Your email has been<br>confirmed
+                </h1>
+                <p class="text-secondary mx-auto mb-4" style="font-size:15px;line-height:1.7;max-width:360px;">
+                    Your <strong>OrderFlow</strong> account is now active.
+                    You can sign in and start using the platform.
+                </p>
+
+                <a asp-action="Login" asp-controller="User"
+                   class="btn text-white px-5 py-3 fw-semibold"
+                   style="background:linear-gradient(to right,#6C63FF,#A78BFA);border:none;border-radius:8px;font-size:15px;">
+                    Sign in to your account &rarr;
+                </a>
+
+            </div>
+
+            <div class="px-4 py-3 d-flex justify-content-between align-items-center" style="background:#0a0a0a;">
+                <span style="font-size:12px;color:#555;">&copy; 2026 OrderFlow. All rights reserved.</span>
+                <a asp-action="Privacy" class="text-decoration-none" style="font-size:12px;color:#555;">Privacy</a>
+            </div>
+
+        </div>
+    </div>
+</div>

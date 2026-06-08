@@ -34,7 +34,7 @@ namespace OrderFlow.Services.Core
             {
                 Email = model.Email,
                 UserName = model.UserName,
-                EmailConfirmed = true,
+                EmailConfirmed = false,
                 AccountType = model.AccountType
             };
 

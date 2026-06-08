@@ -58,6 +58,22 @@ namespace OrderFlow.Controllers
 
             if (result.Succeeded)
             {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                if (user == null)
+                {
+                    _logger.LogWarning($"Unable to load user with email '{model.Email}' after registration.");
+                    return NotFound();
+                }
+
+                var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+                var callbackUrl = Url.Action("ConfirmEmail", "User", new { userId = user.Id, token = emailConfirmationToken }, protocol: HttpContext.Request.Scheme) ?? "#";
+
+                var privacyPolicyUrl = Url.Action("Privacy", "", new { }, protocol: HttpContext.Request.Scheme) ?? "#";
+
+                await _mailService.SendMailAsync(model.Email, "Confirm your email", EmailTemplates.ConfirmEmail(callbackUrl, privacyPolicyUrl));
+
                 return RedirectToAction("Login", "User");
             }
 
@@ -68,6 +84,25 @@ namespace OrderFlow.Controllers
             }
 
             return View(model);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (userId == null || token == null)
+                return RedirectToPage("/Index");
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound($"Unable to load user with ID '{userId}'.");
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            if (!result.Succeeded) throw new InvalidOperationException("Error confirming email.");
+
+            if (!result.Succeeded)
+                return View("ConfirmEmailError");
+
+            return View("ConfirmEmailSuccess");
         }
 
         [HttpGet]
@@ -103,6 +138,12 @@ namespace OrderFlow.Controllers
 
             if (user != null)
             {
+                if (!await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    ModelState.AddModelError("", "You must confirm your email before logging in.");
+                    return View(model);
+                }
+
                 var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
 
                 if (result.Succeeded)
