@@ -1,4 +1,6 @@
 ﻿using MailKit.Net.Smtp;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MimeKit;
 using OrderFlow.Services.Contracts;
 
