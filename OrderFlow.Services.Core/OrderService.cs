@@ -2,6 +2,7 @@
 using OrderFlow.Data;
 using OrderFlow.Data.Models.Enums;
 using OrderFlow.Data.Repository;
+using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.Services.Core.Extensions;
 using OrderFlow.ViewModels.Order;
@@ -13,7 +14,7 @@ namespace OrderFlow.Services.Core
     {
         private readonly INotificationService _notificationService;
 
-        public OrderService(OrderFlowDbContext _context, INotificationService notificationService) : base(_context)
+        public OrderService(OrderFlowDbContext _context, IMailService mailService, INotificationService notificationService) : base(_context)
         {
             _notificationService = notificationService;
         }
@@ -85,6 +86,7 @@ namespace OrderFlow.Services.Core
         public async Task<bool> ChangeStatusToCompletedAsync(Guid? orderID, bool save = true)
         {
             if (orderID == null || orderID == Guid.Empty)
+
                 return false;
 
             Order? order = await this.GetTrackingOrderByIdAsync(orderID);
@@ -97,7 +99,7 @@ namespace OrderFlow.Services.Core
                 order.Status = OrderStatus.Completed;
                 order.DeliveryDate = DateTime.UtcNow;
 
-                await _notificationService.SendSystemNotificationAsync(order.ToNotification($"Order status changed to {OrderStatus.Completed}",
+                await _notificationService.SendSystemNotificationAsync(order.ToNotification($"Order {orderID} has beed Completed",
                                                                                             $"Order status changed to {OrderStatus.Completed}"),
                                                                                            false);
                 if (save)

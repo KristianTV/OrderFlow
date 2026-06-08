@@ -400,6 +400,13 @@ namespace OrderFlow.Controllers
                 return View(model);
             }
 
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var callbackUrl = Url.Action("ResetPassword", "User", new { token = token, email = model.Email }, protocol: HttpContext.Request.Scheme) ?? "#";
+            string privacyPolicyUrl = Url.Action("Privacy", "", new { }, protocol: HttpContext.Request.Scheme) ?? "#";
+
+            await _mailService.SendMailAsync(user.Email!, "Password Reset Successful", EmailTemplates.PasswordChanged(this.GetUserName() ?? "User", DateTime.UtcNow.ToString("f"), this.GetIpAddress() ?? "", callbackUrl, privacyPolicyUrl));
+
             return RedirectToAction("Login", "User");
         }
 
@@ -430,7 +437,7 @@ namespace OrderFlow.Controllers
                 var callbackUrl = Url.Action("ResetPassword", "User", new { token = token, email = model.Email }, protocol: HttpContext.Request.Scheme) ?? "#";
                 var privacyPolicyUrl = Url.Action("Privacy", "", new { }, protocol: HttpContext.Request.Scheme) ?? "#";
 
-                await _mailService.SendMail(user.Email!, "Reset Password", EmailTemplates.ResetPassword(callbackUrl, privacyPolicyUrl));
+                await _mailService.SendMailAsync(user.Email!, "Reset Password", EmailTemplates.ResetPassword(callbackUrl, privacyPolicyUrl));
 
                 return RedirectToAction("Login", "User");
             }

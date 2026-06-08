@@ -23,6 +23,39 @@ namespace OrderFlow.Controllers
             return User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
 
+        protected string? GetUserEmail()
+        {
+            bool isAuthenticated = this.IsUserAuthenticated();
+            if (!isAuthenticated)
+            {
+                return null;
+            }
+            return User.FindFirstValue(ClaimTypes.Email);
+        }
 
+        protected string? GetUserName()
+        {
+            bool isAuthenticated = this.IsUserAuthenticated();
+            if (!isAuthenticated)
+            {
+                return null;
+            }
+            return User.FindFirstValue(ClaimTypes.Name);
+        }
+
+        protected string? GetUserRole()
+        {
+            bool isAuthenticated = this.IsUserAuthenticated();
+            if (!isAuthenticated)
+            {
+                return null;
+            }
+            return User.FindFirstValue(ClaimTypes.Role);
+        }
+
+        protected string? GetIpAddress()
+        {
+            return HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
     }
 }

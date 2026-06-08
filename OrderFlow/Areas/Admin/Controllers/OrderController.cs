@@ -14,13 +14,22 @@ namespace OrderFlow.Areas.Admin.Controllers
         private const int IndexPageSize = 12;
         private readonly ILogger<OrderController> _logger;
         private readonly IOrderService _orderService;
+        private readonly INotificationService _notificationService;
+        private readonly IMailService _mailService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IRealtimeNotifier _realtimeNotifier;
 
-        public OrderController(ILogger<OrderController> logger, IOrderService orderService, UserManager<ApplicationUser> userManager, IRealtimeNotifier? realtimeNotifier = null)
+        public OrderController(ILogger<OrderController> logger,
+                               IOrderService orderService,
+                               INotificationService notificationService,
+                               IMailService mailService,
+                               UserManager<ApplicationUser> userManager,
+                               IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _orderService = orderService;
+            _mailService = mailService;
+            _notificationService = notificationService;
             _userManager = userManager;
             _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
@@ -351,6 +360,14 @@ namespace OrderFlow.Areas.Admin.Controllers
             });
             await _realtimeNotifier.NotificationCountChangedAsync(orderUserId);
 
+            await _notificationService.SendSystemNotificationAsync(new Services.Core.Commands.NotificationCommand
+            {
+                ReceiverID = orderUserId,
+                Title = "Order Cancelled",
+                Message = $"Your order with ID {orderId} has been cancelled by an administrator. Please check the order details for more information.",
+                OrderID = orderId
+            });
+
             return RedirectToAction(nameof(Detail), "Order", new { id = id });
         }
 
@@ -401,6 +418,14 @@ namespace OrderFlow.Areas.Admin.Controllers
             {
                 await _realtimeNotifier.NotificationCountChangedAsync(reactivatedOrder.UserID);
             }
+
+            await _notificationService.SendSystemNotificationAsync(new Services.Core.Commands.NotificationCommand
+            {
+                ReceiverID = reactivatedOrder?.UserID ?? Guid.Empty,
+                Title = "Order Reactivated",
+                Message = $"Your order with ID {orderId} has been reactivated by an administrator. Please check the order details for more information.",
+                OrderID = orderId
+            });
 
             return RedirectToAction(nameof(Detail), "Order", new { id = id });
         }

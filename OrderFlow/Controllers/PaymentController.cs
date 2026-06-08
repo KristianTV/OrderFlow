@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OrderFlow.Data.Models.Enums;
+using OrderFlow.Helpers;
 using OrderFlow.Services;
 using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core.Contracts;
@@ -12,11 +13,16 @@ namespace OrderFlow.Controllers
         private readonly ILogger<PaymentController> _logger;
         private readonly IPaymentService _paymentService;
         private readonly IRealtimeNotifier _realtimeNotifier;
+        private readonly IMailService _mailService;
+        private readonly INotificationService _notificationService;
 
-        public PaymentController(ILogger<PaymentController> logger, IPaymentService paymentService, IRealtimeNotifier? realtimeNotifier = null)
+
+        public PaymentController(ILogger<PaymentController> logger, IPaymentService paymentService, IMailService mailService, INotificationService notificationService, IRealtimeNotifier? realtimeNotifier = null)
         {
             _logger = logger;
             _paymentService = paymentService;
+            _mailService = mailService;
+            _notificationService = notificationService;
             _realtimeNotifier = realtimeNotifier ?? NullRealtimeNotifier.Instance;
         }
 
@@ -95,7 +101,32 @@ namespace OrderFlow.Controllers
                         cardPayment.Amount = paymentFromDb.Amount;
                     }
 
+
                     ModelState.AddModelError(string.Empty, "Payment could not be completed. Check the card details, expiry date, order status, amount, and demo result.");
+
+                    string? userEmail = this.GetUserEmail();
+                    if (!string.IsNullOrEmpty(userEmail))
+                    {
+                        var privacyPolicyUrl = Url.Action("Privacy", "", new { }, protocol: HttpContext.Request.Scheme) ?? "#";
+
+                        await _mailService.SendMailAsync(userEmail,
+                                                         "Card Payment Failed",
+                                                         EmailTemplates.PaymentFailed(this.GetUserName() ?? "User",
+                                                                                      cardPayment.OrderId.ToString(),
+                                                                                      cardPayment.Amount.ToString("C"),
+                                                                                      "Payment could not be completed. Check the card details, expiry date, order status, amount, and demo result.",
+                                                                                      privacyPolicyUrl));
+                    }
+
+                    await _notificationService.SendSystemNotificationAsync(new Services.Core.Commands.NotificationCommand
+                    {
+                        Title = "Card Payment Failed",
+                        Message = $"Your card payment attempt for order {cardPayment.OrderId} was unsuccessful. Please check your card details and try again.",
+                        ReceiverID = userId,
+                        OrderID = cardPayment.OrderId,
+                        CanRespond = false
+                    });
+
                     return View(cardPayment);
                 }
 
@@ -108,6 +139,26 @@ namespace OrderFlow.Controllers
                     UserIds = new[] { userId },
                     Roles = new[] { UserRoles.Admin.ToString(), UserRoles.Speditor.ToString() }
                 });
+
+                await _notificationService.SendSystemNotificationAsync(new Services.Core.Commands.NotificationCommand
+                {
+                    Title = "Card Payment Successful",
+                    Message = $"Your card payment for order {cardPayment.OrderId} was successful. Thank you for your payment!",
+                    ReceiverID = userId,
+                    OrderID = cardPayment.OrderId,
+                    CanRespond = false
+                });
+
+                await _mailService.SendMailAsync(this.GetUserEmail() ?? string.Empty,
+                                                 "Card Payment Successful",
+                                                 EmailTemplates.PaymentSucceeded(this.GetUserName() ?? "User",
+                                                                                 cardPayment.OrderId.ToString(),
+                                                                                 DateTime.UtcNow.ToString("f"),
+                                                                                 cardPayment.Amount.ToString("C"),
+                                                                                 "Card",
+                                                                                 Url.Action("Detail", "Order", new { id = cardPayment.OrderId }, protocol: HttpContext.Request.Scheme) ?? "#",
+                                                                                 Url.Action("Privacy", "", new { }, protocol: HttpContext.Request.Scheme) ?? "#"));
+
                 return RedirectToAction("Detail", "Order", new { id = cardPayment.OrderId });
             }
             catch (Exception ex)

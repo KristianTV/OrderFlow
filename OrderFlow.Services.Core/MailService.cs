@@ -37,7 +37,7 @@ namespace OrderFlow.Services
             _from = new MailboxAddress("OrderFlow", _mail);
         }
 
-        public async Task SendMail(string to, string subject, string body)
+        public async Task SendMailAsync(string to, string subject, string body)
         {
             MimeMessage message = new MimeMessage();
 
