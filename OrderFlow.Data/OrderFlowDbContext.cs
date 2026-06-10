@@ -97,7 +97,7 @@ namespace OrderFlow.Data
                 LockoutEnabled = true,
                 AccessFailedCount = 0,
                 AccountType = AccountType.Personal,
-                PasswordHash = "AQAAAAIAAYagAAAAEHVYKQgsgG5GJLVN5GvdLD1kD2Vkx58fLxzi9jdmMH3wIbH4UsvW9+t3E4bfAXoVTQ=="
+                PasswordHash = "AQAAAAIAAYagAAAAEHVYKQgsgG5GJLVN5GvdLD1kD2Vkx58fLxzi9jdmMH3wIbH4UsvW9+t3E4bfAXoVTQ==" // Admin123!
             };
             builder.Entity<ApplicationUser>().HasData(adminUser);
 
@@ -117,7 +117,7 @@ namespace OrderFlow.Data
                 LockoutEnabled = true,
                 AccessFailedCount = 0,
                 AccountType = AccountType.Personal,
-                PasswordHash = "AQAAAAIAAYagAAAAEL9Ps09TT5d/dtrX80yK6H/KdC0Kh9Rr+tFJtAvD2MrWfoSrwAMJ/jJqYYa1GXJwlQ=="
+                PasswordHash = "AQAAAAIAAYagAAAAEL9Ps09TT5d/dtrX80yK6H/KdC0Kh9Rr+tFJtAvD2MrWfoSrwAMJ/jJqYYa1GXJwlQ=="// Speditor123!
             };
             builder.Entity<ApplicationUser>().HasData(speditorUser);
 
@@ -137,7 +137,7 @@ namespace OrderFlow.Data
                 LockoutEnabled = true,
                 AccessFailedCount = 0,
                 AccountType = AccountType.Personal,
-                PasswordHash = "AQAAAAIAAYagAAAAELc41rT3Vb6VnyQjCoTyd5iD6QA3wKspGtImItv6xC3ZdXKAOvBWj6ahbUytwMjo1A=="
+                PasswordHash = "AQAAAAIAAYagAAAAELc41rT3Vb6VnyQjCoTyd5iD6QA3wKspGtImItv6xC3ZdXKAOvBWj6ahbUytwMjo1A==" // Driver123!
             };
             builder.Entity<ApplicationUser>().HasData(driverUser);
 
@@ -157,9 +157,10 @@ namespace OrderFlow.Data
                 LockoutEnabled = true,
                 AccessFailedCount = 0,
                 AccountType = AccountType.Personal,
-                PasswordHash = "AQAAAAIAAYagAAAAEC+0D9crqWZFGHRJK+X/2FSbmoWYbBzxZ6t0shCx3/3ALqljPRuCq9yw0U4gkWuh8A=="
+                PasswordHash = "AQAAAAIAAYagAAAAEC+0D9crqWZFGHRJK+X/2FSbmoWYbBzxZ6t0shCx3/3ALqljPRuCq9yw0U4gkWuh8A==" // User123!
             };
             builder.Entity<ApplicationUser>().HasData(regularUser);
+
         }
 
         protected void SeedUserRoles(ModelBuilder modelBuilder)
@@ -171,5 +172,6 @@ namespace OrderFlow.Data
                 new IdentityUserRole<Guid> { UserId = RegularUserId, RoleId = UserRoleId }
             );
         }
+
     }
 }

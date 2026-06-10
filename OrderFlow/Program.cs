@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Hubs;
+using OrderFlow.Infrastructure;
 using OrderFlow.Services;
 using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core;
@@ -48,6 +49,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 var app = builder.Build();
+
+await OrderFlowDatabaseSeeder.SeedAsync(app.Services);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

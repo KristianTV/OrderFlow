@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using OrderFlow.Data.Models;
 using OrderFlow.Hubs;
+using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Course;
 using OrderFlow.ViewModels.Order;
@@ -65,6 +66,8 @@ namespace OrderFlow.Tests.Controllers
             var controller = new AdminOrderController(
                 Mock.Of<ILogger<AdminOrderController>>(),
                 orderService.Object,
+                Mock.Of<INotificationService>(),
+                Mock.Of<IMailService>(),
                 CreateUserManagerMock().Object);
 
             var result = await controller.Detail(orderId.ToString());

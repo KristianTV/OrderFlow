@@ -75,7 +75,7 @@ namespace OrderFlow.Tests.Controllers
         public async Task AdminDashboardIndex_ReturnsDashboardViewModel()
         {
             var notificationService = new NotificationService(_context);
-            var orderService = new OrderService(_context, notificationService);
+            var orderService = new OrderService(_context, Mock.Of<IMailService>(), notificationService);
             var courseOrderService = new CourseOrderService(_context, orderService);
             var truckService = new TruckService(_context);
             var controller = new AdminDashboardController(
@@ -94,7 +94,7 @@ namespace OrderFlow.Tests.Controllers
         public async Task DriverDashboardIndex_RedirectsWhenUserIdIsInvalid()
         {
             var notificationService = new NotificationService(_context);
-            var orderService = new OrderService(_context, notificationService);
+            var orderService = new OrderService(_context, new Mock<IMailService>().Object, new Mock<INotificationService>().Object);
             var truckService = new TruckService(_context);
             var courseOrderService = new CourseOrderService(_context, orderService);
             var paymentService = Mock.Of<IPaymentService>();

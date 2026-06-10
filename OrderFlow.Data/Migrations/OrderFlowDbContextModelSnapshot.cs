@@ -376,7 +376,7 @@ namespace OrderFlow.Data.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("CompanyProfiles");
+                    b.ToTable("CompanyProfiles", (string)null);
                 });
 
             modelBuilder.Entity("OrderFlow.Data.Models.CourseOrder", b =>
@@ -391,7 +391,7 @@ namespace OrderFlow.Data.Migrations
 
                     b.HasIndex("TruckCourseID");
 
-                    b.ToTable("CoursesOrders");
+                    b.ToTable("CoursesOrders", (string)null);
                 });
 
             modelBuilder.Entity("OrderFlow.Data.Models.Message", b =>
@@ -435,7 +435,7 @@ namespace OrderFlow.Data.Migrations
 
                     b.HasIndex("SenderID");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("OrderFlow.Data.Models.Notification", b =>
@@ -509,7 +509,7 @@ namespace OrderFlow.Data.Migrations
 
                     b.HasIndex("TruckSpendingID");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("OrderFlow.Data.Models.Order", b =>
@@ -558,7 +558,7 @@ namespace OrderFlow.Data.Migrations
 
                     b.HasIndex("UserID");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("OrderFlow.Data.Models.Payment", b =>
@@ -591,7 +591,7 @@ namespace OrderFlow.Data.Migrations
 
                     b.HasIndex("OrderID");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("OrderFlow.Data.Models.PersonalProfile", b =>
@@ -624,7 +624,7 @@ namespace OrderFlow.Data.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("PersonalProfiles");
+                    b.ToTable("PersonalProfiles", (string)null);
                 });
 
             modelBuilder.Entity("OrderFlow.Data.Models.Truck", b =>
@@ -658,7 +658,7 @@ namespace OrderFlow.Data.Migrations
 
                     b.HasIndex("DriverID");
 
-                    b.ToTable("Trucks");
+                    b.ToTable("Trucks", (string)null);
                 });
 
             modelBuilder.Entity("OrderFlow.Data.Models.TruckCourse", b =>
@@ -697,7 +697,7 @@ namespace OrderFlow.Data.Migrations
 
                     b.HasIndex("TruckID");
 
-                    b.ToTable("TrucksCourses");
+                    b.ToTable("TrucksCourses", (string)null);
                 });
 
             modelBuilder.Entity("OrderFlow.Data.Models.TruckSpending", b =>
@@ -735,7 +735,7 @@ namespace OrderFlow.Data.Migrations
 
                     b.HasIndex("TruckID");
 
-                    b.ToTable("TrucksSpendings");
+                    b.ToTable("TrucksSpendings", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

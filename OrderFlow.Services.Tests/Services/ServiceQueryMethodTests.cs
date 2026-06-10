@@ -3,6 +3,7 @@ using Moq;
 using OrderFlow.Data;
 using OrderFlow.Data.Models;
 using OrderFlow.Data.Models.Enums;
+using OrderFlow.Services.Contracts;
 using OrderFlow.Services.Core;
 using OrderFlow.Services.Core.Contracts;
 using OrderFlow.ViewModels.Course;
@@ -28,7 +29,7 @@ namespace OrderFlow.Tests.Services
 
             _context = new OrderFlowDbContext(options);
             _truckService = new TruckService(_context);
-            _orderService = new OrderService(_context, new Mock<INotificationService>().Object);
+            _orderService = new OrderService(_context, new Mock<IMailService>().Object, new Mock<INotificationService>().Object);
             _truckCourseService = new TruckCourseService(
                 _context,
                 _orderService,
