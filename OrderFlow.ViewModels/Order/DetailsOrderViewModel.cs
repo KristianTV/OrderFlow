@@ -4,6 +4,8 @@
     {
         public Guid OrderID { get; set; } = Guid.NewGuid();
 
+        public string DisplayOrderId => $"ORD-{OrderID.ToString("N")[..8].ToUpperInvariant()}";
+
         public string UserName { get; set; } = string.Empty;
 
         public DateTime OrderDate { get; set; }

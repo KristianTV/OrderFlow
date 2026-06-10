@@ -6,6 +6,8 @@ namespace OrderFlow.ViewModels.CourseOrder
     {
         public Guid OrderID { get; set; }
 
+        public string DisplayOrderId => $"ORD-{OrderID.ToString("N")[..8].ToUpperInvariant()}";
+
         [Display(Name = "Delivery Address")]
         public string DeliveryAddress { get; set; } = string.Empty;
 

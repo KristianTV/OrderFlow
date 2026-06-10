@@ -32,6 +32,9 @@
 
         <div class="card-body">
             <dl class="row">
+                <dt class="col-sm-3">Course ID</dt>
+                <dd class="col-sm-9 fw-bold">@Model.DisplayCourseId</dd>
+
                 <dt class="col-sm-3">Truck</dt>
                 <dd class="col-sm-9">
                     @if(Model.TruckID.HasValue)
@@ -97,7 +100,7 @@
                             @foreach (var assinedOrders in Model.AssinedOrders)
                             {
                                 <tr>
-                                    <td>@assinedOrders.OrderID</td>
+                                    <td>@assinedOrders.DisplayOrderId</td>
                                     <td><span class="badge @GetOrderStatusBadgeClass(assinedOrders.Status.ToString()) fs-6">@assinedOrders.Status.ToString()</span></td>
                                     <td>@assinedOrders.LoadCapacity.ToString("F2")</td>
                                 </tr>

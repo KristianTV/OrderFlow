@@ -9,7 +9,7 @@
 @foreach (var course in Model ?? Enumerable.Empty<IndexCourseViewModel>())
 {
     <tr>
-        <td class="text-center">@course.TruckCourseID.ToString().Substring(0, 8)</td>
+        <td class="text-center">@course.DisplayCourseId</td>
         <td class="text-center">@(course.TruckID.HasValue ? course.TruckID.ToString()!.Substring(0, 8) : "-")</td>
         <td>@course.PickupAddress</td>
         <td>@course.DeliverAddress</td>

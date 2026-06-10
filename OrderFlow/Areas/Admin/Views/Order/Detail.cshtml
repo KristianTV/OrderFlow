@@ -20,7 +20,7 @@
                 <div class="card-body">
                     <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Order ID:</div>
-                        <div class="col-sm-8"><strong>@Model.OrderID</strong></div>
+                        <div class="col-sm-8"><strong>@Model.DisplayOrderId</strong></div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-sm-4 text-muted">User:</div>
@@ -276,7 +276,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to cancel Order #@Model.OrderID?
+                    Are you sure you want to cancel Order #@Model.DisplayOrderId?
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>

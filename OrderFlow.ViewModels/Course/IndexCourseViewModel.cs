@@ -6,6 +6,8 @@ namespace OrderFlow.ViewModels.Course
     {
         public Guid TruckCourseID { get; set; }
 
+        public string DisplayCourseId => $"CRS-{TruckCourseID.ToString("N")[..8].ToUpperInvariant()}";
+
         public Guid? TruckID { get; set; }
 
         public string? PickupAddress { get; set; }

@@ -268,7 +268,9 @@ namespace OrderFlow.Services.Core
 
             if (!string.IsNullOrWhiteSpace(query.SearchId))
             {
-                orders = orders.Where(o => o.OrderID.ToString().Contains(query.SearchId));
+                string normalizedSearchId = NormalizeDisplayIdSearch(query.SearchId, "ORD");
+
+                orders = orders.Where(o => o.OrderID.ToString().Contains(normalizedSearchId));
             }
 
             if (!string.IsNullOrWhiteSpace(query.StatusFilter))
@@ -294,6 +296,19 @@ namespace OrderFlow.Services.Core
             })
             .Skip((Math.Max(query.Page, 1) - 1) * Math.Max(query.PageSize - 1, 1))
             .Take(Math.Max(query.PageSize, 1));
+        }
+
+        private static string NormalizeDisplayIdSearch(string searchId, string prefix)
+        {
+            string normalizedSearchId = searchId.Trim();
+            string prefixedSearchId = $"{prefix}-";
+
+            if (normalizedSearchId.StartsWith(prefixedSearchId, StringComparison.OrdinalIgnoreCase))
+            {
+                normalizedSearchId = normalizedSearchId[prefixedSearchId.Length..];
+            }
+
+            return normalizedSearchId.ToLowerInvariant();
         }
 
         private static IQueryable<IndexOrderViewModel> ProjectToIndexOrderViewModel(IQueryable<Order> orders)
