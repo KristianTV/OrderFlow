@@ -97,7 +97,6 @@ namespace OrderFlow.Controllers
             if (user == null) return NotFound($"Unable to load user with ID '{userId}'.");
 
             var result = await _userManager.ConfirmEmailAsync(user, token);
-            if (!result.Succeeded) throw new InvalidOperationException("Error confirming email.");
 
             if (!result.Succeeded)
                 return View("ConfirmEmailError");
