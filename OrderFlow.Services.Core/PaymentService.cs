@@ -78,12 +78,11 @@ namespace OrderFlow.Services.Core
             }
 
             List<Payment> payments = await this.GetAll()
-                                               .AsNoTracking()
                                                .Include(p => p.Order)
                                                .Where(p => p.OrderID == cardPayment.OrderId && p.Order.UserID == userId && p.PaymentDate == null)
                                                .ToListAsync();
 
-            if (payments == null || payments.First().Order.Status != OrderStatus.Completed || !payments.Any())
+            if (!payments.Any() || payments.First().Order.Status != OrderStatus.Completed)
             {
                 return false;
             }

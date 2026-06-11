@@ -62,7 +62,9 @@ namespace OrderFlow.Services.Core
         public async Task<bool> RemoveOrderFromCourseAsync(Guid orderID, Guid courseID, bool save = true)
         {
 
-            CourseOrder? courseOrder = await this.GetByIdAsync(orderID, courseID);
+            CourseOrder? courseOrder = await this.GetAll()
+                                                  .FirstOrDefaultAsync(co => co.OrderID.Equals(orderID) &&
+                                                                             co.TruckCourseID.Equals(courseID));
 
             if (courseOrder == null)
             {

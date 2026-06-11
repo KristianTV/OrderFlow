@@ -52,6 +52,20 @@ namespace OrderFlow.Tests.Services
         }
 
         [Test]
+        public async Task GetTruckForEditAsync_ReturnsEditableModelOrNull()
+        {
+            var truckId = Guid.Parse("f1a8c5e6-7b9a-4c2d-8e1f-6a7b8c9d0e1f");
+
+            var result = await _truckService.GetTruckForEditAsync(truckId);
+            var missing = await _truckService.GetTruckForEditAsync(Guid.NewGuid());
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.LicensePlate, Is.EqualTo("ABC-123"));
+            Assert.That(result.Capacity, Is.EqualTo(100));
+            Assert.That(missing, Is.Null);
+        }
+
+        [Test]
         public async Task CreateTruckAsync_WithNullViewModel_ReturnsFalse()
         {
             var result = await _truckService.CreateTruckAsync(null!);
@@ -170,6 +184,12 @@ namespace OrderFlow.Tests.Services
         {
             var status = await _truckService.GetTruckStatusAsync(Guid.NewGuid());
             Assert.AreEqual(string.Empty, status);
+        }
+
+        [Test]
+        public void GetTruckStatusAsync_EmptyId_ThrowsException()
+        {
+            Assert.ThrowsAsync<ArgumentNullException>(() => _truckService.GetTruckStatusAsync(Guid.Empty));
         }
     }
 }

@@ -88,6 +88,18 @@ namespace OrderFlow.Tests.Services
         }
 
         [Test]
+        public async Task GetAll_ReturnsAllMessages()
+        {
+            await AddMessageAsync(content: "One");
+            await AddMessageAsync(content: "Two");
+
+            var result = _service.GetAll().ToList();
+
+            Assert.That(result, Has.Count.EqualTo(2));
+            Assert.That(result.Select(m => m.Content), Is.EquivalentTo(new[] { "One", "Two" }));
+        }
+
+        [Test]
         public async Task GetMessagesByNotificationIdAsync_ShouldReturnMessagesOrderedBySentAt()
         {
             var notificationId = Guid.NewGuid();
@@ -206,6 +218,33 @@ namespace OrderFlow.Tests.Services
             var result = await _service.MarkMessageAsReadAsync(message.MessageID);
 
             Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public async Task MarkMessagesAsReadAsync_MarksOnlyUnreadMessagesFromOtherUsers()
+        {
+            var notificationId = Guid.NewGuid();
+            var currentUserId = Guid.NewGuid();
+            var otherUserId = Guid.NewGuid();
+            await _context.Messages.AddRangeAsync(
+                new Message { MessageID = Guid.NewGuid(), Content = "Other unread", SenderID = otherUserId, NotificationID = notificationId, SentAt = DateTime.UtcNow, IsRead = false },
+                new Message { MessageID = Guid.NewGuid(), Content = "Own unread", SenderID = currentUserId, NotificationID = notificationId, SentAt = DateTime.UtcNow, IsRead = false },
+                new Message { MessageID = Guid.NewGuid(), Content = "Other read", SenderID = otherUserId, NotificationID = notificationId, SentAt = DateTime.UtcNow, IsRead = true });
+            await _context.SaveChangesAsync();
+
+            await _service.MarkMessagesAsReadAsync(notificationId, currentUserId);
+
+            var messages = await _context.Messages.ToListAsync();
+            Assert.That(messages.Single(m => m.Content == "Other unread").IsRead, Is.True);
+            Assert.That(messages.Single(m => m.Content == "Own unread").IsRead, Is.False);
+            Assert.That(messages.Single(m => m.Content == "Other read").IsRead, Is.True);
+        }
+
+        [Test]
+        public void MarkMessagesAsReadAsync_Throws_WhenIdsAreEmpty()
+        {
+            Assert.ThrowsAsync<ArgumentException>(() => _service.MarkMessagesAsReadAsync(Guid.Empty, Guid.NewGuid()));
+            Assert.ThrowsAsync<ArgumentException>(() => _service.MarkMessagesAsReadAsync(Guid.NewGuid(), Guid.Empty));
         }
 
         private async Task<Message> AddMessageAsync(Guid? senderId = null, string content = "Message", bool isRead = false)

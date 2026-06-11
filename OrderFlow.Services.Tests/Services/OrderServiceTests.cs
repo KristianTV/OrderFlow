@@ -32,7 +32,7 @@ namespace OrderFlow.Tests.Services
             _mockTruckOrderService = new Mock<ICourseOrderService>();
             _mockTruckService = new Mock<ITruckService>();
 
-            _orderService = new OrderService(_context, new Mock<IMailService>().Object, new Mock<INotificationService>().Object);
+            _orderService = new OrderService(_context, new Mock<IMailService>().Object, _mockNotificationService.Object);
         }
 
         [TearDown]
@@ -308,7 +308,7 @@ namespace OrderFlow.Tests.Services
             Assert.That(updatedOrder.DeliveryDate, Is.Not.Null);
             Assert.That(updatedOrder.DeliveryDate.Value.Date, Is.EqualTo(DateTime.UtcNow.Date));
             _mockNotificationService.Verify(s => s.SendSystemNotificationAsync(It.Is<NotificationCommand>(n =>
-                n.Title == $"Order status changed to Completed" &&
+                n.Title == $"Order {order.OrderID} has beed Completed" &&
                 n.ReceiverID == user.Id), false), Times.Once);
         }
 
@@ -333,6 +333,108 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(orders, Is.Not.Null);
             Assert.That(orders, Is.Empty);
+        }
+
+        [Test]
+        public async Task GetOrderByIdAsync_ReturnsOrderOrNull()
+        {
+            var user = await AddUser("LookupUser");
+            var order = await AddOrder(user.Id);
+
+            var result = await _orderService.GetOrderByIdAsync(order.OrderID);
+            var missing = await _orderService.GetOrderByIdAsync(Guid.NewGuid());
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.OrderID, Is.EqualTo(order.OrderID));
+            Assert.That(missing, Is.Null);
+        }
+
+        [Test]
+        public async Task GetOrderForEditAsync_ReturnsModelOnlyForOwner()
+        {
+            var owner = await AddUser("OwnerEdit");
+            var otherUser = await AddUser("OtherEdit");
+            var order = await AddOrder(owner.Id, deliveryAddress: "Delivery edit", pickupAddress: "Pickup edit", loadCapacity: 77);
+
+            var result = await _orderService.GetOrderForEditAsync(order.OrderID, owner.Id);
+            var unauthorized = await _orderService.GetOrderForEditAsync(order.OrderID, otherUser.Id);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.DeliveryAddress, Is.EqualTo("Delivery edit"));
+            Assert.That(result.PickupAddress, Is.EqualTo("Pickup edit"));
+            Assert.That(result.LoadCapacity, Is.EqualTo(77));
+            Assert.That(unauthorized, Is.Null);
+        }
+
+        [Test]
+        public async Task GetAdminOrderForEditAsync_ReturnsModelForAnyOrder()
+        {
+            var user = await AddUser("AdminEditUser");
+            var order = await AddOrder(user.Id, deliveryAddress: "Admin delivery", pickupAddress: "Admin pickup", loadCapacity: 88);
+
+            var result = await _orderService.GetAdminOrderForEditAsync(order.OrderID);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.UsersId, Is.EqualTo(user.Id));
+            Assert.That(result.DeliveryAddress, Is.EqualTo("Admin delivery"));
+        }
+
+        [Test]
+        public async Task GetOrderDetailsAsync_ReturnsPaymentsAndTruckPlates()
+        {
+            var user = await AddUser("DetailsUser");
+            var driver = await AddUser("DetailsDriver");
+            var order = await AddOrder(user.Id, deliveryAddress: "Details delivery");
+            var truck = await AddTruck(driver.Id);
+            truck.LicensePlate = "DET-001";
+            await AddOrderToCourse(order.OrderID, truck.TruckID, deliverAddress: "Details delivery");
+            await _context.Payments.AddRangeAsync(
+                new Payment { PaymentID = Guid.NewGuid(), OrderID = order.OrderID, Amount = 10m, CreatedOn = DateTime.UtcNow.AddMinutes(2), PaymentDescription = "Second" },
+                new Payment { PaymentID = Guid.NewGuid(), OrderID = order.OrderID, Amount = 5m, CreatedOn = DateTime.UtcNow.AddMinutes(1), PaymentDescription = "First" });
+            await _context.SaveChangesAsync();
+
+            var result = await _orderService.GetOrderDetailsAsync(order.OrderID, user.Id);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.TrucksLicensePlates, Contains.Item("DET-001"));
+            Assert.That(result.Payments.Count(), Is.EqualTo(2));
+            Assert.That(result.Payments.First().PaymentDescription, Is.EqualTo("First"));
+            Assert.That(result.TotalPrice, Is.EqualTo(15m));
+        }
+
+        [Test]
+        public async Task GetOrderInvoiceDetailsAsync_ReturnsInvoiceForOwner()
+        {
+            var user = await AddUser("InvoiceUser");
+            var order = await AddOrder(user.Id, deliveryAddress: "Invoice delivery", pickupAddress: "Invoice pickup");
+            await _context.Payments.AddAsync(new Payment { PaymentID = Guid.NewGuid(), OrderID = order.OrderID, Amount = 42m, CreatedOn = DateTime.UtcNow });
+            await _context.SaveChangesAsync();
+
+            var result = await _orderService.GetOrderInvoiceDetailsAsync(order.OrderID, user.Id);
+            var unauthorized = await _orderService.GetOrderInvoiceDetailsAsync(order.OrderID, Guid.NewGuid());
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.InvoiceId, Is.EqualTo("OF" + order.OrderID));
+            Assert.That(result.TotalPrice, Is.EqualTo(42m));
+            Assert.That(unauthorized, Is.Null);
+        }
+
+        [Test]
+        public async Task GetAllByUserAndStatusMethods_ReturnMatchingOrders()
+        {
+            var user = await AddUser("FilterUser");
+            var otherUser = await AddUser("OtherFilterUser");
+            var pending = await AddOrder(user.Id, OrderStatus.Pending);
+            await AddOrder(user.Id, OrderStatus.Completed);
+            await AddOrder(otherUser.Id, OrderStatus.Pending);
+
+            var byUser = (await _orderService.GetAllByUserIdAsync(user.Id)).ToList();
+            var byUserAndStatus = (await _orderService.GetAllByUserIdAndStatusAsync(user.Id, OrderStatus.Pending)).ToList();
+            var byStatus = (await _orderService.GetAllByStatusAsync(OrderStatus.Pending)).ToList();
+
+            Assert.That(byUser, Has.Count.EqualTo(2));
+            Assert.That(byUserAndStatus.Single().OrderID, Is.EqualTo(pending.OrderID));
+            Assert.That(byStatus, Has.Count.EqualTo(2));
         }
 
         [Test]
@@ -645,6 +747,61 @@ namespace OrderFlow.Tests.Services
 
             var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _orderService.CompleteOrderAsync(order.OrderID, Guid.NewGuid()));
             Assert.That(ex.Message, Is.AtLeast("The course"));
+        }
+
+        [Test]
+        public async Task CompleteOrderAsync_CompletesOrder_WhenCourseDeliveryMatches()
+        {
+            var user = await AddUser("CompleteUser");
+            var driver = await AddUser("CompleteDriver");
+            var order = await AddOrder(user.Id, OrderStatus.InProgress, deliveryAddress: "Match");
+            var truck = await AddTruck(driver.Id);
+            var courseOrder = await AddOrderToCourse(order.OrderID, truck.TruckID, deliverAddress: "Match");
+
+            await _orderService.CompleteOrderAsync(order.OrderID, courseOrder.TruckCourseID);
+
+            var updated = await _context.Orders.FindAsync(order.OrderID);
+            Assert.That(updated!.Status, Is.EqualTo(OrderStatus.Completed));
+            Assert.That(updated.DeliveryDate, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task CompleteOrderAsync_PutsOrderOnHold_WhenCourseDeliveryDoesNotMatch()
+        {
+            var user = await AddUser("HoldUser");
+            var driver = await AddUser("HoldDriver");
+            var order = await AddOrder(user.Id, OrderStatus.InProgress, deliveryAddress: "Expected");
+            var truck = await AddTruck(driver.Id);
+            var courseOrder = await AddOrderToCourse(order.OrderID, truck.TruckID, deliverAddress: "Actual");
+
+            await _orderService.CompleteOrderAsync(order.OrderID, courseOrder.TruckCourseID);
+
+            var updated = await _context.Orders.FindAsync(order.OrderID);
+            Assert.That(updated!.Status, Is.EqualTo(OrderStatus.OnHold));
+            Assert.That(updated.DeliveryDate, Is.Null);
+        }
+
+        [Test]
+        public async Task CompleteMultipleOrdersAsync_ReturnsForNullOrEmptyAndProcessesMatches()
+        {
+            var user = await AddUser("MultiUser");
+            var driver = await AddUser("MultiDriver");
+            var order = await AddOrder(user.Id, OrderStatus.InProgress, deliveryAddress: "Multi");
+            var truck = await AddTruck(driver.Id);
+            var courseOrder = await AddOrderToCourse(order.OrderID, truck.TruckID, deliverAddress: "Multi");
+
+            await _orderService.CompleteMultipleOrdersAsync(null!, courseOrder.TruckCourseID);
+            await _orderService.CompleteMultipleOrdersAsync(Array.Empty<Guid>(), courseOrder.TruckCourseID);
+            await _orderService.CompleteMultipleOrdersAsync(new[] { order.OrderID }, courseOrder.TruckCourseID);
+
+            var updated = await _context.Orders.FindAsync(order.OrderID);
+            Assert.That(updated!.Status, Is.EqualTo(OrderStatus.Completed));
+        }
+
+        [Test]
+        public void CompleteMultipleOrdersAsync_Throws_WhenCourseIdIsEmpty()
+        {
+            Assert.ThrowsAsync<ArgumentException>(() => _orderService.CompleteMultipleOrdersAsync(new[] { Guid.NewGuid() }, Guid.Empty));
         }
 
         //[Test]

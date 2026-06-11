@@ -53,6 +53,18 @@ namespace OrderFlow.Tests.Services
         }
 
         [Test]
+        public async Task GetAll_ReturnsNotifications()
+        {
+            await _context.Notifications.AddAsync(new Notification { NotificationID = Guid.NewGuid(), Title = "All", CreatedAt = DateTime.UtcNow });
+            await _context.SaveChangesAsync();
+
+            var result = _service.GetAll().ToList();
+
+            Assert.That(result, Has.Count.EqualTo(1));
+            Assert.That(result[0].Title, Is.EqualTo("All"));
+        }
+
+        [Test]
         public async Task CreateNotificationAsync_ShouldCreateNotificationSuccessfully()
         {
 
@@ -178,6 +190,40 @@ namespace OrderFlow.Tests.Services
 
             Assert.That(notifications, Is.Not.Null);
             Assert.That(notifications, Is.Empty);
+        }
+
+        [Test]
+        public async Task GetAllNotificationsForUserAsync_ReturnsOnlyReceiverNotifications()
+        {
+            var user = await AddUser("ReceiverUser");
+            var sender = await AddUser("SenderUser");
+            await _context.Notifications.AddRangeAsync(
+                new Notification { NotificationID = Guid.NewGuid(), Title = "Mine", ReceiverID = user.Id, SenderID = sender.Id, Sender = sender, CreatedAt = DateTime.UtcNow, IsRead = false },
+                new Notification { NotificationID = Guid.NewGuid(), Title = "Other", ReceiverID = sender.Id, SenderID = user.Id, Sender = user, CreatedAt = DateTime.UtcNow, IsRead = false });
+            await _context.SaveChangesAsync();
+
+            var result = (await _service.GetAllNotificationsForUserAsync(user.Id, new NotificationQueryModel()))!.ToList();
+
+            Assert.That(result, Has.Count.EqualTo(1));
+            Assert.That(result[0].Title, Is.EqualTo("Mine"));
+            Assert.That(result[0].SenderName, Is.EqualTo(sender.UserName));
+        }
+
+        [Test]
+        public async Task GetAllNotificationsForDriverAsync_ReturnsOnlyDriverNotifications()
+        {
+            var driver = await AddUser("DriverReceiver");
+            var sender = await AddUser("DriverSender");
+            await _context.Notifications.AddRangeAsync(
+                new Notification { NotificationID = Guid.NewGuid(), Title = "Driver mine", ReceiverID = driver.Id, SenderID = sender.Id, Sender = sender, CreatedAt = DateTime.UtcNow, IsRead = false },
+                new Notification { NotificationID = Guid.NewGuid(), Title = "Driver other", ReceiverID = sender.Id, SenderID = driver.Id, Sender = driver, CreatedAt = DateTime.UtcNow, IsRead = false });
+            await _context.SaveChangesAsync();
+
+            var result = (await _service.GetAllNotificationsForDriverAsync(driver.Id, new NotificationQueryModel()))!.ToList();
+
+            Assert.That(result, Has.Count.EqualTo(1));
+            Assert.That(result[0].Title, Is.EqualTo("Driver mine"));
+            Assert.That(result[0].isMarkable, Is.True);
         }
 
         [Test]
@@ -335,6 +381,114 @@ namespace OrderFlow.Tests.Services
             Assert.That(result, Is.False);
             var originalNotification = await _context.Notifications.SingleAsync(n => n.NotificationID == notificationId);
             Assert.That(originalNotification.Title, Is.EqualTo("Original"));
+        }
+
+        [Test]
+        public async Task UpdateNotificationAsync_Admin_UpdatesRelatedEntitiesAndResponseFlag()
+        {
+            var sender = await AddUser("AdminSender");
+            var receiver = await AddUser("AdminReceiver");
+            var order = await AddOrder();
+            var notificationId = Guid.NewGuid();
+            await _context.Notifications.AddAsync(new Notification
+            {
+                NotificationID = notificationId,
+                Title = "Old",
+                Message = "Old",
+                ReceiverID = receiver.Id,
+                SenderID = sender.Id,
+                CreatedAt = DateTime.UtcNow,
+                IsRead = true
+            });
+            await _context.SaveChangesAsync();
+
+            var result = await _service.UpdateNotificationAsync(new AdminCreateNotificationViewModel
+            {
+                Title = "New admin",
+                Message = "New admin message",
+                ReceiverId = receiver.Id,
+                OrderId = order.OrderID,
+                IsResponseEnabled = true
+            }, notificationId, sender.Id);
+
+            var updated = await _context.Notifications.SingleAsync(n => n.NotificationID == notificationId);
+            Assert.That(result, Is.True);
+            Assert.That(updated.Title, Is.EqualTo("New admin"));
+            Assert.That(updated.OrderID, Is.EqualTo(order.OrderID));
+            Assert.That(updated.CanRespond, Is.True);
+            Assert.That(updated.IsRead, Is.False);
+        }
+
+        [Test]
+        public async Task UpdateNotificationAsync_Admin_ReturnsFalse_WhenNotificationMissing()
+        {
+            var receiver = await AddUser("MissingAdminReceiver");
+
+            var result = await _service.UpdateNotificationAsync(new AdminCreateNotificationViewModel
+            {
+                Title = "Title",
+                Message = "Message",
+                ReceiverId = receiver.Id
+            }, Guid.NewGuid(), Guid.NewGuid());
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void CreateNotificationAsync_Admin_Throws_WhenRelatedIdsAreInvalid()
+        {
+            Assert.ThrowsAsync<ArgumentNullException>(() => _service.CreateNotificationAsync((AdminCreateNotificationViewModel)null!, Guid.NewGuid()));
+            Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateNotificationAsync(new AdminCreateNotificationViewModel
+            {
+                Title = "Bad",
+                Message = "Bad",
+                ReceiverId = Guid.NewGuid()
+            }, Guid.NewGuid()));
+        }
+
+        [Test]
+        public async Task SendSystemNotificationAsync_CreatesNotificationOrReturnsTrueWithoutSaving()
+        {
+            var receiver = await AddUser("SystemReceiver");
+
+            bool saved = await _service.SendSystemNotificationAsync(new OrderFlow.Services.Core.Commands.NotificationCommand
+            {
+                Title = "System",
+                Message = "System message",
+                ReceiverID = receiver.Id
+            });
+            bool notSaved = await _service.SendSystemNotificationAsync(new OrderFlow.Services.Core.Commands.NotificationCommand
+            {
+                Title = "System unsaved",
+                Message = "System message",
+                ReceiverID = receiver.Id
+            }, false);
+
+            Assert.That(saved, Is.True);
+            Assert.That(notSaved, Is.True);
+            Assert.That(await _context.Notifications.CountAsync(), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void SendSystemNotificationAsync_Throws_WhenCommandIsNull()
+        {
+            Assert.ThrowsAsync<ArgumentNullException>(() => _service.SendSystemNotificationAsync(null!));
+        }
+
+        [Test]
+        public async Task GetUnreadCountAsync_CountsOnlyUnreadNotDeletedForUser()
+        {
+            var user = await AddUser("UnreadUser");
+            await _context.Notifications.AddRangeAsync(
+                new Notification { NotificationID = Guid.NewGuid(), Title = "Unread", ReceiverID = user.Id, IsRead = false, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+                new Notification { NotificationID = Guid.NewGuid(), Title = "Read", ReceiverID = user.Id, IsRead = true, IsDeleted = false, CreatedAt = DateTime.UtcNow },
+                new Notification { NotificationID = Guid.NewGuid(), Title = "Deleted", ReceiverID = user.Id, IsRead = false, IsDeleted = true, CreatedAt = DateTime.UtcNow },
+                new Notification { NotificationID = Guid.NewGuid(), Title = "Other", ReceiverID = Guid.NewGuid(), IsRead = false, IsDeleted = false, CreatedAt = DateTime.UtcNow });
+            await _context.SaveChangesAsync();
+
+            var result = await _service.GetUnreadCountAsync(user.Id);
+
+            Assert.That(result, Is.EqualTo(1));
         }
 
         [Test]
