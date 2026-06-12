@@ -12,6 +12,33 @@
 
         public string UserName { get; set; } = string.Empty;
 
+        public string BuyerType { get; set; } = string.Empty;
+
+        public string? FirstName { get; set; }
+
+        public string? LastName { get; set; }
+
+        public string? PersonalNumber { get; set; }
+
+        public string? CompanyName { get; set; }
+
+        public string? VATNumber { get; set; }
+
+        public string BuyerDisplayName
+        {
+            get
+            {
+                string personalName = $"{FirstName} {LastName}".Trim();
+
+                if (!string.IsNullOrWhiteSpace(CompanyName))
+                {
+                    return CompanyName;
+                }
+
+                return !string.IsNullOrWhiteSpace(personalName) ? personalName : UserName;
+            }
+        }
+
         public decimal TotalPrice { get; set; }
 
         public IEnumerable<PaymentViewModel> Payments { get; set; } = new List<PaymentViewModel>();

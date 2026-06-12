@@ -77,7 +77,15 @@
         <div class="row mb-4">
             <div class="col-md-6">
                 <h2 class="h6 text-uppercase text-muted">Bill To</h2>
-                <div class="fw-bold">@Model.UserName</div>
+                <div class="fw-bold">@Model.BuyerDisplayName</div>
+                @if (!string.IsNullOrWhiteSpace(Model.PersonalNumber))
+                {
+                    <div>Personal number: @Model.PersonalNumber</div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.VATNumber))
+                {
+                    <div>VAT number: @Model.VATNumber</div>
+                }
                 <div>@Model.Order.DeliveryAddress</div>
             </div>
             <div class="col-md-6 text-md-end mt-3 mt-md-0">

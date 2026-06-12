@@ -171,6 +171,9 @@ namespace OrderFlow.Services.Core
             IQueryable<Order> orders = this.GetAll()
                                            .AsNoTracking()
                                            .Include(o => o.User)
+                                           .ThenInclude(u => u!.PersonalProfile)
+                                           .Include(o => o.User)
+                                           .ThenInclude(u => u!.CompanyProfile)
                                            .Include(o => o.Payments)
                                            .Include(o => o.CourseOrders)
                                            .ThenInclude(co => co.TruckCourse)
@@ -228,7 +231,7 @@ namespace OrderFlow.Services.Core
 
             return await orders.Select(o => new InvoiceViewModel
             {
-                InvoiceId = "OF" + o.OrderID.ToString(),
+                InvoiceId = $"INV-{o.OrderID:N}".ToUpperInvariant(),
                 Issued = o.DeliveryDate,
                 Order = new InvoiceOrderViewModel
                 {
@@ -240,6 +243,12 @@ namespace OrderFlow.Services.Core
                     DeliveryDate = o.DeliveryDate
                 },
                 UserName = o.User!.UserName!,
+                BuyerType = o.User.AccountType.ToString(),
+                FirstName = o.User.PersonalProfile != null ? o.User.PersonalProfile.FirstName : null,
+                LastName = o.User.PersonalProfile != null ? o.User.PersonalProfile.LastName : null,
+                PersonalNumber = o.User.PersonalProfile != null ? o.User.PersonalProfile.PersonalNumber : null,
+                CompanyName = o.User.CompanyProfile != null ? o.User.CompanyProfile.CompanyName : null,
+                VATNumber = o.User.CompanyProfile != null ? o.User.CompanyProfile.VATNumber : null,
                 Payments = o.Payments.Select(payment => new PaymentViewModel
                 {
                     Id = payment.PaymentID,

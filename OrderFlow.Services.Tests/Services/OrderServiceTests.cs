@@ -406,17 +406,85 @@ namespace OrderFlow.Tests.Services
         public async Task GetOrderInvoiceDetailsAsync_ReturnsInvoiceForOwner()
         {
             var user = await AddUser("InvoiceUser");
+            user.AccountType = AccountType.Personal;
+            await _context.PersonalProfiles.AddAsync(new PersonalProfile
+            {
+                UserId = user.Id,
+                FirstName = "Ivan",
+                LastName = "Petrov",
+                PersonalNumber = "1234567890",
+                Adress = "Sofia"
+            });
             var order = await AddOrder(user.Id, deliveryAddress: "Invoice delivery", pickupAddress: "Invoice pickup");
-            await _context.Payments.AddAsync(new Payment { PaymentID = Guid.NewGuid(), OrderID = order.OrderID, Amount = 42m, CreatedOn = DateTime.UtcNow });
+            await _context.Payments.AddRangeAsync(
+                new Payment
+                {
+                    PaymentID = Guid.NewGuid(),
+                    OrderID = order.OrderID,
+                    Amount = 42m,
+                    CreatedOn = DateTime.UtcNow,
+                    PaymentMethod = PaymentMethods.Card,
+                    PaymentDate = DateTime.UtcNow
+                },
+                new Payment
+                {
+                    PaymentID = Guid.NewGuid(),
+                    OrderID = order.OrderID,
+                    Amount = 18m,
+                    CreatedOn = DateTime.UtcNow
+                });
             await _context.SaveChangesAsync();
 
             var result = await _orderService.GetOrderInvoiceDetailsAsync(order.OrderID, user.Id);
             var unauthorized = await _orderService.GetOrderInvoiceDetailsAsync(order.OrderID, Guid.NewGuid());
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result!.InvoiceId, Is.EqualTo("OF" + order.OrderID));
-            Assert.That(result.TotalPrice, Is.EqualTo(42m));
+            Assert.That(result!.InvoiceId, Is.EqualTo($"INV-{order.OrderID:N}".ToUpperInvariant()));
+            Assert.That(result.FirstName, Is.EqualTo("Ivan"));
+            Assert.That(result.LastName, Is.EqualTo("Petrov"));
+            Assert.That(result.PersonalNumber, Is.EqualTo("1234567890"));
+            Assert.That(result.BuyerDisplayName, Is.EqualTo("Ivan Petrov"));
+            Assert.That(result.TotalPrice, Is.EqualTo(60m));
+            Assert.That(result.PaidTotal, Is.EqualTo(42m));
+            Assert.That(result.PendingTotal, Is.EqualTo(18m));
+            Assert.That(result.Payments.Single(p => p.IsPaid).PaidBy, Is.EqualTo("Card"));
+            Assert.That(result.Payments.Single(p => !p.IsPaid).PaidBy, Is.EqualTo("Pending payment"));
             Assert.That(unauthorized, Is.Null);
+        }
+
+        [Test]
+        public async Task GetOrderInvoiceDetailsAsync_ReturnsCompanyBuyerDetails()
+        {
+            var user = await AddUser("CompanyInvoiceUser");
+            user.AccountType = AccountType.Company;
+            await _context.CompanyProfiles.AddAsync(new CompanyProfile
+            {
+                UserId = user.Id,
+                CompanyName = "OrderFlow Client Ltd",
+                VATNumber = "BG123456789",
+                CompanyAdress = "Plovdiv",
+                ContactPersonName = "Maria Ivanova",
+                ContactPhone = "0888123456"
+            });
+            var order = await AddOrder(user.Id);
+            await _context.Payments.AddAsync(new Payment
+            {
+                PaymentID = Guid.NewGuid(),
+                OrderID = order.OrderID,
+                Amount = 75m,
+                CreatedOn = DateTime.UtcNow,
+                PaymentMethod = PaymentMethods.Cash,
+                PaymentDate = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+
+            var result = await _orderService.GetOrderInvoiceDetailsAsync(order.OrderID, user.Id);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.CompanyName, Is.EqualTo("OrderFlow Client Ltd"));
+            Assert.That(result.VATNumber, Is.EqualTo("BG123456789"));
+            Assert.That(result.BuyerDisplayName, Is.EqualTo("OrderFlow Client Ltd"));
+            Assert.That(result.Payments.Single().PaidBy, Is.EqualTo("Cash"));
         }
 
         [Test]
