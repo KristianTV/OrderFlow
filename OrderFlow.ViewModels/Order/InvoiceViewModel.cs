@@ -41,6 +41,10 @@
 
         public decimal TotalPrice { get; set; }
 
+        public decimal PaidTotal => Payments.Where(payment => payment.IsPaid).Sum(payment => payment.Amount);
+
+        public decimal PendingTotal => Payments.Where(payment => !payment.IsPaid).Sum(payment => payment.Amount);
+
         public IEnumerable<PaymentViewModel> Payments { get; set; } = new List<PaymentViewModel>();
     }
 }

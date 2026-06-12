@@ -3,6 +3,28 @@
 @{
     ViewData["Title"] = "Invoice";
     Layout = "_Layout";
+
+    var invoiceGroups = Model.Payments
+        .GroupBy(payment => new
+        {
+            IsPaid = payment.IsPaid,
+            Method = payment.IsPaid ? (payment.PaymentMethod ?? "Unknown") : "Unpaid",
+            PaidDate = payment.IsPaid ? payment.PaymentDate!.Value.Date : (DateTime?)null
+        })
+        .OrderBy(group => group.Key.IsPaid ? 0 : 1)
+        .ThenBy(group => group.Key.Method)
+        .ThenBy(group => group.Key.PaidDate)
+        .Select((group, index) => new
+        {
+            Index = index,
+            IsPaid = group.Key.IsPaid,
+            Method = group.Key.Method,
+            PaidDate = group.Key.PaidDate,
+            Payments = group.OrderBy(payment => group.Key.IsPaid ? payment.PaymentDate : payment.CreatedOn).ToList()
+        })
+        .ToList();
+
+    string selectedArea = ViewContext.RouteData.Values["area"]?.ToString() ?? string.Empty;
 }
 
 <style>
@@ -27,8 +49,22 @@
         background: #f8f9fa;
     }
 
+    .invoice-tabs .nav-link {
+        color: #495057;
+        font-weight: 600;
+    }
+
+    .invoice-tabs .nav-link.active {
+        color: #0d6efd;
+    }
+
+    .invoice-status-line {
+        color: #6c757d;
+        font-size: .95rem;
+    }
+
     @@media print {
-        header, nav, footer, .navbar, .btn, .no-print {
+        header, nav, footer, .navbar, .btn, .no-print, .invoice-tabs {
             display: none !important;
         }
 
@@ -53,7 +89,7 @@
 
 <div class="container invoice-shell">
     <div class="d-flex justify-content-between align-items-center mb-3 no-print">
-        <a class="btn btn-secondary" asp-area="@ViewContext.RouteData.Values["area"]" asp-controller="Order" asp-action="Detail" asp-route-id="@Model.Order.OrderID">
+        <a class="btn btn-secondary" asp-area="@selectedArea" asp-controller="Order" asp-action="Detail" asp-route-id="@Model.Order.OrderID">
             <i class="fas fa-arrow-left me-2"></i> Back
         </a>
         <button type="button" class="btn btn-primary" onclick="window.print()">
@@ -61,93 +97,240 @@
         </button>
     </div>
 
-    <div class="invoice-box shadow-sm">
-        <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
-            <div>
-                <h1 class="invoice-title h2 mb-1">Invoice</h1>
-                <div class="text-muted">OrderFlow transport services</div>
-            </div>
-            <div class="text-end">
-                <div class="fw-bold">Invoice @Model.DisplayInvoiceId</div>
-                <div class="text-muted">Issued @DateTime.UtcNow.ToString("yyyy-MM-dd")</div>
-                <div class="text-muted">Order @Model.Order.DisplayOrderId</div>
-            </div>
+    @if (invoiceGroups.Any())
+    {
+        <ul class="nav nav-tabs invoice-tabs no-print" id="invoiceTabs" role="tablist">
+            @foreach (var invoiceGroup in invoiceGroups)
+            {
+                string tabId = $"invoice-tab-{invoiceGroup.Index}";
+                string paneId = $"invoice-pane-{invoiceGroup.Index}";
+                string tabTitle = GetInvoiceTabTitle(invoiceGroup.Method, invoiceGroup.PaidDate, invoiceGroup.IsPaid);
+
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(invoiceGroup.Index == 0 ? "active" : string.Empty)" id="@tabId" data-bs-toggle="tab" data-bs-target="#@paneId" type="button" role="tab" aria-controls="@paneId" aria-selected="@(invoiceGroup.Index == 0 ? "true" : "false")">
+                        @tabTitle
+                        <span class="badge text-bg-light ms-1">@invoiceGroup.Payments.Count</span>
+                    </button>
+                </li>
+            }
+        </ul>
+
+        <div class="tab-content" id="invoiceTabsContent">
+            @foreach (var invoiceGroup in invoiceGroups)
+            {
+                string paneId = $"invoice-pane-{invoiceGroup.Index}";
+                string invoiceId = GetInvoiceId(Model.DisplayInvoiceId, invoiceGroup.Method, invoiceGroup.PaidDate, invoiceGroup.IsPaid);
+                decimal invoiceTotal = invoiceGroup.Payments.Sum(payment => payment.Amount);
+
+                <div class="tab-pane fade @(invoiceGroup.Index == 0 ? "show active" : string.Empty)" id="@paneId" role="tabpanel" aria-labelledby="invoice-tab-@invoiceGroup.Index" tabindex="0">
+                    <div class="invoice-box shadow-sm">
+                        <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+                            <div>
+                                <h1 class="invoice-title h2 mb-1">Invoice</h1>
+                                <div class="text-muted">OrderFlow transport services</div>
+                                <div class="invoice-status-line mt-2">@GetInvoiceStatusText(invoiceGroup.Method, invoiceGroup.PaidDate, invoiceGroup.IsPaid)</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold">Invoice @invoiceId</div>
+                                <div class="text-muted">Issued @GetIssuedDate(invoiceGroup.PaidDate, invoiceGroup.IsPaid).ToString("yyyy-MM-dd")</div>
+                                <div class="text-muted">Order @Model.Order.DisplayOrderId</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h2 class="h6 text-uppercase text-muted">Bill To</h2>
+                                <div class="fw-bold">@Model.BuyerDisplayName</div>
+                                @if (!string.IsNullOrWhiteSpace(Model.PersonalNumber))
+                                {
+                                    <div>Personal number: @Model.PersonalNumber</div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.VATNumber))
+                                {
+                                    <div>VAT number: @Model.VATNumber</div>
+                                }
+                                <div>@Model.Order.DeliveryAddress</div>
+                            </div>
+                            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                                <h2 class="h6 text-uppercase text-muted">Order Details</h2>
+                                <div>Order date: @Model.Order.OrderDate.ToString("yyyy-MM-dd HH:mm")</div>
+                                <div>Delivery date: @(Model.Order.DeliveryDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</div>
+                            </div>
+                        </div>
+
+                        <table class="table table-bordered invoice-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Pickup</th>
+                                    <th>Delivery</th>
+                                    <th class="text-end">Load</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Transport of goods</td>
+                                    <td>@Model.Order.PickupAddress</td>
+                                    <td>@Model.Order.DeliveryAddress</td>
+                                    <td class="text-end">@Model.Order.LoadCapacity</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h2 class="h5 mt-4">Payments</h2>
+                        <table class="table table-sm table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>@(invoiceGroup.IsPaid ? "Paid On" : "Created On")</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var payment in invoiceGroup.Payments)
+                                {
+                                    <tr>
+                                        <td>@GetPaymentInvoiceDate(payment).ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>@(payment.PaymentDescription ?? "Payment")</td>
+                                        <td>@GetPaymentStatusText(payment)</td>
+                                        <td class="text-end">@payment.Amount.ToString("C")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-end">@(invoiceGroup.IsPaid ? "Total Paid" : "Total Unpaid")</th>
+                                    <th class="text-end">@invoiceTotal.ToString("C")</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            }
         </div>
-
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <h2 class="h6 text-uppercase text-muted">Bill To</h2>
-                <div class="fw-bold">@Model.BuyerDisplayName</div>
-                @if (!string.IsNullOrWhiteSpace(Model.PersonalNumber))
-                {
-                    <div>Personal number: @Model.PersonalNumber</div>
-                }
-                @if (!string.IsNullOrWhiteSpace(Model.VATNumber))
-                {
-                    <div>VAT number: @Model.VATNumber</div>
-                }
-                <div>@Model.Order.DeliveryAddress</div>
+    }
+    else
+    {
+        <div class="invoice-box shadow-sm">
+            <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+                <div>
+                    <h1 class="invoice-title h2 mb-1">Invoice</h1>
+                    <div class="text-muted">OrderFlow transport services</div>
+                    <div class="invoice-status-line mt-2">No payments recorded</div>
+                </div>
+                <div class="text-end">
+                    <div class="fw-bold">Invoice @Model.DisplayInvoiceId</div>
+                    <div class="text-muted">Issued @DateTime.UtcNow.ToString("yyyy-MM-dd")</div>
+                    <div class="text-muted">Order @Model.Order.DisplayOrderId</div>
+                </div>
             </div>
-            <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                <h2 class="h6 text-uppercase text-muted">Order Details</h2>
-                <div>Order date: @Model.Order.OrderDate.ToString("yyyy-MM-dd HH:mm")</div>
-                <div>Delivery date: @(Model.Order.DeliveryDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</div>
-            </div>
-        </div>
 
-        <table class="table table-bordered invoice-table align-middle">
-            <thead>
-                <tr>
-                    <th>Service</th>
-                    <th>Pickup</th>
-                    <th>Delivery</th>
-                    <th class="text-end">Load</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Transport of goods</td>
-                    <td>@Model.Order.PickupAddress</td>
-                    <td>@Model.Order.DeliveryAddress</td>
-                    <td class="text-end">@Model.Order.LoadCapacity</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <h2 class="h5 mt-4">Payments</h2>
-        <table class="table table-sm table-striped align-middle">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th class="text-end">Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Payments.Any())
-                {
-                    @foreach (var payment in Model.Payments)
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h2 class="h6 text-uppercase text-muted">Bill To</h2>
+                    <div class="fw-bold">@Model.BuyerDisplayName</div>
+                    @if (!string.IsNullOrWhiteSpace(Model.PersonalNumber))
                     {
-                        <tr>
-                            <td>@payment.CreatedOn.ToString("yyyy-MM-dd HH:mm")</td>
-                            <td>@(payment.PaymentDescription ?? "Payment")</td>
-                            <td class="text-end">@payment.Amount.ToString("C")</td>
-                        </tr>
+                        <div>Personal number: @Model.PersonalNumber</div>
                     }
-                }
-                else
-                {
+                    @if (!string.IsNullOrWhiteSpace(Model.VATNumber))
+                    {
+                        <div>VAT number: @Model.VATNumber</div>
+                    }
+                    <div>@Model.Order.DeliveryAddress</div>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <h2 class="h6 text-uppercase text-muted">Order Details</h2>
+                    <div>Order date: @Model.Order.OrderDate.ToString("yyyy-MM-dd HH:mm")</div>
+                    <div>Delivery date: @(Model.Order.DeliveryDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</div>
+                </div>
+            </div>
+
+            <table class="table table-bordered invoice-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Pickup</th>
+                        <th>Delivery</th>
+                        <th class="text-end">Load</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Transport of goods</td>
+                        <td>@Model.Order.PickupAddress</td>
+                        <td>@Model.Order.DeliveryAddress</td>
+                        <td class="text-end">@Model.Order.LoadCapacity</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 class="h5 mt-4">Payments</h2>
+            <table class="table table-sm table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Created On</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
                     <tr>
                         <td colspan="4" class="text-center text-muted">No payments recorded.</td>
                     </tr>
-                }
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="2" class="text-end">Total Paid</th>
-                    <th class="text-end">@Model.TotalPrice.ToString("C")</th>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="3" class="text-end">Total</th>
+                        <th class="text-end">@((0m).ToString("C"))</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
 </div>
+
+@functions {
+    private static DateTime GetIssuedDate(DateTime? paidDate, bool isPaid)
+        => isPaid && paidDate.HasValue ? paidDate.Value : DateTime.UtcNow;
+
+    private static DateTime GetPaymentInvoiceDate(PaymentViewModel payment)
+        => payment.PaymentDate ?? payment.CreatedOn;
+
+    private static string GetPaymentStatusText(PaymentViewModel payment)
+        => payment.IsPaid ? $"Paid by {payment.PaymentMethod ?? "Unknown"}" : "Unpaid";
+
+    private static string GetInvoiceTabTitle(string paymentMethod, DateTime? paidDate, bool isPaid)
+    {
+        if (!isPaid)
+        {
+            return "Unpaid";
+        }
+
+        return $"{paymentMethod} - {paidDate?.ToString("yyyy-MM-dd") ?? "Paid"}";
+    }
+
+    private static string GetInvoiceStatusText(string paymentMethod, DateTime? paidDate, bool isPaid)
+    {
+        if (!isPaid)
+        {
+            return "Unpaid payments";
+        }
+
+        return $"{paymentMethod} payments paid on {paidDate?.ToString("yyyy-MM-dd") ?? "unknown date"}";
+    }
+
+    private static string GetInvoiceId(string baseInvoiceId, string paymentMethod, DateTime? paidDate, bool isPaid)
+    {
+        if (!isPaid)
+        {
+            return $"{baseInvoiceId}-UNPAID";
+        }
+
+        string method = paymentMethod.ToUpperInvariant();
+        string date = paidDate?.ToString("yyyyMMdd") ?? "PAID";
+        return $"{baseInvoiceId}-{method}-{date}";
+    }
+}

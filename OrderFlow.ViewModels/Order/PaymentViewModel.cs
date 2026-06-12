@@ -15,5 +15,7 @@
         public DateTime? PaymentDate { get; set; }
 
         public bool IsPaid => PaymentDate.HasValue;
+
+        public string PaidBy => IsPaid ? (PaymentMethod ?? "Unknown") : "Pending payment";
     }
 }
