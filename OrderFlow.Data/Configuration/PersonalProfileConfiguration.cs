@@ -34,6 +34,24 @@ namespace OrderFlow.Data.Configuration
                    .WithOne(u => u.PersonalProfile)
                    .HasForeignKey<PersonalProfile>(pp => pp.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasData(SeedPersonalProfiles());
+        }
+
+        private List<PersonalProfile> SeedPersonalProfiles()
+        {
+            return new List<PersonalProfile>
+            {
+                new PersonalProfile
+                {
+                    UserId = SeedDataIds.DriverTwoUserId,
+                    FirstName = "Nikolay",
+                    LastName = "Dimitrov",
+                    PersonalNumber = "8805050005",
+                    Adress = "Ruse, 5 Danube Str.",
+                    DateOfBirth = new DateTime(1988, 5, 5)
+                }
+            };
         }
     }
 }

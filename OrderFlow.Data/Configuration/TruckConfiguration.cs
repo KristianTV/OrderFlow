@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OrderFlow.Data.Models;
+using OrderFlow.Data.Models.Enums;
 using OrderFlow.GCommon;
 
 namespace OrderFlow.Data.Configuration
@@ -45,6 +46,33 @@ namespace OrderFlow.Data.Configuration
                    .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasQueryFilter(t => !t.IsDeleted);
+
+            builder.HasData(SeedTrucks());
+        }
+
+        private List<Truck> SeedTrucks()
+        {
+            var drivers = new[] { SeedDataIds.DriverUserId, SeedDataIds.DriverTwoUserId };
+            var trucks = new List<Truck>();
+
+            for (var driverIndex = 0; driverIndex < drivers.Length; driverIndex++)
+            {
+                for (var truckIndex = 0; truckIndex < 3; truckIndex++)
+                {
+                    var seedIndex = (driverIndex * 3) + truckIndex;
+                    var truckNumber = truckIndex + 1;
+                    trucks.Add(new Truck
+                    {
+                        TruckID = SeedDataIds.TruckIds[seedIndex],
+                        DriverID = drivers[driverIndex],
+                        LicensePlate = $"CB" + truckIndex.ToString() + (truckIndex + 5).ToString() + (truckIndex + 3).ToString() + (truckIndex + 4).ToString() + "HK",
+                        Capacity = 12 + (truckNumber * 3),
+                        Status = truckNumber == 3 ? TruckStatus.UnderMaintenance : TruckStatus.Available,
+                        IsDeleted = false
+                    });
+                }
+            }
+            return trucks;
         }
     }
 }

@@ -834,7 +834,7 @@ namespace OrderFlow.Tests.Services
         }
 
         [Test]
-        public async Task CompleteOrderAsync_PutsOrderOnHold_WhenCourseDeliveryDoesNotMatch()
+        public async Task CompleteOrderAsync_KeepsOrderInProgress_WhenCourseDeliveryDoesNotMatch()
         {
             var user = await AddUser("HoldUser");
             var driver = await AddUser("HoldDriver");
@@ -845,7 +845,7 @@ namespace OrderFlow.Tests.Services
             await _orderService.CompleteOrderAsync(order.OrderID, courseOrder.TruckCourseID);
 
             var updated = await _context.Orders.FindAsync(order.OrderID);
-            Assert.That(updated!.Status, Is.EqualTo(OrderStatus.OnHold));
+            Assert.That(updated!.Status, Is.EqualTo(OrderStatus.InProgress));
             Assert.That(updated.DeliveryDate, Is.Null);
         }
 

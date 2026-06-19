@@ -34,6 +34,24 @@ namespace OrderFlow.Data.Configuration
             builder.HasOne(cp => cp.User)
                 .WithOne(u => u.CompanyProfile)
                 .HasForeignKey<CompanyProfile>(cp => cp.UserId);
+
+            builder.HasData(SeedCompanyProfiles());
+        }
+
+        private List<CompanyProfile> SeedCompanyProfiles()
+        {
+            return new List<CompanyProfile>
+            {
+                new CompanyProfile
+                {
+                    UserId = SeedDataIds.CompanyUserId,
+                    CompanyName = "Demo Logistics Ltd.",
+                    VATNumber = "BG123456789",
+                    CompanyAdress = "Sofia, 100 Tsarigradsko Shose Blvd.",
+                    ContactPersonName = "Elena Petrova",
+                    ContactPhone = "0888123456"
+                }
+            };
         }
     }
 }

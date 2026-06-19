@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OrderFlow.Data.Models;
+using OrderFlow.Data.Models.Enums;
 using OrderFlow.GCommon;
 
 namespace OrderFlow.Data.Configuration
@@ -53,6 +54,46 @@ namespace OrderFlow.Data.Configuration
                  .WithOne(p => p.Order)
                  .HasForeignKey(p => p.OrderID);
 
+            builder.HasData(SeedOrders());
+        }
+
+        private List<Order> SeedOrders()
+        {
+            var customerIds = new[] { SeedDataIds.RegularUserId, SeedDataIds.CompanyUserId };
+            var orders = new List<Order>();
+            for (var customerIndex = 0; customerIndex < customerIds.Length; customerIndex++)
+            {
+                for (var orderIndex = 0; orderIndex < 10; orderIndex++)
+                {
+                    var seedIndex = (customerIndex * 10) + orderIndex;
+                    var orderNumber = orderIndex + 1;
+                    var orderDate = new DateTime(2026, 6, 1).AddDays(seedIndex + 1);
+                    var courseIndex = SeedDataIds.GetCourseIndexForOrder(seedIndex);
+                    var isCompleted = courseIndex.HasValue &&
+                                      SeedDataIds.IsCourseDelivered(courseIndex.Value) &&
+                                      seedIndex % 2 == 0;
+
+                    orders.Add(new Order
+                    {
+                        OrderID = SeedDataIds.OrderIds[seedIndex],
+                        UserID = customerIds[customerIndex],
+                        OrderDate = orderDate,
+                        DeliveryDate = isCompleted
+                            ? new DateTime(2026, 6, 10).AddDays(courseIndex!.Value + 2)
+                            : null,
+                        PickupAddress = SeedDataIds.PickupAddresses[seedIndex],
+                        DeliveryAddress = SeedDataIds.DeliveryAddresses[seedIndex],
+                        LoadCapacity = 3 + (seedIndex % 3),
+                        DeliveryInstructions = $"Seeded sample order {orderNumber}.",
+                        Status = courseIndex.HasValue
+                            ? isCompleted ? OrderStatus.Completed : OrderStatus.InProgress
+                            : OrderStatus.Pending,
+                        IsCanceled = false
+                    });
+                }
+            }
+
+            return orders;
         }
     }
 }

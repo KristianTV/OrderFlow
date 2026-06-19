@@ -535,7 +535,7 @@ namespace OrderFlow.Services.Core
             }
             else
             {
-                await this.ChangeOrderStatusAsync(order.OrderID, OrderStatus.OnHold.ToString(), false);
+                await this.ChangeOrderStatusAsync(order.OrderID, OrderStatus.InProgress.ToString(), false);
             }
         }
 

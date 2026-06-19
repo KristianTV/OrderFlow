@@ -483,7 +483,7 @@ namespace OrderFlow.Services.Core
                 OrderID = notification.OrderID,
                 CourseID = notification.CourseID,
                 TruckID = notification.TruckID,
-                CanRespond = notification.CanRespond,
+                CanRespond = false,
                 CreatedAt = DateTime.UtcNow,
             });
 

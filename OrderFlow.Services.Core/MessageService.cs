@@ -21,6 +21,20 @@ namespace OrderFlow.Services.Core
             if (createNotificationMessageViewModel.SenderID == null)
                 throw new ArgumentException("SenderID cannot be null.");
 
+            if (!createNotificationMessageViewModel.NotificationID.HasValue)
+                throw new ArgumentException("NotificationID cannot be null.");
+
+            Notification? notification = await this.All<Notification>()
+                                                   .AsNoTracking()
+                                                   .SingleOrDefaultAsync(n =>
+                                                       n.NotificationID == createNotificationMessageViewModel.NotificationID.Value);
+
+            if (notification == null)
+                throw new KeyNotFoundException("Notification was not found.");
+
+            if (notification.SenderID == null || !notification.CanRespond)
+                throw new InvalidOperationException("System or non-responsive notifications cannot contain messages.");
+
             var message = new Message
             {
                 Content = createNotificationMessageViewModel.Content,

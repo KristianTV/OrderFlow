@@ -36,6 +36,18 @@ namespace OrderFlow.Tests.Services
             var senderId = Guid.NewGuid();
             var receiverId = Guid.NewGuid();
             var notificationId = Guid.NewGuid();
+            await _context.Notifications.AddAsync(new Notification
+            {
+                NotificationID = notificationId,
+                Title = "Staff notification",
+                Message = "You can respond to this notification.",
+                SenderID = senderId,
+                ReceiverID = receiverId,
+                CanRespond = true,
+                CreatedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+
             var model = new CreateNotificationMessageViewModel
             {
                 Content = "Test message",
@@ -56,6 +68,32 @@ namespace OrderFlow.Tests.Services
             Assert.That(message.IsRead, Is.False);
             Assert.That(message.IsDeleted, Is.False);
             Assert.That(message.SentAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
+        }
+
+        [Test]
+        public async Task CreateMessageAsync_RejectsSystemNotification()
+        {
+            var notification = new Notification
+            {
+                NotificationID = Guid.NewGuid(),
+                Title = "System notification",
+                Message = "This notification cannot be answered.",
+                ReceiverID = Guid.NewGuid(),
+                SenderID = null,
+                CanRespond = false,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _context.Notifications.AddAsync(notification);
+            await _context.SaveChangesAsync();
+
+            var model = new CreateNotificationMessageViewModel
+            {
+                Content = "Reply",
+                SenderID = notification.ReceiverID,
+                NotificationID = notification.NotificationID
+            };
+
+            Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateMessageAsync(model));
         }
 
         [Test]

@@ -17,6 +17,19 @@ namespace OrderFlow.Data.Configuration
             builder.HasOne(co => co.TruckCourse)
                  .WithMany(tc => tc.CourseOrders)
                  .HasForeignKey(co => co.TruckCourseID);
+
+            builder.HasData(SeedCourseOrders());
+        }
+
+        private List<CourseOrder> SeedCourseOrders()
+        {
+            return Enumerable.Range(0, SeedDataIds.AssignedOrdersCount)
+                .Select(orderIndex => new CourseOrder
+                {
+                    TruckCourseID = SeedDataIds.CourseIds[orderIndex / 2],
+                    OrderID = SeedDataIds.OrderIds[orderIndex]
+                })
+                .ToList();
         }
     }
 }
